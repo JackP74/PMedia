@@ -85,7 +85,7 @@
             </ListView.View>
         </ListView>
 
-        <Button x:Name="Close" Content="Close" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Margin="1,1,1,1" Style="{DynamicResource SimpleButton}" Background="Transparent" BorderBrush="Transparent" Focusable="False" Foreground="#4eadfe" Click="Close_Click" />
+        <Button x:Name="BtnClose" Content="Close" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Margin="1,1,1,1" Style="{DynamicResource SimpleButton}" Background="Transparent" BorderBrush="Transparent" Focusable="False" Foreground="#4eadfe" Click="BtnClose_Click" />
 
 
     </Grid>

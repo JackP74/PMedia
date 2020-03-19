@@ -74,12 +74,27 @@ namespace PMedia
             }
         }
 
+        public int Rate
+        {
+            set
+            {
+                mainSettings.Rate = value;
+                NeedsSaving = true;
+            }
+
+            get
+            {
+                return mainSettings.Rate;
+            }
+        }
+
         [Serializable] internal struct MainSettings
         {
             public int Jump;
             public int Volume;
             public bool IsMute;
-            public int Autoplay; 
+            public int Autoplay;
+            public int Rate;
         }
 
         public Settings()
@@ -89,7 +104,8 @@ namespace PMedia
                 Jump = 10,
                 Volume = 100,
                 IsMute = false,
-                Autoplay = 15
+                Autoplay = 15,
+                Rate = 1
             };
 
             SoapFormat = new SoapFormatter();
@@ -125,6 +141,7 @@ namespace PMedia
                 Volume = 100;
                 IsMute = false;
                 Autoplay = 15;
+                Rate = 1;
 
                 Save();
             }

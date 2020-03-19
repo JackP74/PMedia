@@ -3,13 +3,11 @@ using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using System.Timers;
 using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.IO;
-using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using MessageCustomHandler;
@@ -19,11 +17,12 @@ using System.Windows.Media;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.ComponentModel;
 #endregion
 
 namespace PMedia
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : INotifyPropertyChanged
     {
         #region "Win32 Imports"
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -34,6 +33,12 @@ namespace PMedia
         #endregion
 
         #region "Variables"
+        public event PropertyChangedEventHandler PropertyChanged;
+        private string playBtnTxt = "Play";
+        private string speedText = "Speed (1x)";
+        private string jumpText = "Jump (10s)";
+        private string aspectRatio = string.Empty;
+
         private readonly Settings settings;
         MediaPlayer mediaPlayer;
         private LibVLC libVLC;
@@ -60,7 +65,94 @@ namespace PMedia
         #endregion
 
         #region "Proprieties"
-        //public string PlayButtonText = "Play";
+        public System.Drawing.Point Location
+        {
+            get
+            {
+                return new System.Drawing.Point(rect.Left, rect.Top);
+            }
+            set
+            {
+                Left = value.X;
+                Top = value.Y;
+            }
+        }
+
+        public string PlayBtnTxt
+        {
+            get
+            {
+                return playBtnTxt;
+            }
+
+            set
+            {
+                playBtnTxt = value;
+
+                if (value.ToLower().Trim() == "play")
+                {
+                    if (btnPlay.Dispatcher.CheckAccess())
+                    {
+                        btnPlayImage.Source = ImageResource(Images.btnPlay);
+                        MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
+                    }
+                    else
+                    {
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            btnPlayImage.Source = ImageResource(Images.btnPlay);
+                            MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
+                        });
+                    }
+                }
+                else
+                {
+                    if (btnPlay.Dispatcher.CheckAccess())
+                    {
+                        btnPlayImage.Source = ImageResource(Images.btnPause);
+                        MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
+                    }
+                    else
+                    {
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            btnPlayImage.Source = ImageResource(Images.btnPause);
+                            MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
+                        });
+                    }
+                       
+                }
+
+                OnPropertyChanged("PlayBtnTxt");
+            }
+        }
+
+        public string SpeedText
+        {
+            get
+            {
+                return speedText;
+            }
+            set
+            {
+                speedText = value;
+                OnPropertyChanged("SpeedText");
+            }
+        }
+
+        public string JumpText
+        {
+            get
+            {
+                return jumpText;
+            }
+
+            set
+            {
+                jumpText = value;
+                OnPropertyChanged("JumpText");
+            }
+        }
 
         private bool Mute
         {
@@ -119,16 +211,24 @@ namespace PMedia
         {
             set
             {
-                SetSliderValue(VolumeSlider.VolumeSlider, value);
-                SetLabelContent(VolumeSlider.labelVolume, value.ToString() + @"%");
+                int FinalValue = value;
 
-                volume = value;
+                if (FinalValue > 200)
+                    FinalValue = 100;
+
+                if (FinalValue < 0)
+                    FinalValue = 0;
+
+                SetSliderValue(VolumeSlider.VolumeSlider, FinalValue);
+                SetLabelContent(VolumeSlider.labelVolume, FinalValue.ToString() + @"%");
+
+                volume = FinalValue;
 
                 if(mediaPlayer != null && mediaPlayer.Media != null)
                 {
                     StartThread(() =>
                     {
-                        mediaPlayer.Volume = value;
+                        mediaPlayer.Volume = FinalValue;
                     });
                 }
 
@@ -153,7 +253,7 @@ namespace PMedia
                 if (Mute == true)
                     Mute = false;
 
-                settings.Volume = value;
+                settings.Volume = FinalValue;
             }
             get
             {
@@ -161,37 +261,109 @@ namespace PMedia
             }
         }
 
-        public System.Drawing.Point Location
+        private int Speed
         {
-            get
-            {
-                
-
-                return new System.Drawing.Point(rect.Left, rect.Top);
-            }
             set
             {
-                Left = value.X;
-                Top = value.Y;
+                int FinalSpeed = value;
+
+                if (FinalSpeed < 1)
+                    FinalSpeed = 1;
+
+                if (FinalSpeed > 10)
+                    FinalSpeed = 10;
+
+                settings.Rate = FinalSpeed;
+
+                mediaPlayer.SetRate((float)FinalSpeed);
+
+                SpeedText = "Speed (" + FinalSpeed.ToString() + "x)";
+            }
+            get
+            {
+                return settings.Rate;
+            }
+        }
+
+        private int Jump
+        {
+            set
+            {
+                int FinalJump = value;
+
+                if (FinalJump < 1)
+                    FinalJump = 1;
+
+                if (FinalJump > 120)
+                    FinalJump = 120;
+
+                settings.Jump = FinalJump;
+
+                JumpText = "Jump (" + FinalJump.ToString() + "s)";
+            }
+
+            get
+            {
+                return settings.Jump;
+            }
+        }
+
+        private string AspectRatio
+        {
+            set
+            {
+                aspectRatio = value;
+                mediaPlayer.AspectRatio = aspectRatio;
+            }
+
+            get
+            {
+                return aspectRatio;
             }
         }
         #endregion
 
-        #region "Enums"
+        #region "Enums & Structs"
         private enum Direction
         {
             Forward = 0,
             Backward = 1
         }
-        #endregion
 
-        #region "Structs"
-        public struct Rect
+        internal struct Rect
         {
             public int Left { get; set; }
             public int Top { get; set; }
             public int Right { get; set; }
             public int Bottom { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                    return false;
+
+                if (obj is Rect cObj)
+                {
+                    return (Left == cObj.Left && Top == cObj.Top && Right == cObj.Right && Bottom == cObj.Bottom);
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return (Left.ToString() + Top.ToString() + Right.ToString() + Bottom.ToString()).GetHashCode();
+            }
+
+            public static bool operator ==(Rect left, Rect right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(Rect left, Rect right)
+            {
+                return !(left == right);
+            }
         }
         #endregion
 
@@ -284,7 +456,7 @@ namespace PMedia
             JumpTimer.Elapsed += delegate
             {
 
-                if (settings.Jump == 0)
+                if (Jump == 0)
                     throw new Exception("Jump value cannot be 0");
 
                 if (jumpCommands.Count <= 0)
@@ -351,54 +523,50 @@ namespace PMedia
 
         private void CreateTitleTimer()
         {
-            //Doesn't work, labelTitle - no way to get actual width and not render size yet
-            return;
+            //System.Windows.Forms.Timer TitleTimer = new System.Windows.Forms.Timer();
+            //TitleTimer.Interval = 40;
 
+            //TitleTimer.Tick += delegate
+            //{
 
-            System.Windows.Forms.Timer TitleTimer = new System.Windows.Forms.Timer();
-            TitleTimer.Interval = 40;
+            //    if (labelTitle.Width <= labelTitlePanel.Width)
+            //        return;
 
-            TitleTimer.Tick += delegate
-            {
+            //    switch (textDirection)
+            //    {
+            //        case Direction.Forward:
+            //            {
+            //                if (Math.Abs(labelTitle.Margin.Left) < Math.Abs(labelTitle.Width - labelTitlePanel.Width))
+            //                {
+            //                    labelTitle.Margin = new Thickness(labelTitle.Margin.Left - 1, 0, 0, 0);
+            //                }
+            //                else
+            //                {
+            //                    //labelTitle.Margin = new Thickness(-Math.Abs(labelTitle.Width - labelTitlePanel.Width), 0, 0, 0);
+            //                    textDirection = Direction.Backward;
+            //                }
 
-                if (labelTitle.Width <= labelTitlePanel.Width)
-                    return;
+            //                break;
+            //            }
 
-                switch (textDirection)
-                {
-                    case Direction.Forward:
-                        {
-                            if (Math.Abs(labelTitle.Margin.Left) < Math.Abs(labelTitle.Width - labelTitlePanel.Width))
-                            {
-                                labelTitle.Margin = new Thickness(labelTitle.Margin.Left - 1, 0, 0, 0);
-                            }
-                            else
-                            {
-                                //labelTitle.Margin = new Thickness(-Math.Abs(labelTitle.Width - labelTitlePanel.Width), 0, 0, 0);
-                                textDirection = Direction.Backward;
-                            }
+            //        case Direction.Backward:
+            //            {
 
-                            break;
-                        }
+            //                break;
+            //            }
 
-                    case Direction.Backward:
-                        {
+            //        default:
+            //            {
+            //                textDirection = Direction.Forward;
+            //                labelTitle.Margin = new Thickness(0);
 
-                            break;
-                        }
+            //                break;
+            //            }
+            //    }
 
-                    default:
-                        {
-                            textDirection = Direction.Forward;
-                            labelTitle.Margin = new Thickness(0);
+            //};
 
-                            break;
-                        }
-                }
-
-            };
-
-            TitleTimer.Start();
+            //TitleTimer.Start();
         }
 
         private void CreateMouseTimer()
@@ -510,6 +678,9 @@ namespace PMedia
         {
             InitializeComponent();
 
+            DataContext = this;
+            PlayBtnTxt = "Play";
+
             string vlcPath = AppDomain.CurrentDomain.BaseDirectory;
             if (Environment.Is64BitProcess == true) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
@@ -591,46 +762,20 @@ namespace PMedia
         }
         #endregion
 
-        #region "MediaPlayer Functions"
-        private void StopMediaPlayer()
-        {
-            ThreadPool.QueueUserWorkItem(_ => {
-                this.mediaPlayer.Stop();
-
-                if (this.mediaPlayer.Media != null)
-                    this.mediaPlayer.Media.Dispose();
-            });
-        }
-
-        private BitmapImage ImageResource(string pathInApplication, Assembly assembly = null)
-        {
-            if (assembly == null)
-            {
-                assembly = Assembly.GetCallingAssembly();
-            }
-
-            if (pathInApplication[0] == '/')
-            {
-                pathInApplication = pathInApplication.Substring(1);
-            }
-            return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
-        }
-        #endregion
-
-        #region "MediaPlayer Handles"
+        #region "MediaPlayer"
         private void MediaPlayer_Playing(object sender, EventArgs e)
         {
-            StartThread(() =>
+            this.Dispatcher.Invoke(() =>
             {
-                SetImage(btnPlayImage, Images.btnPause);
+                PlayBtnTxt = "Pause";
             });
         }
 
         private void MediaPlayer_Paused(object sender, EventArgs e)
         {
-            StartThread(() =>
+            this.Dispatcher.Invoke(() =>
             {
-                SetImage(btnPlayImage, Images.btnPlay);
+                PlayBtnTxt = "Play";
             });
         }
 
@@ -659,6 +804,8 @@ namespace PMedia
                 {
                     mediaPlayer.Volume = Volume;
                 }
+
+                mediaPlayer.SetRate((float)Speed);
                     
             });
         }
@@ -683,7 +830,11 @@ namespace PMedia
 
         private void MediaPlayer_Stopped(object sender, EventArgs e)
         {
-            SetImage(btnPlayImage, Images.btnPlay);
+            this.Dispatcher.Invoke(() =>
+            {
+                PlayBtnTxt = "Play";
+            });
+
             SetLabelContent(labelTitle, string.Empty);
 
             SetLabelContent(labelPosition, "00:00:00");
@@ -694,7 +845,32 @@ namespace PMedia
 
             if (mediaPlayer.Media != null)
                 mediaPlayer.Media.Dispose();
+
             mediaPlayer.Media = null;
+        }
+
+        private void StopMediaPlayer()
+        {
+            ThreadPool.QueueUserWorkItem(_ => {
+                this.mediaPlayer.Stop();
+
+                if (this.mediaPlayer.Media != null)
+                    this.mediaPlayer.Media.Dispose();
+            });
+        }
+
+        private BitmapImage ImageResource(string pathInApplication, Assembly assembly = null)
+        {
+            if (assembly == null)
+            {
+                assembly = Assembly.GetCallingAssembly();
+            }
+
+            if (pathInApplication[0] == '/')
+            {
+                pathInApplication = pathInApplication.Substring(1);
+            }
+            return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
         }
         #endregion
 
@@ -729,6 +905,7 @@ namespace PMedia
             {
                 CMBox.Show("Error", "Couldn't initialize thumb", MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
             }
+
         }
 
         private void VideoView_Loaded(object sender, RoutedEventArgs e)
@@ -801,6 +978,26 @@ namespace PMedia
             this.Close();
         }
 
+        private void MenuPlaybackVolumeUp_Click(object sender, RoutedEventArgs e)
+        {
+            Volume += 5;
+        }
+
+        private void MenuPlaybackVolumeDown_Click(object sender, RoutedEventArgs e)
+        {
+            Volume -= 5;
+        }
+
+        private void SliderSpeed_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Speed = Convert.ToInt32(e.NewValue);
+        }
+
+        private void SliderJump_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Jump = Convert.ToInt32(e.NewValue);
+        }
+
         // UI Button Controls
         private void BtnPlay_Click(object sender, RoutedEventArgs e)
         {
@@ -830,7 +1027,7 @@ namespace PMedia
         {
             if(mediaPlayer.IsSeekable)
             {
-                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, settings.Jump));
+                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
             }
         }
 
@@ -838,7 +1035,7 @@ namespace PMedia
         {
             if(mediaPlayer.IsSeekable)
             {
-                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, settings.Jump));
+                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
             }
         }
 
@@ -929,10 +1126,47 @@ namespace PMedia
             }
         }
 
+        // Others
+        private void OnPropertyChanged(string info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
         #endregion
 
+        private void MenuSettingsVideoAspectRatio_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.MenuItem cBtn)
+            {
+                if (cBtn.Header is TextBlock cTxt)
+                {
+                    string CustomSelection = cTxt.Text;
+
+                    switch (CustomSelection)
+                    {
+                        case "Custom":
+                            {
 
 
-        public string PlayBtnTxt { get; set; } = "play";
+                                break;  
+                            }
+
+                        case "Reset":
+                            {
+                                AspectRatio = string.Empty;
+                                break;
+                            }
+
+                        default:
+                            {
+                                if (CustomSelection.Contains(":") == false)
+                                    break;
+
+                                AspectRatio = CustomSelection;
+                                break;
+                            }
+                    }
+                }
+            }
+        }
     }
 }

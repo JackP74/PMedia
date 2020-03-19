@@ -93,6 +93,16 @@ namespace PMedia.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap btnEdit {
+            get {
+                object obj = ResourceManager.GetObject("btnEdit", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap btnFile {
             get {
                 object obj = ResourceManager.GetObject("btnFile", resourceCulture);
@@ -283,6 +293,26 @@ namespace PMedia.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap btnSelectTrack {
+            get {
+                object obj = ResourceManager.GetObject("btnSelectTrack", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap btnSet {
+            get {
+                object obj = ResourceManager.GetObject("btnSet", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap btnSettings {
             get {
                 object obj = ResourceManager.GetObject("btnSettings", resourceCulture);
@@ -316,6 +346,16 @@ namespace PMedia.Properties {
         internal static System.Drawing.Bitmap btnSubtitle {
             get {
                 object obj = ResourceManager.GetObject("btnSubtitle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap btnTrash {
+            get {
+                object obj = ResourceManager.GetObject("btnTrash", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

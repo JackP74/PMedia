@@ -85,9 +85,9 @@ namespace PMedia
             }
         }
 
-        private void Close_Click(object sender, RoutedEventArgs e)
+        private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         internal class MediaInfo
