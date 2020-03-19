@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMedia"
         mc:Ignorable="d"
-        Title="MediaInfoWindow" Height="500" Width="450" Background="#333333">
+        Title="MediaInfoWindow" Height="500" Width="450" Background="#333333" ResizeMode="NoResize">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -20,16 +20,73 @@
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="470*"></RowDefinition>
-            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="23"></RowDefinition>
         </Grid.RowDefinitions>
-        <ListView HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="0">
+
+        <ListView x:Name="InfoList" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="0" Background="Transparent" BorderBrush="Transparent" Foreground="#4eadfe" BorderThickness="0" Focusable="False">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="{x:Type ListViewItem}">
+
+                    <Setter Property="Padding" Value="5,5,5,5" />
+                    <Setter Property="MaxHeight" Value="20" />
+                    <Setter Property="MinHeight" Value="20" />
+
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Foreground" Value="#4eadfe" />
+                            <Setter Property="Background" Value="#444444" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Padding" Value="5,5,5,5" />
+                            <Setter Property="MaxHeight" Value="20" />
+                            <Setter Property="MinHeight" Value="20" />
+                        </Trigger>
+                        
+                        <Trigger Property="IsSelected" Value="true">
+                            <Setter Property="Foreground" Value="#4eadfe" />
+                            <Setter Property="Background" Value="#1d1d1d" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Padding" Value="5,5,5,5" />
+                            <Setter Property="MaxHeight" Value="20" />
+                            <Setter Property="MinHeight" Value="20" />
+                        </Trigger>
+                        
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="auto" Header="Name"/>
-                    <GridViewColumn Width="auto" Header="Value"/>
+                    <GridViewColumn x:Name="ColumnName" Width="150" Header="Name"/>
+                    <GridViewColumn x:Name="ColumnValue" Width="250" Header="Value" />
+
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
+                                        <Border BorderThickness="0,0,0,1" BorderBrush="Black" Background="Transparent">
+                                            <TextBlock x:Name="ContentHeader" Text="{TemplateBinding Content}" Padding="5,5,5,5" Width="{TemplateBinding Width}" TextAlignment="Left" Foreground="#4eadfe" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="OverridesDefaultStyle" Value="True" />
+
+                            <Setter Property="BorderThickness" Value="0"></Setter>
+                            <Setter Property="BorderBrush" Value="#1d1d1d"></Setter>
+                            <Setter Property="Margin" Value="0,0,0,0"></Setter>
+                            <Setter Property="Height" Value="Auto"></Setter>
+                            <Setter Property="Background" Value="#333333"></Setter>
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
                 </GridView>
+                
+                
             </ListView.View>
         </ListView>
+
+        <Button x:Name="Close" Content="Close" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Margin="1,1,1,1" Style="{DynamicResource SimpleButton}" Background="Transparent" BorderBrush="Transparent" Focusable="False" Foreground="#4eadfe" Click="Close_Click" />
+
 
     </Grid>
 </Window>

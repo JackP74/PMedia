@@ -37,6 +37,7 @@ namespace PMedia
         private readonly Settings settings;
         MediaPlayer mediaPlayer;
         private LibVLC libVLC;
+        private readonly Random random = new Random(DateTime.Now.Year * DateTime.Now.Second - DateTime.Now.Month);
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
@@ -59,6 +60,8 @@ namespace PMedia
         #endregion
 
         #region "Proprieties"
+        //public string PlayButtonText = "Play";
+
         private bool Mute
         {
             set
@@ -534,6 +537,24 @@ namespace PMedia
             newThread.Start();
         }
                     
+        private int GetRandom(int Min, int Max)
+        {
+            try
+            {
+                if (Min > Max)
+                    return random.Next(Max, Min + 1);
+
+                if (Min == Max)
+                    return Min;
+
+                return random.Next(Min, Max + 1);
+            }
+            catch
+            {
+                return Min;
+            }
+        }
+
         private void NewFile()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog()
@@ -753,6 +774,33 @@ namespace PMedia
             }
         }
 
+        // Top Menu
+        private void MenuFileMediaInfo_Click(object sender, RoutedEventArgs e)
+        {
+            MediaInfoWindow frmInfo = new MediaInfoWindow(mediaPlayer.Media);
+            frmInfo.ShowDialog();
+        }
+
+        private void MenuFileScreenShot_Click(object sender, RoutedEventArgs e)
+        {
+            StartThread(() =>
+            {
+                string ScreenShotLocation = AppDomain.CurrentDomain.BaseDirectory + @"\Screenshots";
+
+                if (Directory.Exists(ScreenShotLocation) == false)
+                    Directory.CreateDirectory(ScreenShotLocation);
+
+                string CurrentScreenShotLocation = ScreenShotLocation + @"\ScreenShot-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-" + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + "-" + DateTime.Now.Millisecond.ToString() + "-" + GetRandom(100000, 999999).ToString() + ".png";
+
+                mediaPlayer.TakeSnapshot(0, CurrentScreenShotLocation, 0, 0);
+            });
+        }
+
+        private void MenuFileQuit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
         // UI Button Controls
         private void BtnPlay_Click(object sender, RoutedEventArgs e)
         {
@@ -775,11 +823,7 @@ namespace PMedia
 
         private void BtnStop_Click(object sender, RoutedEventArgs e)
         {
-            if (mediaPlayer.IsPlaying || mediaPlayer.State == VLCState.Paused)
-            {
-                StopMediaPlayer();
-            }
-
+            StopMediaPlayer();
         }
 
         private void BtnForward_Click(object sender, RoutedEventArgs e)
@@ -884,11 +928,11 @@ namespace PMedia
 
             }
         }
+
         #endregion
 
-        private void MenuFileMediaInfo_Click(object sender, RoutedEventArgs e)
-        {
 
-        }
+
+        public string PlayBtnTxt { get; set; } = "play";
     }
 }

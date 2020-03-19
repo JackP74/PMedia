@@ -65,7 +65,7 @@
       <HintPath>..\packages\LibVLCSharp.WPF.3.4.2\lib\net461\LibVLCSharp.WPF.dll</HintPath>
     </Reference>
     <Reference Include="MessageCustomHandler">
-      <HintPath>C:\Users\PeterJack\Desktop\others\MessageCustomHandler.dll</HintPath>
+      <HintPath>..\..\..\..\Desktop\others\MessageCustomHandler.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -126,6 +126,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MenuControls.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\GridViewColumnStyle.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
