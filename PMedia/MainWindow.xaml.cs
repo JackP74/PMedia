@@ -19,6 +19,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.ComponentModel;
 using CustomDialogs;
+using MenuItem = System.Windows.Controls.MenuItem;
 #endregion
 
 namespace PMedia
@@ -843,7 +844,113 @@ namespace PMedia
                 }
 
                 mediaPlayer.SetRate((float)Speed);
-                    
+
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.MenuSettingsVideoTracks.Items.Clear();
+                    this.MenuSettingsAudioTracks.Items.Clear();
+                    this.MenuSettingsSubtitleTracks.Items.Clear();
+
+                    MenuItem menuDisableVideo = new MenuItem { Header = "Disable", Style = MenuSettingsVideoTracks.Style, Name = "VideoD" };
+                    menuDisableVideo.Click += MenuTrackDisable_Click;
+
+                    MenuItem menuDisableAudio = new MenuItem { Header = "Disable",  Style = MenuSettingsVideoTracks.Style, Name = "AudioD" };
+                    menuDisableAudio.Click += MenuTrackDisable_Click;
+
+                    MenuItem menuDisableSubtitle = new MenuItem { Header = "Disable", Style = MenuSettingsVideoTracks.Style, Name = "SubtitleD"};
+                    menuDisableSubtitle.Click += MenuTrackDisable_Click;
+
+                    this.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
+                    this.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
+                    this.MenuSettingsSubtitleTracks.Items.Add(menuDisableSubtitle);
+                });
+
+                foreach(MediaTrack mediaTrack in e.Media.Tracks)
+                {
+                    try
+                    {
+                        string TrackName = string.Empty;
+                        int TrackID = mediaTrack.Id;
+
+                        if (mediaTrack.Description != null && string.IsNullOrWhiteSpace(mediaTrack.Description) == false && mediaTrack.Description != "und")
+                        {
+                            TrackName = mediaTrack.Description;
+
+                            if (mediaTrack.Language != null && string.IsNullOrWhiteSpace(mediaTrack.Language) == false && mediaTrack.Language != "und")
+                            {
+                                TrackName += mediaTrack.Language;
+                            }
+                        }
+                        else
+                        {
+                            if (mediaTrack.Language != null && string.IsNullOrWhiteSpace(mediaTrack.Language) == false && mediaTrack.Language != "und")
+                            {
+                                TrackName = mediaTrack.Language;
+                            }
+                        }
+
+                        if (string.IsNullOrWhiteSpace(TrackName))
+                            TrackName = "Track";
+                        
+                        switch(mediaTrack.TrackType)
+                        {
+                            case TrackType.Video:
+                                {
+                                    this.Dispatcher.Invoke(() =>
+                                    {
+                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+
+                                        newTrack.Click += delegate
+                                        {
+                                            mediaPlayer.SetVideoTrack(TrackID);
+                                        };
+
+                                        this.MenuSettingsVideoTracks.Items.Add(newTrack);
+                                    });
+
+                                    break;
+                                }
+
+                            case TrackType.Audio:
+                                {
+                                    this.Dispatcher.Invoke(() =>
+                                    {
+                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+
+                                        newTrack.Click += delegate
+                                        {
+                                            mediaPlayer.SetAudioTrack(TrackID);
+                                        };
+
+                                        this.MenuSettingsAudioTracks.Items.Add(newTrack);
+                                    });
+
+                                    break;
+                                }
+
+                            case TrackType.Text:
+                                {
+                                    this.Dispatcher.Invoke(() =>
+                                    {
+                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+
+                                        newTrack.Click += delegate
+                                        {
+                                            mediaPlayer.SetSpu(TrackID);
+                                        };
+
+                                        this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+                                    });
+
+                                    break;
+                                }
+
+                            default:
+                                break;
+                        }
+
+                    } catch { }
+                }
             });
         }
 
@@ -884,6 +991,13 @@ namespace PMedia
                 mediaPlayer.Media.Dispose();
 
             mediaPlayer.Media = null;
+
+            this.Dispatcher.Invoke(() =>
+            {
+                this.MenuSettingsVideoTracks.Items.Clear();
+                this.MenuSettingsAudioTracks.Items.Clear();
+                this.MenuSettingsSubtitleTracks.Items.Clear();
+            });
         }
 
         private void StopMediaPlayer()
@@ -1129,6 +1243,33 @@ namespace PMedia
         private void MenuSettingsSubtitleAutoSelect_Checked(object sender, RoutedEventArgs e)
         {
             AutoSubtitleSelect = MenuSettingsSubtitleAutoSelect.IsChecked;
+        }
+
+        private void MenuTrackDisable_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem dBtn)
+            {
+                switch(dBtn.Name)
+                {
+                    case "VideoD":
+                        {
+                            mediaPlayer.SetVideoTrack(-1);
+                            break;
+                        }
+
+                    case "AudioD":
+                        {
+                            mediaPlayer.SetAudioTrack(-1);
+                            break;
+                        }
+
+                    case "SubtitleD":
+                        {
+                            mediaPlayer.SetSpu(-1);
+                            break;
+                        }
+                }
+            }
         }
 
         // UI Button Controls
