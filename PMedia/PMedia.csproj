@@ -58,6 +58,9 @@
     <StartupObject>PMedia.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CustomDialogs">
+      <HintPath>..\..\..\..\Desktop\others\CustomDialogs.dll</HintPath>
+    </Reference>
     <Reference Include="LibVLCSharp, Version=3.4.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LibVLCSharp.3.4.2\lib\net471\LibVLCSharp.dll</HintPath>
     </Reference>
@@ -300,6 +303,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\btnSelectTrack.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\btnSwitch.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\btnAdd.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\VideoLAN.LibVLC.Windows.3.0.8.1\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Windows.3.0.8.1\build\VideoLAN.LibVLC.Windows.targets')" />

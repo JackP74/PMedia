@@ -18,6 +18,7 @@ using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.ComponentModel;
+using CustomDialogs;
 #endregion
 
 namespace PMedia
@@ -38,6 +39,7 @@ namespace PMedia
         private string speedText = "Speed (1x)";
         private string jumpText = "Jump (10s)";
         private string aspectRatio = string.Empty;
+        private AudioType audioMode = AudioType.None;
 
         private readonly Settings settings;
         MediaPlayer mediaPlayer;
@@ -321,6 +323,29 @@ namespace PMedia
                 return aspectRatio;
             }
         }
+
+        private AudioType AudioMode
+        {
+            set
+            {
+                audioMode = value;
+
+                if (audioMode == AudioType.None || audioMode == AudioType.Surround)
+                    mediaPlayer.SetChannel(AudioOutputChannel.Dolbys);
+
+                if (audioMode == AudioType.Stereo)
+                    mediaPlayer.SetChannel(AudioOutputChannel.Stereo);
+            }
+
+            get
+            {
+                return audioMode;
+            }
+        }
+
+        private bool AutoAudioSelect { set; get; }
+
+        private bool AutoSubtitleSelect { set; get; }
         #endregion
 
         #region "Enums & Structs"
@@ -328,6 +353,13 @@ namespace PMedia
         {
             Forward = 0,
             Backward = 1
+        }
+
+        private enum AudioType
+        {
+            Stereo = 0,
+            Surround = 1,
+            None = 2
         }
 
         internal struct Rect
@@ -726,6 +758,11 @@ namespace PMedia
             }
         }
 
+        private bool IsNumeric(string Input)
+        {
+            return int.TryParse(Input, out _);
+        }
+
         private void NewFile()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog()
@@ -890,6 +927,8 @@ namespace PMedia
             CreateMouseTimer();
 
             this.MouseLeave += MainWindow_MouseLeave;
+
+            System.Windows.Forms.Application.EnableVisualStyles();
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -996,6 +1035,100 @@ namespace PMedia
         private void SliderJump_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Jump = Convert.ToInt32(e.NewValue);
+        }
+
+        private void MenuSettingsVideoAspectRatio_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.MenuItem cBtn)
+            {
+                if (cBtn.Header is TextBlock cTxt)
+                {
+                    string CustomSelection = cTxt.Text;
+
+                    switch (CustomSelection)
+                    {
+                        case "Custom":
+                            {
+                                InputDialog newAspectRatio = new InputDialog()
+                                {
+                                    WindowTitle = "New Aspect Ratio",
+                                    MainInstruction = "Input format is {0}:{1}",
+                                    MaxLength = 10
+                                };
+
+                                if (newAspectRatio.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                                    break;
+
+                                string newInput = newAspectRatio.Input;
+
+                                if (newInput.Contains(":") == false)
+                                    break;
+
+                                if (newInput.Count(x => x == ':') != 1)
+                                    break;
+
+                                if (IsNumeric(newInput.Split(":".ToCharArray())[0]) && IsNumeric(newInput.Split(":".ToCharArray())[1]))
+                                    AspectRatio = newInput;
+
+                                break;
+                            }
+
+                        case "Reset":
+                            {
+                                AspectRatio = string.Empty;
+                                break;
+                            }
+
+                        default:
+                            {
+                                if (CustomSelection.Contains(":") == false)
+                                    break;
+
+                                AspectRatio = CustomSelection;
+                                break;
+                            }
+                    }
+                }
+            }
+        }
+
+        private void MenuSettingsAudioMode_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.MenuItem cBtn)
+            {
+                if (cBtn.Header is TextBlock cTxt)
+                {
+                    string CustomSelection = cTxt.Text;
+
+                    switch (CustomSelection)
+                    {
+                        case "Stereo":
+                            {
+                                AudioMode = AudioType.Stereo;
+                                break;
+                            }
+
+                        case "Surround":
+                            {
+                                AudioMode = AudioType.Surround;
+                                break;
+                            }
+
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void MenuSettingsAudioAutoSelect_Checked(object sender, RoutedEventArgs e)
+        {
+            AutoAudioSelect = MenuSettingsAudioAutoSelect.IsChecked;
+        }
+
+        private void MenuSettingsSubtitleAutoSelect_Checked(object sender, RoutedEventArgs e)
+        {
+            AutoSubtitleSelect = MenuSettingsSubtitleAutoSelect.IsChecked;
         }
 
         // UI Button Controls
@@ -1132,41 +1265,5 @@ namespace PMedia
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
         #endregion
-
-        private void MenuSettingsVideoAspectRatio_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.MenuItem cBtn)
-            {
-                if (cBtn.Header is TextBlock cTxt)
-                {
-                    string CustomSelection = cTxt.Text;
-
-                    switch (CustomSelection)
-                    {
-                        case "Custom":
-                            {
-
-
-                                break;  
-                            }
-
-                        case "Reset":
-                            {
-                                AspectRatio = string.Empty;
-                                break;
-                            }
-
-                        default:
-                            {
-                                if (CustomSelection.Contains(":") == false)
-                                    break;
-
-                                AspectRatio = CustomSelection;
-                                break;
-                            }
-                    }
-                }
-            }
-        }
     }
 }
