@@ -544,7 +544,7 @@
 
         </Menu>
 
-        <uc:VideoView x:Name="VideoView" Background="Black"  Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,299,0,0">
+        <uc:VideoView x:Name="VideoView" Background="Black"  Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0">
             <Grid>
                 <TextBlock Opacity=".85" Margin="0,15,15,0" HorizontalAlignment="Right" Foreground="WhiteSmoke" FontSize="20" x:Name="txtOverlay"></TextBlock>
             </Grid>

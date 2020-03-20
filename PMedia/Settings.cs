@@ -11,12 +11,22 @@ namespace PMedia
 {
     class Settings
     {
-
         private MainSettings mainSettings;
         private readonly SoapFormatter SoapFormat;
         private readonly string filePath = AppDomain.CurrentDomain.BaseDirectory + @"\settings.ini";
 
         public bool NeedsSaving = false;
+
+        [Serializable] internal struct MainSettings
+        {
+            public int Jump;
+            public int Volume;
+            public bool IsMute;
+            public int Autoplay;
+            public int Rate;
+            public bool AutoAudio;
+            public bool AutoSubtitle;
+        }
 
         public int Jump
         {
@@ -88,13 +98,31 @@ namespace PMedia
             }
         }
 
-        [Serializable] internal struct MainSettings
+        public bool AutoAudio
         {
-            public int Jump;
-            public int Volume;
-            public bool IsMute;
-            public int Autoplay;
-            public int Rate;
+            set
+            {
+                mainSettings.AutoAudio = value;
+                NeedsSaving = true;
+            }
+
+            get
+            {
+                return mainSettings.AutoAudio;
+            }
+        }
+
+        public bool AutoSubtitle
+        {
+            set
+            {
+                mainSettings.AutoSubtitle = value;
+            }
+
+            get
+            {
+                return mainSettings.AutoSubtitle;
+            }
         }
 
         public Settings()
@@ -105,7 +133,9 @@ namespace PMedia
                 Volume = 100,
                 IsMute = false,
                 Autoplay = 15,
-                Rate = 1
+                Rate = 1,
+                AutoAudio = true,
+                AutoSubtitle = true
             };
 
             SoapFormat = new SoapFormatter();

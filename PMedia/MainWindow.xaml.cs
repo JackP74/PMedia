@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using CustomDialogs;
 using MenuItem = System.Windows.Controls.MenuItem;
+using System.Text.RegularExpressions;
 #endregion
 
 namespace PMedia
@@ -51,9 +52,6 @@ namespace PMedia
         private static bool isSliderControl = false;
 
         readonly string TempPath = @"E:\qbittorrent\Avenue.5.S01E04.Then.Who.Was.That.on.the.Ladder.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv";
-
-        private bool isMute = false;
-        private int volume = 0;
 
         private Direction textDirection = Direction.Forward;
         private WindowState lastState = WindowState.Normal;
@@ -161,7 +159,7 @@ namespace PMedia
         {
             set
             {
-                isMute = value;
+                settings.IsMute = value;
 
                 if (value == true)
                 {
@@ -206,7 +204,7 @@ namespace PMedia
             }
             get
             {
-                return isMute;
+                return settings.IsMute;
             }
         }
 
@@ -225,7 +223,7 @@ namespace PMedia
                 SetSliderValue(VolumeSlider.VolumeSlider, FinalValue);
                 SetLabelContent(VolumeSlider.labelVolume, FinalValue.ToString() + @"%");
 
-                volume = FinalValue;
+                settings.Volume = FinalValue;
 
                 if(mediaPlayer != null && mediaPlayer.Media != null)
                 {
@@ -260,7 +258,7 @@ namespace PMedia
             }
             get
             {
-                return volume;
+                return settings.Volume;
             }
         }
 
@@ -278,7 +276,13 @@ namespace PMedia
 
                 settings.Rate = FinalSpeed;
 
-                mediaPlayer.SetRate((float)FinalSpeed);
+                if (mediaPlayer != null && mediaPlayer.Media != null)
+                {
+                    StartThread(() =>
+                    {
+                        mediaPlayer.SetRate((float)FinalSpeed);
+                    });
+                }
 
                 SpeedText = "Speed (" + FinalSpeed.ToString() + "x)";
             }
@@ -344,9 +348,31 @@ namespace PMedia
             }
         }
 
-        private bool AutoAudioSelect { set; get; }
+        private bool AutoAudioSelect 
+        { 
+            set
+            {
+                settings.AutoAudio = value;
+            }
 
-        private bool AutoSubtitleSelect { set; get; }
+            get
+            {
+                return settings.AutoAudio;
+            }
+        }
+
+        private bool AutoSubtitleSelect
+        {
+            set
+            {
+                settings.AutoSubtitle = value;
+            }
+
+            get
+            {
+                return settings.AutoSubtitle;
+            }
+        }
         #endregion
 
         #region "Enums & Structs"
@@ -723,6 +749,13 @@ namespace PMedia
             settings = new Settings();
             settings.Load();
 
+            Volume = settings.Volume;
+            Mute = settings.IsMute;
+            Speed = settings.Rate;
+            Jump = settings.Jump;
+            AutoAudioSelect = settings.AutoAudio;
+            AutoSubtitleSelect = settings.AutoSubtitle;
+
             jumpCommands = new List<JumpCommand>();
             SetLabelsColors();
 
@@ -798,6 +831,11 @@ namespace PMedia
                 });
             }
         }
+
+        private bool HasRegexMatch(string ToCompare, string RegexMatch)
+        {
+            return Regex.IsMatch(ToCompare, RegexMatch, RegexOptions.IgnoreCase);
+        }
         #endregion
 
         #region "MediaPlayer"
@@ -819,6 +857,9 @@ namespace PMedia
 
         private void MediaPlayer_MediaChanged(object sender, MediaPlayerMediaChangedEventArgs e)
         {
+            bool AudioSelected = false;
+            bool SubtitleSelected = false;
+
             StartThread(() =>
             {
                 int InSleep = 0;
@@ -878,7 +919,7 @@ namespace PMedia
 
                             if (mediaTrack.Language != null && string.IsNullOrWhiteSpace(mediaTrack.Language) == false && mediaTrack.Language != "und")
                             {
-                                TrackName += mediaTrack.Language;
+                                TrackName += @" - " + mediaTrack.Language;
                             }
                         }
                         else
@@ -925,6 +966,15 @@ namespace PMedia
                                         this.MenuSettingsAudioTracks.Items.Add(newTrack);
                                     });
 
+                                    if (AutoAudioSelect && AudioSelected == false)
+                                    {
+                                        if (HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
+                                        {
+                                            mediaPlayer.SetAudioTrack(TrackID);
+                                            AudioSelected = true;
+                                        }
+                                    }
+
                                     break;
                                 }
 
@@ -942,6 +992,15 @@ namespace PMedia
                                         this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
                                     });
 
+                                    if (AutoSubtitleSelect && SubtitleSelected == false)
+                                    {
+                                        if (HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
+                                        {
+                                            mediaPlayer.SetSpu(TrackID);
+                                            SubtitleSelected = true;
+                                        }
+                                    }
+
                                     break;
                                 }
 
@@ -951,6 +1010,20 @@ namespace PMedia
 
                     } catch { }
                 }
+
+                ProcessShow(new System.IO.FileInfo(System.Net.WebUtility.UrlDecode(new Uri(e.Media.Mrl).AbsolutePath)).Name);
+            });
+        }
+
+        private void ProcessShow(string FileName)
+        {
+            StartThread(() =>
+            {
+                TvShow tvShow = new TvShow();
+
+                EpisodeInfo episodeInfo = tvShow.ParseFile(FileName);
+
+                CMBox.Show(episodeInfo.ToString());
             });
         }
 

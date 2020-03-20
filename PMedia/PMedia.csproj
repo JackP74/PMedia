@@ -95,16 +95,11 @@
     </ApplicationDefinition>
     <Compile Include="Drawings.cs" />
     <Compile Include="FormattedSlider.cs" />
-    <Compile Include="MediaControls.xaml.cs">
-      <DependentUpon>MediaControls.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MediaInfoWindow.xaml.cs">
       <DependentUpon>MediaInfoWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MenuControls.xaml.cs">
-      <DependentUpon>MenuControls.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="TvShow.cs" />
     <Compile Include="VolumeControl.xaml.cs">
       <DependentUpon>VolumeControl.xaml</DependentUpon>
     </Compile>
@@ -120,15 +115,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="MediaControls.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MediaInfoWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MenuControls.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
