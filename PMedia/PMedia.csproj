@@ -93,7 +93,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Drawings.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="FormattedSlider.cs" />
     <Compile Include="MediaInfoWindow.xaml.cs">
       <DependentUpon>MediaInfoWindow.xaml</DependentUpon>

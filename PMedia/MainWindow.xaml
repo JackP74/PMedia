@@ -216,11 +216,11 @@
                 </MenuItem.Header>
 
                 <MenuItem x:Name="MenuSettingsVideo" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0">
-                   
+
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVideo.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
-                    
+
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Video</TextBlock>
                     </MenuItem.Header>
@@ -307,7 +307,7 @@
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAudio.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
-                    
+
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Audio</TextBlock>
                     </MenuItem.Header>
@@ -544,7 +544,7 @@
 
         </Menu>
 
-        <uc:VideoView x:Name="VideoView" Background="Black"  Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0">
+        <uc:VideoView x:Name="VideoView" Background="Black" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid>
                 <TextBlock Opacity=".85" Margin="0,15,15,0" HorizontalAlignment="Right" Foreground="WhiteSmoke" FontSize="20" x:Name="txtOverlay"></TextBlock>
             </Grid>
