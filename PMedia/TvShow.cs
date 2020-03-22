@@ -521,7 +521,7 @@ namespace PMedia
 
             if (obj is EpisodeInfo cObj)
             {
-                return (IsTvShow == cObj.IsTvShow && Name == cObj.Name && Episode == cObj.Episode && SearchDir == cObj.SearchDir);
+                return (IsTvShow == cObj.IsTvShow && Name == cObj.Name && Episode == cObj.Episode && SearchDir == cObj.SearchDir && FilePath == cObj.FilePath);
             }
 
             return false;

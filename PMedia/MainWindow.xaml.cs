@@ -22,6 +22,8 @@ using MessageCustomHandler;
 using LibVLCSharp.Shared;
 using MenuItem = System.Windows.Controls.MenuItem;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
+using Label = System.Windows.Controls.Label;
+using Button = System.Windows.Controls.Button;
 #endregion
 
 namespace PMedia
@@ -32,6 +34,7 @@ namespace PMedia
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern IntPtr FindWindow(string strClassName, string strWindowName);
 
+        // WPF has no real X-Y location, this fixes that
         [DllImport("user32.dll")]
         private static extern bool GetWindowRect(IntPtr hwnd, ref Rect rectangle);
         #endregion
@@ -43,6 +46,8 @@ namespace PMedia
         private string jumpText = "Jump (10s)";
         private string aspectRatio = string.Empty;
         private AudioType audioMode = AudioType.None;
+        private readonly TvShow tvShow;
+        private bool IsLoading = true;
 
         private readonly Settings settings;
         MediaPlayer mediaPlayer;
@@ -52,18 +57,17 @@ namespace PMedia
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
 
-        readonly string TempPath = @"E:\qbittorrent\Avenue.5.S01E04.Then.Who.Was.That.on.the.Ladder.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv";
+        //readonly string TempPath = @"E:\qbittorrent\Avenue.5.S01E04.Then.Who.Was.That.on.the.Ladder.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv";
+        //private Direction textDirection = Direction.Forward;
 
-        private Direction textDirection = Direction.Forward;
         private WindowState lastState = WindowState.Normal;
-
         private const int TopSize = 23;
         private const int BottomSize = 40;
         private const int MouseOffset = 15;
 
         System.Windows.Forms.Timer MouseTimer;
 
-        Rect rect = new Rect();
+        Rect rect = new Rect(); // used in X-Y location
         #endregion
 
         #region "Proprieties"
@@ -252,7 +256,7 @@ namespace PMedia
                     SetImage(btnMuteImage, Images.btnVolume1);
                 }
 
-                if (Mute == true)
+                if (Mute == true && IsLoading == false) // IsLoading used so mute is loaded from settings
                     Mute = false;
 
                 settings.Volume = FinalValue;
@@ -632,7 +636,7 @@ namespace PMedia
             labelPosition.Foreground = linearGradientBrush;
         }
 
-        private void SetImage(System.Windows.Controls.Image image, string newImage)
+        private void SetImage(Image image, string newImage)
         {
             if (image.Dispatcher.CheckAccess()) // true
             {
@@ -647,7 +651,7 @@ namespace PMedia
             }
         }
 
-        private void SetLabelContent(System.Windows.Controls.Label label, string newText)
+        private void SetLabelContent(Label label, string newText)
         {
             try
             {
@@ -682,17 +686,40 @@ namespace PMedia
 
         private void SetSliderValue(Slider slider, int newValue)
         {
-            if (slider.Dispatcher.CheckAccess()) // true
+            try
             {
-                slider.Value = newValue;
-            }
-            else // false
-            {
-                slider.Dispatcher.Invoke(() =>
+                if (slider.Dispatcher.CheckAccess()) // true
                 {
                     slider.Value = newValue;
-                });
+                }
+                else // false
+                {
+                    slider.Dispatcher.Invoke(() =>
+                    {
+                        slider.Value = newValue;
+                    });
+                }
+
+            } catch { }
+        }
+
+        private void SetMenuItemEnable(MenuItem menuItem, bool enabled)
+        {
+            try
+            {
+                if (menuItem.Dispatcher.CheckAccess()) // true
+                {
+                    menuItem.IsEnabled = enabled;
+                }
+                else // false
+                {
+                    menuItem.Dispatcher.Invoke(() =>
+                    {
+                        menuItem.IsEnabled = enabled;
+                    });
+                }
             }
+            catch { }
         }
         #endregion
 
@@ -712,8 +739,8 @@ namespace PMedia
             settings = new Settings();
             settings.Load();
 
-            Volume = settings.Volume;
             Mute = settings.IsMute;
+            Volume = settings.Volume;
             Speed = settings.Rate;
             Jump = settings.Jump;
             AutoAudioSelect = settings.AutoAudio;
@@ -725,6 +752,11 @@ namespace PMedia
             this.Loaded += MainWindow_Loaded;
             this.ContentRendered += MainWindow_ContentRendered;
             this.StateChanged += MainWindow_StateChanged;
+
+            tvShow = new TvShow();
+
+            MenuPlaylistNext.IsEnabled = false;
+            MenuPlaylistPrevious.IsEnabled = false;
         }
 
         private void StartThread(ThreadStart newStart)
@@ -833,7 +865,11 @@ namespace PMedia
                     InSleep += 1;
                 }
 
-                SetLabelContent(labelTitle, new System.IO.FileInfo(System.Net.WebUtility.UrlDecode(new Uri(e.Media.Mrl).AbsolutePath)).Name);
+                FileInfo currentFile = new FileInfo(System.Net.WebUtility.UrlDecode(new Uri(e.Media.Mrl).AbsolutePath));
+
+                ProcessShow(currentFile.FullName);
+
+                SetLabelContent(labelTitle, currentFile.Name);
                 SetLabelContent(labelLenght, TimeSpan.FromMilliseconds(mediaPlayer.Media.Duration).ToString(@"hh\:mm\:ss"));
                 SetSliderValue(SliderMedia, 0);
                 SetSliderMaximum(SliderMedia, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
@@ -973,8 +1009,6 @@ namespace PMedia
 
                     } catch { }
                 }
-
-                ProcessShow(new System.IO.FileInfo(System.Net.WebUtility.UrlDecode(new Uri(e.Media.Mrl).AbsolutePath)).FullName);
             });
         }
 
@@ -982,11 +1016,10 @@ namespace PMedia
         {
             StartThread(() =>
             {
-                TvShow tvShow = new TvShow();
-
                 tvShow.Load(FileName);
 
-                CMBox.Show("title", tvShow.episodeList.Count().ToString(), MessageCustomHandler.Style.Info, Buttons.OK, null, string.Join(Environment.NewLine, tvShow.episodeList.Select(x => x.ToString())));
+                SetMenuItemEnable(MenuPlaylistNext, tvShow.HasNextEpisode());
+                SetMenuItemEnable(MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
             });
         }
 
@@ -1065,8 +1098,6 @@ namespace PMedia
         // Initial Loading
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            Volume = settings.Volume;
-
             VolumeSlider.VolumeSlider.ValueChanged += (s, nE) =>
             {
                 Volume = Convert.ToInt32(nE.NewValue);
@@ -1079,6 +1110,8 @@ namespace PMedia
             this.MouseLeave += MainWindow_MouseLeave;
 
             System.Windows.Forms.Application.EnableVisualStyles();
+
+            IsLoading = false;
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -1095,6 +1128,8 @@ namespace PMedia
                 CMBox.Show("Error", "Couldn't initialize thumb", MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
             }
 
+            // Can't set new image until old one is rendered, because fuck WPF
+            SetImage(btnMuteImage, Images.btnMute);
         }
 
         private void VideoView_Loaded(object sender, RoutedEventArgs e)
@@ -1244,7 +1279,7 @@ namespace PMedia
 
         private void MenuSettingsAudioMode_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is System.Windows.Controls.MenuItem cBtn)
+            if (sender is MenuItem cBtn)
             {
                 if (cBtn.Header is TextBlock cTxt)
                 {
@@ -1306,6 +1341,24 @@ namespace PMedia
                         }
                 }
             }
+        }
+
+        private void MenuPlaylistNext_Click(object sender, RoutedEventArgs e)
+        {
+            if (tvShow.HasNextEpisode() && tvShow.NextEpisode().IsTvShow)
+                OpenFile(tvShow.NextEpisode().FilePath);
+        }
+
+        private void MenuPlaylistPrevious_Click(object sender, RoutedEventArgs e)
+        {
+            if (tvShow.HasPreviousEpisode() && tvShow.PreviousEpisode().IsTvShow)
+                OpenFile(tvShow.PreviousEpisode().FilePath);
+        }
+
+        private void MenuPlaylistVideoList_Click(object sender, RoutedEventArgs e)
+        {
+            VideoListWindow videoListWindow = new VideoListWindow(tvShow);
+            videoListWindow.ShowDialog();
         }
 
         // UI Button Controls
@@ -1442,5 +1495,7 @@ namespace PMedia
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
         #endregion
+
+
     }
 }

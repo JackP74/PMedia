@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MessageCustomHandler;
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Soap;
 
@@ -160,7 +161,7 @@ namespace PMedia
             }
             catch (Exception e)
             {
-                System.IO.File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + @"\log.txt", Environment.NewLine + Environment.NewLine + e.ToString() + Environment.NewLine + Environment.NewLine, System.Text.Encoding.UTF8);
+                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + @"\log.txt", Environment.NewLine + Environment.NewLine + e.ToString() + Environment.NewLine + Environment.NewLine, System.Text.Encoding.UTF8);
 
                 Jump = 10;
                 Volume = 100;
