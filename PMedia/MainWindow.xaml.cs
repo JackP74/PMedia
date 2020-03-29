@@ -24,6 +24,9 @@ using MenuItem = System.Windows.Controls.MenuItem;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using Label = System.Windows.Controls.Label;
 using Button = System.Windows.Controls.Button;
+using KeyEventHandler = System.Windows.Input.KeyEventHandler;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using Slider = System.Windows.Controls.Slider;
 #endregion
 
 namespace PMedia
@@ -40,14 +43,19 @@ namespace PMedia
         #endregion
 
         #region "Variables"
+        Rect rect = new Rect(); // used in X-Y location
+
         public event PropertyChangedEventHandler PropertyChanged;
         private string playBtnTxt = "Play";
         private string speedText = "Speed (1x)";
         private string jumpText = "Jump (10s)";
+        private string autoPlayText = "Autoplay (5s)";
         private string aspectRatio = string.Empty;
         private AudioType audioMode = AudioType.None;
         private readonly TvShow tvShow;
         private bool IsLoading = true;
+        private bool onTop = false;
+        private bool gameMode = false;
 
         private readonly Settings settings;
         MediaPlayer mediaPlayer;
@@ -67,7 +75,7 @@ namespace PMedia
 
         System.Windows.Forms.Timer MouseTimer;
 
-        Rect rect = new Rect(); // used in X-Y location
+        private VideoListWindow videoListWindow;
         #endregion
 
         #region "Proprieties"
@@ -160,6 +168,20 @@ namespace PMedia
             }
         }
 
+        public string AutoPlayText
+        {
+            get
+            {
+                return autoPlayText;
+            }
+
+            set
+            {
+                autoPlayText = value;
+                OnPropertyChanged("AutoPlayText");
+            }
+        }
+
         private bool Mute
         {
             set
@@ -220,7 +242,7 @@ namespace PMedia
                 int FinalValue = value;
 
                 if (FinalValue > 200)
-                    FinalValue = 100;
+                    FinalValue = 200;
 
                 if (FinalValue < 0)
                     FinalValue = 0;
@@ -320,6 +342,28 @@ namespace PMedia
             }
         }
 
+        private int AutoPlay
+        {
+            set
+            {
+                int FinalAutoPlay = value;
+
+                if (FinalAutoPlay < 1)
+                    FinalAutoPlay = 1;
+
+                if (FinalAutoPlay > 120)
+                    FinalAutoPlay = 120;
+
+                settings.Autoplay = FinalAutoPlay;
+
+                AutoPlayText = "AutoPlay (" + FinalAutoPlay.ToString() + "s)";
+            }
+            get
+            {
+                return settings.Autoplay;
+            }
+        }
+
         private string AspectRatio
         {
             set
@@ -358,6 +402,8 @@ namespace PMedia
             set
             {
                 settings.AutoAudio = value;
+
+                SetMenuItemChecked(MenuSettingsAudioAutoSelect, value);
             }
 
             get
@@ -371,11 +417,44 @@ namespace PMedia
             set
             {
                 settings.AutoSubtitle = value;
+
+                SetMenuItemChecked(MenuSettingsSubtitleAutoSelect, value);
             }
 
             get
             {
                 return settings.AutoSubtitle;
+            }
+        }
+
+        private bool OnTop
+        {
+            set
+            {
+                onTop = value;
+
+                SetTopMost(value);
+
+                SetMenuItemChecked(MenuSettingsOnTop, value);
+            }
+            get
+            {
+                return onTop;
+            }
+        }
+
+        private bool GameMode
+        {
+            set
+            {
+                gameMode = value;
+
+                SetMenuItemChecked(MenuSettingsGameMode, value);
+            }
+
+            get
+            {
+                return gameMode;
             }
         }
         #endregion
@@ -602,6 +681,9 @@ namespace PMedia
             MouseTimer.Tick += delegate
             {
 
+                if (gameMode)
+                    return;
+
                 System.Drawing.Point curPos = System.Windows.Forms.Cursor.Position;
 
                 if (curPos.Y < (TopSize + MouseOffset) && curPos.X >= Location.X && curPos.X <= Location.X + this.ActualWidth)
@@ -721,6 +803,40 @@ namespace PMedia
             }
             catch { }
         }
+
+        private void SetMenuItemChecked(MenuItem menuItem, bool toCheck)
+        {
+            try
+            {
+                if (menuItem.Dispatcher.CheckAccess()) // true
+                {
+                    menuItem.IsChecked = toCheck;
+                }
+                else // false
+                {
+                    menuItem.Dispatcher.Invoke(() =>
+                    {
+                        menuItem.IsChecked = toCheck;
+                    });
+                }
+            }
+            catch { }
+        }
+
+        private void SetTopMost(bool newTopMost)
+        {
+            if (this.Dispatcher.CheckAccess())
+            {
+                this.Topmost = newTopMost;
+            }
+            else
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.Topmost = newTopMost;
+                });
+            }
+        }
         #endregion
 
         public MainWindow()
@@ -752,6 +868,7 @@ namespace PMedia
             this.Loaded += MainWindow_Loaded;
             this.ContentRendered += MainWindow_ContentRendered;
             this.StateChanged += MainWindow_StateChanged;
+            this.KeyDown += new KeyEventHandler(MainWindow_KeyDown);
 
             tvShow = new TvShow();
 
@@ -814,7 +931,7 @@ namespace PMedia
             }
         }
 
-        private void OpenFile(string FilePath)
+        public void OpenFile(string FilePath)
         {
             if (Extensions.IsVideo(FilePath))
             {
@@ -1112,6 +1229,11 @@ namespace PMedia
             System.Windows.Forms.Application.EnableVisualStyles();
 
             IsLoading = false;
+
+            videoListWindow = new VideoListWindow(tvShow)
+            {
+                Owner = this
+            };
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -1144,6 +1266,73 @@ namespace PMedia
             mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
             mediaPlayer.EndReached += MediaPlayer_EndReached;
             mediaPlayer.Stopped += MediaPlayer_Stopped;
+
+            
+        }
+
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space)
+            {
+                e.Handled = true;
+
+                if (mediaPlayer.State == VLCState.Paused)
+                {
+                    mediaPlayer.Play();
+                }
+                else if (mediaPlayer.CanPause == true)
+                {
+                    mediaPlayer.Pause();
+                }
+            }
+            if (e.Key == Key.Up)
+            {
+                e.Handled = true;
+                Volume += 5;
+            }
+            if (e.Key == Key.Down)
+            {
+                e.Handled = true;
+                Volume -= 5;
+            }
+            else if (e.Key == Key.Left)
+            {
+                e.Handled = true;
+
+                if (mediaPlayer.IsSeekable)
+                {
+                    jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
+                }
+            }
+            else if (e.Key == Key.Right)
+            {
+                e.Handled = true;
+
+                if (mediaPlayer.IsSeekable)
+                {
+                    jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
+                }
+            }
+            else if (e.Key == Key.F)
+            {
+                BtnFullscreen_Click(null, null);
+            }
+            else if (e.Key == Key.P)
+            {
+                MenuFileScreenShot_Click(null, null);
+            }
+            else if (e.Key == Key.End)
+            {
+                StopMediaPlayer();
+            }
+            else if (e.Key == Key.O)
+            {
+                OnTop = !OnTop;
+            }
+            else if (e.Key == Key.G)
+            {
+                GameMode = !GameMode;
+            }
         }
 
         // Form Events
@@ -1217,9 +1406,47 @@ namespace PMedia
             Speed = Convert.ToInt32(e.NewValue);
         }
 
+        private void SliderSpeed_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender == null)
+                return;
+
+            if (sender is Slider slider)
+            {
+                slider.Value = Speed;
+            }
+        }
+
         private void SliderJump_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Jump = Convert.ToInt32(e.NewValue);
+        }
+
+        private void SliderJump_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender == null)
+                return;
+
+            if (sender is Slider slider)
+            {
+                slider.Value = Jump;
+            }
+        }
+
+        private void SliderAutoplay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            AutoPlay = Convert.ToInt32(e.NewValue);
+        }
+
+        private void SliderAutoplay_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender == null)
+                return;
+
+            if (sender is Slider slider)
+            {
+                slider.Value = AutoPlay;
+            }
         }
 
         private void MenuSettingsVideoAspectRatio_Click(object sender, RoutedEventArgs e)
@@ -1316,6 +1543,16 @@ namespace PMedia
             AutoSubtitleSelect = MenuSettingsSubtitleAutoSelect.IsChecked;
         }
 
+        private void MenuSettingsOnTop_Click(object sender, RoutedEventArgs e)
+        {
+            OnTop = MenuSettingsOnTop.IsChecked;
+        }
+
+        private void MenuSettingsGameMode_Click(object sender, RoutedEventArgs e)
+        {
+            GameMode = MenuSettingsGameMode.IsChecked;
+        }
+
         private void MenuTrackDisable_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem dBtn)
@@ -1357,8 +1594,8 @@ namespace PMedia
 
         private void MenuPlaylistVideoList_Click(object sender, RoutedEventArgs e)
         {
-            VideoListWindow videoListWindow = new VideoListWindow(tvShow);
-            videoListWindow.ShowDialog();
+            videoListWindow.Show();
+            videoListWindow.SetTvShow(tvShow);
         }
 
         // UI Button Controls
@@ -1495,7 +1732,5 @@ namespace PMedia
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
         #endregion
-
-
     }
 }

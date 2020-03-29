@@ -10,6 +10,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/PMedia;component/Resources/ContextMenuStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Resources/SliderStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Resources/ToolTipStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Simple Styles.xaml" />
@@ -27,6 +28,22 @@
         <ListView x:Name="InfoList" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="0" Background="Transparent" 
                   BorderBrush="Transparent" Foreground="#4eadfe" BorderThickness="0" Focusable="False">
             
+            <ListView.ContextMenu >
+                <ContextMenu Style="{DynamicResource ContextMenuStyle}" Background="#333333" BorderThickness="1">
+                    <MenuItem Header="Copy" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe">
+                        <MenuItem x:Name="MenuCopyFile" Header="File" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe" Click="MenuCopy_Click"/>
+                        <MenuItem x:Name="MenuCopyFilePath" Header="File path" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe" Click="MenuCopy_Click"/>
+                        <MenuItem x:Name="MenuCopyDir" Header="Dir" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe" Click="MenuCopy_Click"/>
+                        <MenuItem x:Name="MenuCopyDirPath" Header="Dir path" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe" Click="MenuCopy_Click"/>
+                    </MenuItem>
+                    
+                    <MenuItem Header="Open" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe">
+                        <MenuItem x:Name="MenuOpenFile" Header="File" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe" Click="MenuOpen_Click"/>
+                        <MenuItem x:Name="MenuOpenDir" Header="Dir" Style="{DynamicResource SimpleMenuItem}" Margin="0,0,0,0" Foreground="#4eadfe" Click="MenuOpen_Click"/>
+                    </MenuItem>
+                </ContextMenu>
+            </ListView.ContextMenu>
+
             <ListView.ItemContainerStyle>
                 <Style TargetType="{x:Type ListViewItem}">
 

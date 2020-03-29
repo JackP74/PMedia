@@ -164,8 +164,22 @@ namespace PMedia
             previousEpisode = new EpisodeInfo();
         }
 
+        public TvShow(TvShow tvShow)
+        {
+            EmptyEpisode = new EpisodeInfo();
+            episodeList = tvShow.episodeList;
+            nextEpisode = tvShow.NextEpisode();
+            currentEpisode = tvShow.currentEpisode;
+            previousEpisode = tvShow.PreviousEpisode();
+        }
+
         public void Load(string FilePath)
         {
+            if (Patterns == null || Replacements == null)
+            {
+                throw new Exception("TvShow not made to load from an other TvShow");
+            }
+
             if (episodeList.Count() <= 0 || episodeList.Where(x => x.FilePath == FilePath).Count() <= 0) // Is not part of the current list
             {
                 // Clear everything
