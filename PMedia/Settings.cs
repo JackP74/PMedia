@@ -18,7 +18,8 @@ namespace PMedia
             public int Jump;
             public int Volume;
             public bool IsMute;
-            public int Autoplay;
+            public bool AutoPlay;
+            public int AutoPlayTime;
             public int Rate;
             public bool AutoAudio;
             public bool AutoSubtitle;
@@ -66,17 +67,31 @@ namespace PMedia
             }
         }
 
-        public int Autoplay
+        public bool AutoPlay
         {
             set
             {
-                mainSettings.Autoplay = value;
+                mainSettings.AutoPlay = value;
                 NeedsSaving = true;
             }
 
             get
             {
-                return mainSettings.Autoplay;
+                return mainSettings.AutoPlay;
+            }
+        }
+
+        public int AutoPlayTime
+        {
+            set
+            {
+                mainSettings.AutoPlayTime = value;
+                NeedsSaving = true;
+            }
+
+            get
+            {
+                return mainSettings.AutoPlayTime;
             }
         }
 
@@ -128,7 +143,8 @@ namespace PMedia
                 Jump = 10,
                 Volume = 100,
                 IsMute = false,
-                Autoplay = 15,
+                AutoPlay = false,
+                AutoPlayTime = 15,
                 Rate = 1,
                 AutoAudio = true,
                 AutoSubtitle = true
@@ -166,8 +182,11 @@ namespace PMedia
                 Jump = 10;
                 Volume = 100;
                 IsMute = false;
-                Autoplay = 15;
+                AutoPlay = false;
+                AutoPlayTime = 15;
                 Rate = 1;
+                AutoAudio = true;
+                AutoSubtitle = true;
 
                 Save();
             }

@@ -27,6 +27,7 @@ using Button = System.Windows.Controls.Button;
 using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 #endregion
 
 namespace PMedia
@@ -64,6 +65,7 @@ namespace PMedia
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
+        private Thread threadShutDown;
 
         //readonly string TempPath = @"E:\qbittorrent\Avenue.5.S01E04.Then.Who.Was.That.on.the.Ladder.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv";
         //private Direction textDirection = Direction.Forward;
@@ -342,7 +344,19 @@ namespace PMedia
             }
         }
 
-        private int AutoPlay
+        public bool AutoPlay
+        {
+            set
+            {
+                settings.AutoPlay = value;
+            }
+            get
+            {
+                return settings.AutoPlay;
+            }
+        }
+
+        private int AutoPlayTime
         {
             set
             {
@@ -354,13 +368,13 @@ namespace PMedia
                 if (FinalAutoPlay > 120)
                     FinalAutoPlay = 120;
 
-                settings.Autoplay = FinalAutoPlay;
+                settings.AutoPlayTime = FinalAutoPlay;
 
                 AutoPlayText = "AutoPlay (" + FinalAutoPlay.ToString() + "s)";
             }
             get
             {
-                return settings.Autoplay;
+                return settings.AutoPlayTime;
             }
         }
 
@@ -457,6 +471,8 @@ namespace PMedia
                 return gameMode;
             }
         }
+
+        private ShutDownCommand shutDownCmd;
         #endregion
 
         #region "Enums & Structs"
@@ -508,22 +524,58 @@ namespace PMedia
                 return !(left == right);
             }
         }
+
+        private enum ShutDownType
+        {
+            Cancel = 0,
+            After = 1,
+            AfterN = 2,
+            In = 3,
+            End = 4,
+            None = 5
+        }
         #endregion
 
         #region "Internal Classes"
         internal static class Images
         {
-            public static string btnPlay = "Resources/btnPlay.png";
-            public static string btnPause = "Resources/btnPause.png";
-            public static string btnStop = "Resources/btnStop.png";
-            public static string btnForward = "Resources/btnForward.png";
+            public static string btnAbout = "Resources/btnAbout.png";
+            public static string btnAdd = "Resources/btnAdd.png";
+            public static string btnAudio = "Resources/btnAudio.png";
             public static string btnBackward = "Resources/btnBackward.png";
-            public static string btnMute = "Resources/btnMute.png";
-            public static string btnVolume1 = "Resources/btnVolume1.png";
-            public static string btnVolume2 = "Resources/btnVolume2.png";
-            public static string btnVolume3 = "Resources/btnVolume3.png";
-            public static string btnFullScreenOn = "Resources/btnFullScreenOn.png";
+            public static string btnEdit = "Resources/btnEdit.png";
+            public static string btnFile = "Resources/btnFile.png";
+            public static string btnForward = "Resources/btnForward.png";
             public static string btnFullScreenOff = "Resources/btnFullScreenOff.png";
+            public static string btnFullScreenOn = "Resources/btnFullScreenOn.png";
+            public static string btnGameModeOff = "Resources/btnGameModeOff.png";
+            public static string btnGameModeOn = "Resources/btnGameModeOn.png";
+            public static string btnMediaInfo = "Resources/btnMediaInfo.png";
+            public static string btnMute = "Resources/btnMute.png";
+            public static string btnNext = "Resources/btnNext.png";
+            public static string btnOnTop = "Resources/btnOnTop.png";
+            public static string btnOpen = "Resources/btnOpen.png";
+            public static string btnPause = "Resources/btnPause.png";
+            public static string btnPlay = "Resources/btnPlay.png";
+            public static string btnPlayback = "Resources/btnPlayback.png";
+            public static string btnPlaylist = "Resources/btnPlaylist.png";
+            public static string btnPrevious = "Resources/btnPrevious.png";
+            public static string btnQuit = "Resources/btnQuit.png";
+            public static string btnRecent = "Resources/btnRecent.png";
+            public static string btnScreenShot = "Resources/btnScreenShot.png";
+            public static string btnSelectTrack = "Resources/btnSelectTrack.png";
+            public static string btnSet = "Resources/btnSet.png";
+            public static string btnSettings = "Resources/btnSettings.png";
+            public static string btnShutDown = "Resources/btnShutDown.png";
+            public static string btnStop = "Resources/btnStop.png";
+            public static string btnSubtitle = "Resources/btnSubtitle.png";
+            public static string btnSwitch = "Resources/btnSwitch.png";
+            public static string btnTrash = "Resources/btnTrash.png";
+            public static string btnVideo = "Resources/btnVideo.png";
+            public static string btnVideoList = "Resources/btnVideoList.png";
+            public static string btnVolume1 = "Resources/BtnVolume1.png";
+            public static string btnVolume2 = "Resources/BtnVolume2.png";
+            public static string btnVolume3 = "Resources/BtnVolume3.png";
         }
 
         internal class JumpCommand
@@ -542,6 +594,19 @@ namespace PMedia
                 this.direction = direction;
                 this.jump = jump;
             }
+        }
+
+        private class ShutDownCommand
+        {
+            public ShutDownType shutDownType;
+            public int Arg;
+
+            public ShutDownCommand(ShutDownType shutDownType, int Arg)
+            {
+                this.shutDownType = shutDownType;
+                this.Arg = Arg;
+            }
+
         }
         #endregion
 
@@ -839,6 +904,161 @@ namespace PMedia
         }
         #endregion
 
+        #region "ShutDown"
+        private void UnCheckShutDown()
+        {
+            SetMenuItemChecked(MenuSettingsShutDownAfterThis, false);
+            SetMenuItemChecked(MenuSettingsShutDownAfterN, false);
+            SetMenuItemChecked(MenuSettingsShutDownAfterTime, false);
+            SetMenuItemChecked(MenuSettingsShutDownEndPlaylist, false);
+        }
+
+        private void ShutDownNow()
+        {
+            try
+            {
+                StopMediaPlayer();
+                Thread.Sleep(100);
+            }
+            catch
+            { }
+
+            try
+            {
+                var processStartInfo = new ProcessStartInfo("shutdown", "/s /f /t 0")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+
+                Process.Start(processStartInfo);
+            }
+            catch (Exception ex)
+            {
+                CMBox.Show("Error", "Couldn't shutdown", MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+            }
+
+        }
+
+        private bool ShutDownSignal(ShutDownType shutDownMode, int Arg)
+        {
+            Pause();
+
+            if (shutDownMode == ShutDownType.After)
+            {
+                ShutDownNow();
+                return true;
+            }
+            else if (shutDownMode == ShutDownType.AfterN)
+            {
+                if (Arg <= 0)
+                {
+                    ShutDownNow();
+                    return true;
+                }
+                else
+                {
+                    shutDownCmd.Arg = Arg - 1;
+                }
+
+                return false;
+            }
+            else if (shutDownMode == ShutDownType.End)
+            {
+                if (tvShow.episodeList.Last() == tvShow.GetCurrentEpisode())
+                {
+                    ShutDownNow();
+                    return true;
+                }
+
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private void ShutDown(ShutDownType shutdownMode, int Arg = 0)
+        {
+            if (shutdownMode == ShutDownType.Cancel)
+            {
+                if (threadShutDown != null)
+                {
+                    try
+                    {
+                        threadShutDown.Abort();
+                        Thread.Sleep(500);
+                        threadShutDown = null;
+                    }
+                    catch
+                    {
+                        threadShutDown = null;
+                    }
+                }
+                else
+                {
+                    threadShutDown = null;
+                }
+
+                shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
+            }
+            else if (shutdownMode == ShutDownType.In)
+            {
+                if (threadShutDown != null)
+                {
+                    try
+                    {
+                        threadShutDown.Abort();
+                        Thread.Sleep(500);
+                        threadShutDown = null;
+                    }
+                    catch
+                    {
+                        threadShutDown = null;
+                    }
+                }
+
+                if (threadShutDown == null && shutdownMode == ShutDownType.In)
+                {
+                    threadShutDown = new Thread(() =>
+                    {
+                        {
+                            if (Arg <= 2)
+                            {
+                                ShutDownNow();
+                            }
+                            else
+                            {
+                                DateTime endDate = DateTime.Now.Add(TimeSpan.FromSeconds(Arg));
+
+                                while (true)
+                                {
+                                    Thread.Sleep(2000);
+
+                                    if (endDate.Subtract(DateTime.Now).TotalSeconds <= 0)
+                                    {
+                                        ShutDownNow();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    threadShutDown.IsBackground = true;
+                    threadShutDown.SetApartmentState(ApartmentState.STA);
+                    threadShutDown.Start();
+                }
+
+                shutDownCmd = new ShutDownCommand(shutdownMode, Arg);
+            }
+            else
+            {
+                shutDownCmd = new ShutDownCommand(shutdownMode, Arg);
+            }
+        }
+        #endregion
+
         public MainWindow()
         {
             InitializeComponent();
@@ -874,6 +1094,8 @@ namespace PMedia
 
             MenuPlaylistNext.IsEnabled = false;
             MenuPlaylistPrevious.IsEnabled = false;
+
+            shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
         }
 
         private void StartThread(ThreadStart newStart)
@@ -951,6 +1173,38 @@ namespace PMedia
         #endregion
 
         #region "MediaPlayer"
+        private void ProcessShow(string FileName)
+        {
+            StartThread(() =>
+            {
+                tvShow.Load(FileName);
+
+                SetMenuItemEnable(MenuPlaylistNext, tvShow.HasNextEpisode());
+                SetMenuItemEnable(MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
+            });
+        }
+
+        private void Pause()
+        {
+            try
+            {
+                if (mediaPlayer.CanPause)
+                    mediaPlayer.Pause();
+            }
+            catch
+            { }
+        }
+
+        private void StopMediaPlayer()
+        {
+            ThreadPool.QueueUserWorkItem(_ => {
+                this.mediaPlayer.Stop();
+
+                if (this.mediaPlayer.Media != null)
+                    this.mediaPlayer.Media.Dispose();
+            });
+        }
+
         private void MediaPlayer_Playing(object sender, EventArgs e)
         {
             this.Dispatcher.Invoke(() =>
@@ -1017,6 +1271,10 @@ namespace PMedia
                     MenuItem menuDisableSubtitle = new MenuItem { Header = "Disable", Style = MenuSettingsVideoTracks.Style, Name = "SubtitleD"};
                     menuDisableSubtitle.Click += MenuTrackDisable_Click;
 
+                    menuDisableVideo.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+                    menuDisableAudio.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+                    menuDisableSubtitle.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+
                     this.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
                     this.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
                     this.MenuSettingsSubtitleTracks.Items.Add(menuDisableSubtitle);
@@ -1062,6 +1320,7 @@ namespace PMedia
                                             mediaPlayer.SetVideoTrack(TrackID);
                                         };
 
+                                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsVideoTracks.Items.Add(newTrack);
                                     });
 
@@ -1079,6 +1338,7 @@ namespace PMedia
                                             mediaPlayer.SetAudioTrack(TrackID);
                                         };
 
+                                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsAudioTracks.Items.Add(newTrack);
                                     });
 
@@ -1105,6 +1365,7 @@ namespace PMedia
                                             mediaPlayer.SetSpu(TrackID);
                                         };
 
+                                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
                                     });
 
@@ -1129,17 +1390,6 @@ namespace PMedia
             });
         }
 
-        private void ProcessShow(string FileName)
-        {
-            StartThread(() =>
-            {
-                tvShow.Load(FileName);
-
-                SetMenuItemEnable(MenuPlaylistNext, tvShow.HasNextEpisode());
-                SetMenuItemEnable(MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
-            });
-        }
-
         private void MediaPlayer_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
         {
             StartThread(() =>
@@ -1150,6 +1400,17 @@ namespace PMedia
                 {
                     SetSliderValue(SliderMedia, Convert.ToInt32(e.Time / 1000));
                 };
+
+                if (AutoPlay)
+                {
+                    if (Math.Abs(mediaPlayer.Media.Duration - e.Time) / 1000 <= AutoPlayTime)
+                    {
+                        if (ShutDownSignal(shutDownCmd.shutDownType, shutDownCmd.Arg) == false && tvShow.HasNextEpisode())
+                        {
+                            OpenFile(tvShow.NextEpisode().FilePath);
+                        }
+                    }
+                }
             });
         }
 
@@ -1183,16 +1444,6 @@ namespace PMedia
                 this.MenuSettingsVideoTracks.Items.Clear();
                 this.MenuSettingsAudioTracks.Items.Clear();
                 this.MenuSettingsSubtitleTracks.Items.Clear();
-            });
-        }
-
-        private void StopMediaPlayer()
-        {
-            ThreadPool.QueueUserWorkItem(_ => {
-                this.mediaPlayer.Stop();
-
-                if (this.mediaPlayer.Media != null)
-                    this.mediaPlayer.Media.Dispose();
             });
         }
 
@@ -1282,7 +1533,7 @@ namespace PMedia
                 }
                 else if (mediaPlayer.CanPause == true)
                 {
-                    mediaPlayer.Pause();
+                    Pause();
                 }
             }
             if (e.Key == Key.Up)
@@ -1336,7 +1587,7 @@ namespace PMedia
         }
 
         // Form Events
-        private void MainWindow_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        private void MainWindow_MouseLeave(object sender, MouseEventArgs e)
         {
             if (this.WindowStyle == WindowStyle.None)
             {
@@ -1435,7 +1686,7 @@ namespace PMedia
 
         private void SliderAutoplay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            AutoPlay = Convert.ToInt32(e.NewValue);
+            AutoPlayTime = Convert.ToInt32(e.NewValue);
         }
 
         private void SliderAutoplay_Loaded(object sender, RoutedEventArgs e)
@@ -1445,7 +1696,7 @@ namespace PMedia
 
             if (sender is Slider slider)
             {
-                slider.Value = AutoPlay;
+                slider.Value = AutoPlayTime;
             }
         }
 
@@ -1553,6 +1804,87 @@ namespace PMedia
             GameMode = MenuSettingsGameMode.IsChecked;
         }
 
+        private void MenuSettingsShutDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender == null)
+                return;
+
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.IsChecked == false)
+                {
+                    ShutDown(ShutDownType.Cancel, 0);
+                    UnCheckShutDown();
+                    return;
+                }
+
+                UnCheckShutDown();
+
+                if (menuItem == MenuSettingsShutDownAfterThis)
+                {
+                    ShutDown(ShutDownType.After, 0);
+                }
+                else if (menuItem == MenuSettingsShutDownAfterN)
+                {
+                    InputDialog argInput = new InputDialog
+                    {
+                        WindowTitle = "ShutDown",
+                        MainInstruction = "After 'n' episodes shut down the computer",
+                        MaxLength = 3
+                    };
+
+                    if (argInput.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        if (IsNumeric(argInput.Input))
+                        {
+                            ShutDown(ShutDownType.AfterN, Convert.ToInt32(argInput.Input));
+                        }
+                        else
+                        {
+                            CMBox.Show("Warning", "Invalid input", MessageCustomHandler.Style.Warning, Buttons.OK);
+                        }
+                    }
+                }
+                else if (menuItem == MenuSettingsShutDownAfterTime)
+                {
+                    InputDialog argInput = new InputDialog
+                    {
+                        WindowTitle = "ShutDown",
+                        MainInstruction = "After 'n' seconds shut down the computer",
+                        MaxLength = 8
+                    };
+
+                    if (argInput.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        if (IsNumeric(argInput.Input))
+                        {
+                            ShutDown(ShutDownType.In, Convert.ToInt32(argInput.Input));
+                        }
+                        else
+                        {
+                            CMBox.Show("Warning", "Invalid input", MessageCustomHandler.Style.Warning, Buttons.OK);
+                        }
+                    }
+                }
+                else if (menuItem == MenuSettingsShutDownEndPlaylist)
+                {
+                    ShutDown(ShutDownType.End, 0);
+                }
+
+                SetMenuItemChecked(menuItem, true);
+            }
+        }
+
+        private void MenuPlaylistAutoplay_Click(object sender, RoutedEventArgs e)
+        {
+            AutoPlay = MenuPlaylistAutoplay.IsChecked;
+        }
+
+        private void MenuPlaylistAutoplay_Loaded(object sender, RoutedEventArgs e)
+        {
+            MenuPlaylistAutoplay.IsChecked = AutoPlay;
+        }
+
         private void MenuTrackDisable_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem dBtn)
@@ -1614,7 +1946,7 @@ namespace PMedia
             }
             else if(mediaPlayer.CanPause == true)
             {
-                mediaPlayer.Pause();
+                Pause();
             }
         }
 
@@ -1712,7 +2044,7 @@ namespace PMedia
             isSliderControl = true;
         }
 
-        private void SliderMedia_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        private void SliderMedia_MouseEnter(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed  && e.MouseDevice.Captured == null)
             {

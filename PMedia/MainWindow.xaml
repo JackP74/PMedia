@@ -431,25 +431,25 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Shutdown</TextBlock>
                     </MenuItem.Header>
 
-                    <MenuItem x:Name="MenuSettingsShutDownAfterThis" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0">
+                    <MenuItem x:Name="MenuSettingsShutDownAfterThis" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" IsCheckable="True" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">After this episode</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsShutDownAfterN" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0">
+                    <MenuItem x:Name="MenuSettingsShutDownAfterN" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">After ... episodes</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsShutDownAfterTime" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0">
+                    <MenuItem x:Name="MenuSettingsShutDownAfterTime" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">In ... minutes</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsShutDownEndPlaylist" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1">
+                    <MenuItem x:Name="MenuSettingsShutDownEndPlaylist" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" IsCheckable="True" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">End of playlist</TextBlock>
                         </MenuItem.Header>
@@ -469,10 +469,16 @@
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Playlist</TextBlock>
                 </MenuItem.Header>
 
-                <MenuItem x:Name="MenuPlaylistAutoplay" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" IsEnabled="false">
+                <MenuItem x:Name="MenuPlaylistAutoplay" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" IsCheckable="true" Click="MenuPlaylistAutoplay_Click" Loaded="MenuPlaylistAutoplay_Loaded">
+
+                    <MenuItem.Icon>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" Margin="0,0,0,0" Height="15" Width="15"/>
+                    </MenuItem.Icon>
+
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe" Text="{Binding Path=AutoPlayText}"></TextBlock>
                     </MenuItem.Header>
+                    
                 </MenuItem>
 
                 <MenuItem x:Name="MenuPlaylistSliderAutoplay" Header="Jump" Style="{DynamicResource SimpleMenuItem}">
