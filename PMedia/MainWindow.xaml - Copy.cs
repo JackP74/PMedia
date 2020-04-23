@@ -28,7 +28,6 @@ using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using SuperContextMenu;
 #endregion
 
 namespace PMedia
@@ -42,15 +41,10 @@ namespace PMedia
         // WPF has no real X-Y location, this fixes that
         [DllImport("user32.dll")]
         private static extern bool GetWindowRect(IntPtr hwnd, ref Rect rectangle);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetCursorPos(out POINT lpPoint);
         #endregion
 
         #region "Variables"
-        private Rect rect = new Rect(); // used in X-Y location
-        private System.Windows.Forms.Timer MouseTimer;
+        Rect rect = new Rect(); // used in X-Y location
 
         public event PropertyChangedEventHandler PropertyChanged;
         private string playBtnTxt = "Play";
@@ -73,14 +67,17 @@ namespace PMedia
         private static bool isSliderControl = false;
         private Thread threadShutDown;
 
+        //readonly string TempPath = @"E:\qbittorrent\Avenue.5.S01E04.Then.Who.Was.That.on.the.Ladder.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv";
+        //private Direction textDirection = Direction.Forward;
+
         private WindowState lastState = WindowState.Normal;
         private const int TopSize = 23;
         private const int BottomSize = 40;
+        private const int MouseOffset = 15;
+
+        System.Windows.Forms.Timer MouseTimer;
 
         private VideoListWindow videoListWindow;
-
-        private ContextMenuMedia ContextMedia;
-        private PoperContainer poperContextMedia;
         #endregion
 
         #region "Proprieties"
@@ -479,21 +476,17 @@ namespace PMedia
         #endregion
 
         #region "Enums & Structs"
+        private enum Direction
+        {
+            Forward = 0,
+            Backward = 1
+        }
+
         private enum AudioType
         {
             Stereo = 0,
             Surround = 1,
             None = 2
-        }
-
-        private enum ShutDownType
-        {
-            Cancel = 0,
-            After = 1,
-            AfterN = 2,
-            In = 3,
-            End = 4,
-            None = 5
         }
 
         internal struct Rect
@@ -532,54 +525,14 @@ namespace PMedia
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)] internal struct POINT
+        private enum ShutDownType
         {
-            public int X;
-            public int Y;
-
-            public POINT(int x, int y)
-            {
-                this.X = x;
-                this.Y = y;
-            }
-
-            public static implicit operator System.Drawing.Point(POINT p)
-            {
-                return new System.Drawing.Point(p.X, p.Y);
-            }
-
-            public static implicit operator POINT(System.Drawing.Point p)
-            {
-                return new POINT(p.X, p.Y);
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (obj == null)
-                    return false;
-
-                if (obj is POINT point)
-                {
-                    return (point.X == X && point.Y == Y);
-                }
-
-                return false;
-            }
-
-            public override int GetHashCode()
-            {
-                return (X + Y).ToString().GetHashCode();
-            }
-
-            public static bool operator ==(POINT left, POINT right)
-            {
-                return left.Equals(right);
-            }
-
-            public static bool operator !=(POINT left, POINT right)
-            {
-                return !(left == right);
-            }
+            Cancel = 0,
+            After = 1,
+            AfterN = 2,
+            In = 3,
+            End = 4,
+            None = 5
         }
         #endregion
 
@@ -655,26 +608,10 @@ namespace PMedia
             }
 
         }
-
-        internal class TransparentPanel : System.Windows.Forms.Panel
-        {
-            protected override CreateParams CreateParams
-            {
-                get
-                {
-                    CreateParams cp = base.CreateParams;
-                    cp.ExStyle |= 0x00000020; // WS_EX_TRANSPARENT
-                    return cp;
-                }
-            }
-            protected override void OnPaintBackground(PaintEventArgs e)
-            {
-                //base.OnPaintBackground(e);
-            }
-        }
         #endregion
 
         #region "Functions"
+
         #region "Timers"
         private void CreateJumpTimer()
         {
@@ -751,36 +688,85 @@ namespace PMedia
             SaveTimer.Start();
         }
 
-        private Screen GetCurrentScreen()
+        private void CreateTitleTimer()
         {
-            return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            //System.Windows.Forms.Timer TitleTimer = new System.Windows.Forms.Timer();
+            //TitleTimer.Interval = 40;
+
+            //TitleTimer.Tick += delegate
+            //{
+
+            //    if (labelTitle.Width <= labelTitlePanel.Width)
+            //        return;
+
+            //    switch (textDirection)
+            //    {
+            //        case Direction.Forward:
+            //            {
+            //                if (Math.Abs(labelTitle.Margin.Left) < Math.Abs(labelTitle.Width - labelTitlePanel.Width))
+            //                {
+            //                    labelTitle.Margin = new Thickness(labelTitle.Margin.Left - 1, 0, 0, 0);
+            //                }
+            //                else
+            //                {
+            //                    //labelTitle.Margin = new Thickness(-Math.Abs(labelTitle.Width - labelTitlePanel.Width), 0, 0, 0);
+            //                    textDirection = Direction.Backward;
+            //                }
+
+            //                break;
+            //            }
+
+            //        case Direction.Backward:
+            //            {
+
+            //                break;
+            //            }
+
+            //        default:
+            //            {
+            //                textDirection = Direction.Forward;
+            //                labelTitle.Margin = new Thickness(0);
+
+            //                break;
+            //            }
+            //    }
+
+            //};
+
+            //TitleTimer.Start();
         }
 
         private void CreateMouseTimer()
         {
             MouseTimer = new System.Windows.Forms.Timer
             {
-                Interval = 200
+                Interval = 100
             };
 
             MouseTimer.Tick += delegate
             {
+
                 if (gameMode)
                     return;
 
-                if (GetCursorPos(out POINT p))
-                {
-                    Screen screen = GetCurrentScreen();
-                    bool XL = p.X >= screen.Bounds.X && p.X <= screen.Bounds.Width;
+                System.Drawing.Point curPos = System.Windows.Forms.Cursor.Position;
 
-                    if (MainGrid.RowDefinitions[0].Height.Value <= 0 && p.Y < TopSize && XL)
-                    {
-                        MainGrid.RowDefinitions[0].Height = new GridLength(TopSize);
-                    }
-                    else if (MainGrid.RowDefinitions[2].Height.Value <= 0 && p.Y > (screen.Bounds.Height - BottomSize) && XL)
-                    {
-                        MainGrid.RowDefinitions[2].Height = new GridLength(BottomSize);
-                    }
+                if (curPos.Y < (TopSize + MouseOffset) && curPos.X >= Location.X && curPos.X <= Location.X + this.ActualWidth)
+                {
+                    MainGrid.RowDefinitions[0].Height = new GridLength(TopSize);
+                }
+                else if (MainGrid.RowDefinitions[0].Height.Value >= TopSize)
+                {
+                    MainGrid.RowDefinitions[0].Height = new GridLength(0);
+                }
+
+                if (curPos.Y > ((Location.Y + this.ActualHeight) - (BottomSize + MouseOffset)) && curPos.X >= Location.X && curPos.X <= Location.X + this.ActualWidth)
+                {
+                    MainGrid.RowDefinitions[2].Height = new GridLength(BottomSize);
+                }
+                else if (MainGrid.RowDefinitions[2].Height.Value >= BottomSize)
+                {
+                    MainGrid.RowDefinitions[2].Height = new GridLength(0);
                 }
             };
         }
@@ -1084,9 +1070,7 @@ namespace PMedia
             if (Environment.Is64BitProcess == true) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
             Core.Initialize(vlcPath);
-            //VideoView.Loaded += VideoView_Loaded;
-
-            CreateMediaPlayer();
+            VideoView.Loaded += VideoView_Loaded;
 
             settings = new Settings();
             settings.Load();
@@ -1112,79 +1096,6 @@ namespace PMedia
             MenuPlaylistPrevious.IsEnabled = false;
 
             shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
-        }
-
-        private void CreateMediaPlayer()
-        {
-            // VLC init
-            libVLC = new LibVLC();
-
-            mediaPlayer = new MediaPlayer(libVLC)
-            {
-                EnableMouseInput = false
-            };
-
-            // media player events
-            mediaPlayer.Playing += MediaPlayer_Playing;
-            mediaPlayer.Paused += MediaPlayer_Paused;
-            mediaPlayer.MediaChanged += MediaPlayer_MediaChanged;
-            mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
-            mediaPlayer.EndReached += MediaPlayer_EndReached;
-            mediaPlayer.Stopped += MediaPlayer_Stopped;
-
-            // WinForm styles
-            LibVLCSharp.WinForms.VideoView videoView = new LibVLCSharp.WinForms.VideoView()
-            {
-                Dock = DockStyle.Fill,
-                BackColor = System.Drawing.Color.Black
-            };
-            videoView.MediaPlayer = mediaPlayer;
-
-            // context menu hack for uniform style
-            ContextMedia = new ContextMenuMedia();
-            poperContextMedia = new PoperContainer(ContextMedia);
-
-            // overlay panel for context menu and double click fullscreen
-            TransparentPanel overlayPanel = new TransparentPanel()
-            {
-                Dock = DockStyle.Fill
-            };
-
-            // fullscreen toggle on double click
-            overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
-
-            // hide context menu on btn press
-            ContextMedia.OnMouseClickBtn += delegate { poperContextMedia.HideContext(); };
-
-            // btns handles on existing handles for simplicity
-            ContextMedia.OnPlayBtn += delegate { BtnPlay_Click(null, null); };
-            ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
-            ContextMedia.OnBackwardBtn += delegate { BtnBackward_Click(null, null); };
-            ContextMedia.OnForwardBtn += delegate { BtnForward_Click(null, null); };
-            ContextMedia.OnVolumeUpBtn += delegate { MenuPlaybackVolumeUp_Click(null, null); };
-            ContextMedia.OnVolumeDownBtn += delegate { MenuPlaybackVolumeDown_Click(null, null); };
-            ContextMedia.OnMuteBtn += delegate { BtnMute_Click(null, null); };
-            ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
-
-            // add everything to win host
-            System.Windows.Forms.Panel videoPanel = new System.Windows.Forms.Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = System.Drawing.Color.Black
-            };
-            videoPanel.Controls.Add(overlayPanel);
-            videoPanel.Controls.Add(videoView);
-
-            WinHost.Child = videoPanel;
-
-            // Show context
-            overlayPanel.MouseClick += (object sender, System.Windows.Forms.MouseEventArgs e) => 
-            {
-                if (e.Button == MouseButtons.Right)
-                {
-                    poperContextMedia.ShowContext(overlayPanel, e.Location);
-                }
-            };
         }
 
         private void StartThread(ThreadStart newStart)
@@ -1598,7 +1509,7 @@ namespace PMedia
         {
             libVLC = new LibVLC();
             mediaPlayer = new MediaPlayer(libVLC);
-            //VideoView.MediaPlayer = mediaPlayer;
+            VideoView.MediaPlayer = mediaPlayer;
 
             mediaPlayer.Playing += MediaPlayer_Playing;
             mediaPlayer.Paused += MediaPlayer_Paused;
@@ -1606,6 +1517,8 @@ namespace PMedia
             mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
             mediaPlayer.EndReached += MediaPlayer_EndReached;
             mediaPlayer.Stopped += MediaPlayer_Stopped;
+
+            
         }
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -2079,8 +1992,8 @@ namespace PMedia
 
                 SetImage(btnFullscreenImage, Images.btnFullScreenOff);
 
-                Grid.SetRow(WinHost, 1);
-                Grid.SetRowSpan(WinHost, 1);
+                Grid.SetRow(VideoView, 1);
+                Grid.SetRowSpan(VideoView, 1);
 
                 MainGrid.RowDefinitions[0].Height = new GridLength(0);
                 MainGrid.RowDefinitions[2].Height = new GridLength(0);
@@ -2097,8 +2010,8 @@ namespace PMedia
 
                     SetImage(btnFullscreenImage, Images.btnFullScreenOff);
 
-                    Grid.SetRow(WinHost, 1);
-                    Grid.SetRowSpan(WinHost, 1);
+                    Grid.SetRow(VideoView, 1);
+                    Grid.SetRowSpan(VideoView, 1);
 
                     MainGrid.RowDefinitions[0].Height = new GridLength(0);
                     MainGrid.RowDefinitions[2].Height = new GridLength(0);
@@ -2110,8 +2023,8 @@ namespace PMedia
 
                     SetImage(btnFullscreenImage, Images.btnFullScreenOn);
 
-                    Grid.SetRow(WinHost, 1);
-                    Grid.SetRowSpan(WinHost, 1);
+                    Grid.SetRow(VideoView, 1);
+                    Grid.SetRowSpan(VideoView, 1);
 
                     MainGrid.RowDefinitions[0].Height = new GridLength(TopSize);
                     MainGrid.RowDefinitions[2].Height = new GridLength(BottomSize);

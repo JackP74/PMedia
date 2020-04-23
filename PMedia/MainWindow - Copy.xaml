@@ -1,9 +1,10 @@
-﻿<Window x:Class="PMedia.MainWindow"
+﻿ <Window x:Class="PMedia.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:local="clr-namespace:PMedia" WindowStartupLocation="CenterScreen"
+        xmlns:uc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
         mc:Ignorable="d" Title="MainWindow" Height="400" Width="700" Icon="App.ico" Background="#333333"
         MinHeight="350" MinWidth="450">
 
@@ -25,9 +26,9 @@
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
-        <Menu x:Name="TopMenu" Grid.Row="0" VerticalAlignment="Stretch" Background="#333333" Height="23" Style="{DynamicResource SimpleMenu}">
+        <Menu x:Name="TopMenu" Grid.Row="0" Grid.Column="0" Height="23" VerticalAlignment="Stretch" Background="#333333" Style="{DynamicResource SimpleMenu}">
 
-            <MenuItem VerticalAlignment="Top" ClipToBounds="True" Margin="0" Height="23" Style="{DynamicResource SimpleMenuItem}">
+            <MenuItem Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True" >
 
                 <MenuItem.Icon>
                     <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnFile.png" Margin="0,0,0,0" Height="15" Width="15"/>
@@ -37,7 +38,7 @@
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Media</TextBlock>
                 </MenuItem.Header>
 
-                <MenuItem x:Name="MenuFileMediaInfo" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuFileMediaInfo_Click">
+                <MenuItem x:Name="MenuFileMediaInfo" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" Click="MenuFileMediaInfo_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnMediaInfo.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -46,7 +47,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuFileScreenShot" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuFileScreenShot_Click">
+                <MenuItem x:Name="MenuFileScreenShot" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuFileScreenShot_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnScreenShot.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -55,7 +56,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuFileOpenFile" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="BtnOpenFile_Click">
+                <MenuItem x:Name="MenuFileOpenFile" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="BtnOpenFile_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnOpen.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -64,9 +65,9 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuFileSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
+                <MenuItem x:Name="MenuFileSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
 
-                <MenuItem x:Name="MenuFileQuit" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuFileQuit_Click">
+                <MenuItem x:Name="MenuFileQuit" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" Click="MenuFileQuit_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnQuit.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -77,7 +78,7 @@
 
             </MenuItem>
 
-            <MenuItem VerticalAlignment="Top" ClipToBounds="True" Margin="0" Height="23" Style="{DynamicResource SimpleMenuItem}">
+            <MenuItem Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True">
 
                 <MenuItem.Icon>
                     <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnPlayback.png" Margin="0,0,0,0" Height="15" Width="15"/>
@@ -87,7 +88,7 @@
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Playback</TextBlock>
                 </MenuItem.Header>
 
-                <MenuItem x:Name="MenuPlaybackPlay" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="BtnPlay_Click">
+                <MenuItem x:Name="MenuPlaybackPlay" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" Click="BtnPlay_Click">
                     <MenuItem.Icon>
                         <Image x:Name="MenuPlaybackPlayImage" RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnPlay.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -96,7 +97,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackStop" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="BtnStop_Click">
+                <MenuItem x:Name="MenuPlaybackStop" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="BtnStop_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnStop.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -105,7 +106,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackForward" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="BtnForward_Click">
+                <MenuItem x:Name="MenuPlaybackForward" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="BtnForward_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnForward.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -114,7 +115,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackBackward" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="BtnBackward_Click">
+                <MenuItem x:Name="MenuPlaybackBackward" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="BtnBackward_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnBackward.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -123,9 +124,9 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
+                <MenuItem x:Name="MenuPlaybackSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
 
-                <MenuItem x:Name="MenuPlaybackVolumeUp" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuPlaybackVolumeUp_Click">
+                <MenuItem x:Name="MenuPlaybackVolumeUp" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuPlaybackVolumeUp_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVolume3.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -134,7 +135,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackVolumeDown" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuPlaybackVolumeDown_Click">
+                <MenuItem x:Name="MenuPlaybackVolumeDown" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuPlaybackVolumeDown_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVolume2.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -143,7 +144,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackMute" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="BtnMute_Click">
+                <MenuItem x:Name="MenuPlaybackMute" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="BtnMute_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnMute.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -152,9 +153,9 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackSeparator02" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
+                <MenuItem x:Name="MenuPlaybackSeparator02" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
 
-                <MenuItem x:Name="MenuPlaybackSpeed" BorderThickness="1,0,1,0" Background="#333333" IsEnabled="false" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
+                <MenuItem x:Name="MenuPlaybackSpeed" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsEnabled="false">
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe" Text="{Binding Path=SpeedText}"></TextBlock>
                     </MenuItem.Header>
@@ -178,9 +179,9 @@
                     </MenuItem.Template>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaybackSeparator03" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
+                <MenuItem x:Name="MenuPlaybackSeparator03" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
 
-                <MenuItem x:Name="MenuPlaybackJump" BorderThickness="1,0,1,0" Background="#333333" IsEnabled="False" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
+                <MenuItem x:Name="MenuPlaybackJump" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsEnabled="False">
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe" Text="{Binding Path=JumpText}"></TextBlock>
                     </MenuItem.Header>
@@ -409,7 +410,7 @@
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuSettingsGameMode" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsGameMode_Click">
+                <MenuItem x:Name="MenuSettingsGameMode" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsGameMode_Click"> 
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnGameModeOff.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
                     </MenuItem.Icon>
@@ -477,7 +478,7 @@
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe" Text="{Binding Path=AutoPlayText}"></TextBlock>
                     </MenuItem.Header>
-
+                    
                 </MenuItem>
 
                 <MenuItem x:Name="MenuPlaylistSliderAutoplay" Header="Jump" Style="{DynamicResource SimpleMenuItem}">
@@ -553,39 +554,43 @@
 
         </Menu>
 
-        <WindowsFormsHost x:Name="WinHost" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black"/>
+        <uc:VideoView x:Name="VideoView" Background="Black" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid>
+                <TextBlock Opacity=".85" Margin="0,15,15,0" HorizontalAlignment="Right" Foreground="WhiteSmoke" FontSize="20" x:Name="txtOverlay"></TextBlock>
+            </Grid>
+        </uc:VideoView>
 
-        <Grid x:Name="BottomMenu" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Background="#333333" Height="40">
+        <Grid x:Name="BottomMenu" Height="40" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="2">
 
-            <StackPanel x:Name="labelTitlePanel" VerticalAlignment="Top" ClipToBounds="true" Margin="40,0,120,0" Height="15">
-                <Label x:Name="labelTitle" Foreground="#4eadfe" Padding="0,0,0,0" Margin="0,0,0,0" FontSize="10" Height="15"/>
+            <StackPanel x:Name="labelTitlePanel" ClipToBounds="true" Height="15" Margin="40,0,120,0" VerticalAlignment="Top">
+                <Label x:Name="labelTitle" Content="" Margin="0,0,0,0" FontSize="10" Height="15" Padding="0,0,0,0" Foreground="#4eadfe" />
             </StackPanel>
 
-            <Button x:Name="btnPlay" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" Focusable="False" Margin="5,0,0,5" Width="30" Height="30" Style="{DynamicResource SimpleButton}" Click="BtnPlay_Click">
+            <Button Style="{DynamicResource SimpleButton}" HorizontalAlignment="Left" Margin="5,0,0,5" Grid.Row="0" VerticalAlignment="Bottom" Width="30" Height="30" x:Name="btnPlay" Click="BtnPlay_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False">
                 <Image x:Name="btnPlayImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" Source="/PMedia;component/Resources/btnPlay.png" Height="25" Width="25"/>
             </Button>
 
-            <Button x:Name="btnBackward" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" Focusable="False" Margin="36,0,0,5" Width="20" Height="20" Style="{DynamicResource SimpleButton}" Click="BtnBackward_Click">
-                <Image x:Name="btnBackwardImage" RenderOptions.BitmapScalingMode="HighQuality" Source="/PMedia;component/Resources/btnBackward.png" Height="15" Width="15"/>
-            </Button>
-
-            <Button x:Name="btnStop" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" Focusable="False" Margin="57,0,0,5" Width="20" Height="20" Style="{DynamicResource SimpleButton}" Click="BtnStop_Click">
+            <Button Style="{DynamicResource SimpleButton}" HorizontalAlignment="Left" Margin="57,0,0,5" Grid.Row="0" VerticalAlignment="Bottom" Width="20" Height="20" x:Name="btnStop" Click="BtnStop_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False">
                 <Image x:Name="btnStopImage" RenderOptions.BitmapScalingMode="HighQuality" Source="/PMedia;component/Resources/btnStop.png" Height="15" Width="15"/>
             </Button>
 
-            <Button x:Name="btnForward" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" Focusable="False" Margin="78,0,0,5" Width="20" Height="20" Style="{DynamicResource SimpleButton}" Click="BtnForward_Click">
+            <Button Style="{DynamicResource SimpleButton}" HorizontalAlignment="Left" Margin="78,0,0,5" Grid.Row="0" VerticalAlignment="Bottom" Width="20" Height="20" x:Name="btnForward" Click="BtnForward_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False">
                 <Image x:Name="btnForwardImage" RenderOptions.BitmapScalingMode="HighQuality" Source="/PMedia;component/Resources/btnForward.png" Height="15" Width="15"/>
             </Button>
 
-            <Button x:Name="btnOpenFile" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" BorderBrush="Transparent" Focusable="False" Margin="98,0,0,5" Width="20" Height="20" Style="{DynamicResource SimpleButton}" Click="BtnOpenFile_Click">
+            <Button Style="{DynamicResource SimpleButton}" HorizontalAlignment="Left" Margin="36,0,0,5" Grid.Row="0" VerticalAlignment="Bottom" Width="20" Height="20" x:Name="btnBackward" Click="BtnBackward_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False">
+                <Image x:Name="btnBackwardImage" RenderOptions.BitmapScalingMode="HighQuality" Source="/PMedia;component/Resources/btnBackward.png" Height="15" Width="15"/>
+            </Button>
+
+            <Button Style="{DynamicResource SimpleButton}" HorizontalAlignment="Left" Margin="98,0,0,5" Grid.Row="0" VerticalAlignment="Bottom" Width="20" Height="20" x:Name="btnOpenFile" Click="BtnOpenFile_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False">
                 <Image x:Name="btnOpenFileImage" RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/btnOpen.png" Height="15" Width="15"/>
             </Button>
 
-            <Label x:Name="labelPosition" Content="00:00:00" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Foreground="#4eadfe" Padding="0,0,0,0" Margin="123,0,0,8" FontFamily="Arial" FontSize="11.5" Width="48" Height="13"/>
-            <local:FormattedSlider x:Name="SliderMedia" Value="0" Grid.Row="0" VerticalAlignment="Bottom" Maximum="1" SmallChange="1" Minimum="0" LargeChange="1" TickFrequency="1" AutoToolTipPlacement="TopLeft" AutoToolTipFormat="%%" IsMoveToPointEnabled="True" Margin="171,0,198,7" Template="{DynamicResource HorizontalSlider}" Thumb.DragStarted="SliderMedia_DragStarted" Thumb.DragCompleted="SliderMedia_DragCompleted" />
-            <Label x:Name="labelLenght" Content="00:00:00" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Foreground="#4eadfe" Padding="0,0,0,0" Margin="0,0,145,8" FontFamily="Arial" FontSize="11.5" Width="48" Height="13"/>
+            <local:FormattedSlider x:Name="SliderMedia" Margin="171,0,198,7" Grid.Row="0" Value="0" Maximum="1" SmallChange="1" Minimum="0" LargeChange="1" TickFrequency="1" VerticalAlignment="Bottom" AutoToolTipPlacement="TopLeft" AutoToolTipFormat="%%" IsMoveToPointEnabled="True" Template="{DynamicResource HorizontalSlider}" Thumb.DragStarted="SliderMedia_DragStarted" Thumb.DragCompleted="SliderMedia_DragCompleted" />
+            <Label x:Name="labelPosition" Content="00:00:00" HorizontalAlignment="Left" Margin="123,0,0,8" Padding="0,0,0,0" Grid.Row="0" VerticalAlignment="Bottom" Width="48" FontFamily="Arial" FontSize="11.5" Height="13" Foreground="#4eadfe"/>
+            <Label x:Name="labelLenght" Content="00:00:00" Margin="0,0,145,8" Padding="0,0,0,0" Grid.Row="0" VerticalAlignment="Bottom" FontFamily="Arial" FontSize="11.5" Height="13" Foreground="#4eadfe" HorizontalAlignment="Right" Width="48"/>
 
-            <Button  HorizontalAlignment="Right" Margin="0,0,121,5" Grid.Row="0" VerticalAlignment="Bottom" Width="20" Height="20" x:Name="btnMute" Click="BtnMute_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False" Style="{DynamicResource SimpleButton}">
+            <Button Style="{DynamicResource SimpleButton}" HorizontalAlignment="Right" Margin="0,0,121,5" Grid.Row="0" VerticalAlignment="Bottom" Width="20" Height="20" x:Name="btnMute" Click="BtnMute_Click" Background="Transparent" BorderBrush="Transparent" Focusable="False" >
                 <Image x:Name="btnMuteImage" RenderOptions.BitmapScalingMode="HighQuality" Source="/PMedia;component/Resources/btnVolume1.png" Height="15" Width="15"/>
             </Button>
 

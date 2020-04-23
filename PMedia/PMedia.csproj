@@ -61,11 +61,11 @@
     <Reference Include="CustomDialogs">
       <HintPath>..\..\..\..\Desktop\others\CustomDialogs.dll</HintPath>
     </Reference>
-    <Reference Include="LibVLCSharp, Version=3.4.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibVLCSharp.3.4.2\lib\net471\LibVLCSharp.dll</HintPath>
+    <Reference Include="LibVLCSharp, Version=3.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\LibVLCSharp.3.4.3\lib\net471\LibVLCSharp.dll</HintPath>
     </Reference>
-    <Reference Include="LibVLCSharp.WPF, Version=3.4.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\LibVLCSharp.WPF.3.4.2\lib\net461\LibVLCSharp.WPF.dll</HintPath>
+    <Reference Include="LibVLCSharp.WinForms, Version=3.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\LibVLCSharp.WinForms.3.4.3\lib\net40\LibVLCSharp.WinForms.dll</HintPath>
     </Reference>
     <Reference Include="MessageCustomHandler">
       <HintPath>..\..\..\..\Desktop\others\MessageCustomHandler.dll</HintPath>
@@ -85,18 +85,38 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ContextMenuMedia.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ContextMenuMedia.designer.cs">
+      <DependentUpon>ContextMenuMedia.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions.cs" />
     <Compile Include="FormattedSlider.cs" />
     <Compile Include="MediaInfoWindow.xaml.cs">
       <DependentUpon>MediaInfoWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PopedCotainer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PopedCotainer.designer.cs">
+      <DependentUpon>PopedCotainer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PoperContainer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="PoperContainer.designer.cs">
+      <DependentUpon>PoperContainer.cs</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="TvShow.cs" />
@@ -169,6 +189,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="ContextMenuMedia.resx">
+      <DependentUpon>ContextMenuMedia.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PopedCotainer.resx">
+      <DependentUpon>PopedCotainer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
