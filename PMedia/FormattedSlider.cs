@@ -9,6 +9,8 @@ namespace PMedia
 {
     class FormattedSlider : Slider
     {
+        private ToolTip _autoToolTip;
+        private string _autoToolTipFormat;
 
         static FormattedSlider()
         {
@@ -16,10 +18,6 @@ namespace PMedia
                 typeof(FormattedSlider),
                 new FrameworkPropertyMetadata(typeof(Slider)));
         }
-
-
-        private ToolTip _autoToolTip;
-        private string _autoToolTipFormat;
 
         public string AutoToolTipFormat
         {
@@ -43,8 +41,6 @@ namespace PMedia
         {
             if (!string.IsNullOrEmpty(this.AutoToolTipFormat))
             {
-                //this.AutoToolTip.Content = string.Format(this.AutoToolTipFormat, this.AutoToolTip.Content);
-
                 string Content = this.AutoToolTip.Content.ToString();
 
                 Content = Content.Replace(",", "");
@@ -57,7 +53,6 @@ namespace PMedia
                 {
                     CMBox.Show("Error in slider", Content, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
                 }
-                
             }
         }
 

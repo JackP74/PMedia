@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:local="clr-namespace:PMedia" WindowStartupLocation="CenterScreen"
-        mc:Ignorable="d" Title="MainWindow" Height="400" Width="700" Icon="App.ico" Background="#333333"
+        mc:Ignorable="d" Title="PMedia alpha" Height="400" Width="700" Icon="App.ico" Background="#333333"
         MinHeight="350" MinWidth="450">
 
     <Window.Resources>
@@ -12,7 +12,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/PMedia;component/Resources/SliderStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Resources/ToolTipStyle.xaml" />
-                <ResourceDictionary Source="/PMedia;component/Simple Styles.xaml" />
+                <ResourceDictionary Source="/PMedia;component/Resources/Simple Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -539,7 +539,7 @@
 
             </MenuItem>
 
-            <MenuItem Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True">
+            <MenuItem x:Name="MenuAbout" Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True" Click="MenuAbout_Click">
 
                 <MenuItem.Icon>
                     <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAbout.png" Margin="0,0,0,0" Height="15" Width="15"/>
@@ -596,6 +596,5 @@
             </Button>
 
         </Grid>
-
     </Grid>
 </Window>

@@ -5,14 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMedia"
         mc:Ignorable="d"
-        Title="MediaInfoWindow" Height="500" Width="450" Background="#333333" ResizeMode="NoResize">
+        Title="Media Info" Height="500" Width="450" Background="#333333" ResizeMode="NoResize" Icon="App.ico"
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/PMedia;component/Resources/SliderStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Resources/ToolTipStyle.xaml" />
-                <ResourceDictionary Source="/PMedia;component/Simple Styles.xaml" />
+                <ResourceDictionary Source="/PMedia;component/Resources/Simple Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

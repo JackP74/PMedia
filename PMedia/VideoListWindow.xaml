@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMedia"
-        mc:Ignorable="d" Title="Video List" Height="320" Width="650" Background="#333333" ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen">
+        mc:Ignorable="d" Title="Video List" Height="320" Width="650" Background="#333333" ResizeMode="NoResize" Icon="App.ico"
+        WindowStartupLocation="CenterScreen" Closing="Window_Closing">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -13,7 +13,7 @@
                 <ResourceDictionary Source="/PMedia;component/Resources/ContextMenuStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Resources/SliderStyle.xaml" />
                 <ResourceDictionary Source="/PMedia;component/Resources/ToolTipStyle.xaml" />
-                <ResourceDictionary Source="/PMedia;component/Simple Styles.xaml" />
+                <ResourceDictionary Source="/PMedia;component/Resources/Simple Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

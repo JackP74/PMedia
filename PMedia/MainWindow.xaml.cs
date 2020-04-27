@@ -17,18 +17,18 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 
-using CustomDialogs;
+using SuperContextMenu;
+using Ookii.Dialogs.WinForms;
 using MessageCustomHandler;
 using LibVLCSharp.Shared;
+
 using MenuItem = System.Windows.Controls.MenuItem;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using Label = System.Windows.Controls.Label;
-using Button = System.Windows.Controls.Button;
 using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using SuperContextMenu;
 #endregion
 
 namespace PMedia
@@ -81,6 +81,8 @@ namespace PMedia
 
         private ContextMenuMedia ContextMedia;
         private PoperContainer poperContextMedia;
+
+        private readonly VideoPosition videoPosition;
         #endregion
 
         #region "Proprieties"
@@ -582,7 +584,7 @@ namespace PMedia
             }
         }
         #endregion
-
+        
         #region "Internal Classes"
         internal static class Images
         {
@@ -737,15 +739,16 @@ namespace PMedia
         {
             System.Timers.Timer SaveTimer = new System.Timers.Timer()
             {
-                Interval = 1000
+                Interval = 2000
             };
 
             SaveTimer.Elapsed += delegate
             {
-
                 if (settings.NeedsSaving == true)
                     settings.Save();
 
+                if (mediaPlayer.IsPlaying || mediaPlayer.State == VLCState.Paused)
+                    videoPosition.SavePosition(Convert.ToInt32(mediaPlayer.Time / 1000));
             };
 
             SaveTimer.Start();
@@ -1112,6 +1115,8 @@ namespace PMedia
             MenuPlaylistPrevious.IsEnabled = false;
 
             shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
+
+            videoPosition = new VideoPosition(AppDomain.CurrentDomain.BaseDirectory + @"\Data");
         }
 
         private void CreateMediaPlayer()
@@ -1270,6 +1275,8 @@ namespace PMedia
 
                 SetMenuItemEnable(MenuPlaylistNext, tvShow.HasNextEpisode());
                 SetMenuItemEnable(MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
+
+                this.Dispatcher.Invoke(delegate { videoListWindow.SetTvShow(tvShow); });
             });
         }
 
@@ -1367,6 +1374,19 @@ namespace PMedia
                     this.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
                     this.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
                     this.MenuSettingsSubtitleTracks.Items.Add(menuDisableSubtitle);
+
+                    videoPosition.SetNewFile(currentFile.Name, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
+
+                    long currentPosition = videoPosition.GetPosition();
+
+                    if(currentPosition != 0)
+                    {
+                        StartThread(() =>
+                        {
+                            Thread.Sleep(1000);
+                            mediaPlayer.Time = currentPosition;
+                        });
+                    }
                 });
 
                 foreach(MediaTrack mediaTrack in e.Media.Tracks)
@@ -1512,6 +1532,7 @@ namespace PMedia
         {
             this.Dispatcher.Invoke(() =>
             {
+                videoPosition.ClearName();
                 PlayBtnTxt = "Play";
             });
 
@@ -1555,31 +1576,35 @@ namespace PMedia
         // Initial Loading
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // For Custom Messages
+            System.Windows.Forms.Application.EnableVisualStyles();
+
+            // Controls handles init
             VolumeSlider.VolumeSlider.ValueChanged += (s, nE) =>
             {
                 Volume = Convert.ToInt32(nE.NewValue);
             };
 
+            this.MouseLeave += MainWindow_MouseLeave;
+
+            // Timers
             CreateJumpTimer();
             CreateSaveTimer();
             CreateMouseTimer();
 
-            this.MouseLeave += MainWindow_MouseLeave;
-
-            System.Windows.Forms.Application.EnableVisualStyles();
-
-            IsLoading = false;
-
+            // Video list
             videoListWindow = new VideoListWindow(tvShow)
             {
                 Owner = this
             };
+
+            // End
+            IsLoading = false; 
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
         {
-            //CreateTitleTimer(); //Not working, TO DO
-
+            // Fix for click at new position on slider
             try
             {
                 Thumb thumb = (SliderMedia.Template.FindName("PART_Track", SliderMedia) as Track).Thumb;
@@ -1587,11 +1612,12 @@ namespace PMedia
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't initialize thumb", MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't initialize thumb, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
             }
 
             // Can't set new image until old one is rendered, because fuck WPF
-            SetImage(btnMuteImage, Images.btnMute);
+            if(Mute == true)
+                SetImage(btnMuteImage, Images.btnMute);
         }
 
         private void VideoView_Loaded(object sender, RoutedEventArgs e)
@@ -1789,7 +1815,7 @@ namespace PMedia
 
         private void MenuSettingsVideoAspectRatio_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is System.Windows.Controls.MenuItem cBtn)
+            if (sender is MenuItem cBtn)
             {
                 if (cBtn.Header is TextBlock cTxt)
                 {
@@ -2149,6 +2175,12 @@ namespace PMedia
         private void OnPropertyChanged(string info)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
+
+        private void MenuAbout_Click(object sender, RoutedEventArgs e)
+        {
+            AboutWindow aboutWindow = new AboutWindow();
+            aboutWindow.ShowDialog();
         }
         #endregion
     }
