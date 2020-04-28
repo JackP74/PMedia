@@ -49,6 +49,12 @@ namespace PMedia
         #endregion
 
         #region "Variables"
+        private readonly string videoPositionDir = AppDomain.CurrentDomain.BaseDirectory + @"\Data";
+        private readonly string recentsPath = AppDomain.CurrentDomain.BaseDirectory + @"\recents.ini";
+
+        private readonly Random random = new Random(Guid.NewGuid().GetHashCode());
+        private readonly Settings settings;
+
         private Rect rect = new Rect(); // used in X-Y location
         private System.Windows.Forms.Timer MouseTimer;
 
@@ -64,10 +70,10 @@ namespace PMedia
         private bool onTop = false;
         private bool gameMode = false;
 
-        private readonly Settings settings;
-        MediaPlayer mediaPlayer;
+        private MediaPlayer mediaPlayer;
         private LibVLC libVLC;
-        private readonly Random random = new Random(DateTime.Now.Year * DateTime.Now.Second - DateTime.Now.Month);
+        private VideoListWindow videoListWindow;
+        private readonly VideoPosition videoPosition;
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
@@ -77,12 +83,10 @@ namespace PMedia
         private const int TopSize = 23;
         private const int BottomSize = 40;
 
-        private VideoListWindow videoListWindow;
-
         private ContextMenuMedia ContextMedia;
         private PoperContainer poperContextMedia;
 
-        private readonly VideoPosition videoPosition;
+        private Recents recents;
         #endregion
 
         #region "Proprieties"
@@ -680,6 +684,8 @@ namespace PMedia
         #region "Timers"
         private void CreateJumpTimer()
         {
+            // created a timer for jumping this was so you can go in any direcion without stutter
+
             System.Timers.Timer JumpTimer = new System.Timers.Timer()
             {
                 Interval = 250
@@ -687,9 +693,6 @@ namespace PMedia
 
             JumpTimer.Elapsed += delegate
             {
-
-                if (Jump == 0)
-                    throw new Exception("Jump value cannot be 0");
 
                 if (jumpCommands.Count <= 0)
                     return;
@@ -752,11 +755,6 @@ namespace PMedia
             };
 
             SaveTimer.Start();
-        }
-
-        private Screen GetCurrentScreen()
-        {
-            return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
         }
 
         private void CreateMouseTimer()
@@ -1078,6 +1076,8 @@ namespace PMedia
 
         public MainWindow()
         {
+            System.Windows.Forms.Application.EnableVisualStyles();
+
             InitializeComponent();
 
             DataContext = this;
@@ -1116,7 +1116,9 @@ namespace PMedia
 
             shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
 
-            videoPosition = new VideoPosition(AppDomain.CurrentDomain.BaseDirectory + @"\Data");
+            videoPosition = new VideoPosition(videoPositionDir);
+
+            recents = new Recents(recentsPath);
         }
 
         private void CreateMediaPlayer()
@@ -1158,8 +1160,17 @@ namespace PMedia
             // fullscreen toggle on double click
             overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
 
-            // hide context menu on btn press
-            ContextMedia.OnMouseClickBtn += delegate { poperContextMedia.HideContext(); };
+            // hide context menu on btn press and media controls when fullscreen because controls don't hide when context menu is visible
+            ContextMedia.OnMouseClickBtn += delegate 
+            { 
+                poperContextMedia.HideContext();
+
+                if (this.WindowStyle == WindowStyle.None)
+                {
+                    MainGrid.RowDefinitions[0].Height = new GridLength(0);
+                    MainGrid.RowDefinitions[2].Height = new GridLength(0);
+                }
+            };
 
             // btns handles on existing handles for simplicity
             ContextMedia.OnPlayBtn += delegate { BtnPlay_Click(null, null); };
@@ -1260,9 +1271,47 @@ namespace PMedia
             }
         }
 
+        public void LoadSubtitle(string FilePath)
+        {
+            mediaPlayer.AddSlave(MediaSlaveType.Subtitle, new Uri(FilePath).ToString(), true);
+
+            // Track name
+            string TrackName = string.Empty;
+            int TrackID = mediaPlayer.Spu;
+
+            TrackName = mediaPlayer.SpuDescription[mediaPlayer.SpuCount - 1].Name;
+
+            if (string.IsNullOrWhiteSpace(TrackName))
+                TrackName = "Track";
+
+            TrackName += $" [{TrackID}]";
+
+            // Add track to menu
+            MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+
+            newTrack.Click += delegate
+            {
+                mediaPlayer.SetSpu(TrackID);
+            };
+
+            newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+            this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+
+        }
+
         private bool HasRegexMatch(string ToCompare, string RegexMatch)
         {
             return Regex.IsMatch(ToCompare, RegexMatch, RegexOptions.IgnoreCase);
+        }
+
+        private Screen GetCurrentScreen()
+        {
+            return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+        }
+
+        private string WithMaxLength(string Value, int maxLength)
+        {
+            return Value?.Substring(0, Math.Min(Value.Length, maxLength));
         }
         #endregion
 
@@ -1326,6 +1375,7 @@ namespace PMedia
             {
                 int InSleep = 0;
 
+                // Need to wait for the tracks to load
                 while (mediaPlayer.Media.Tracks.Count() <= 0 && mediaPlayer.Media.Duration <= 0 && InSleep <= 15)
                 {
                     Thread.Sleep(200);
@@ -1341,6 +1391,7 @@ namespace PMedia
                 SetSliderValue(SliderMedia, 0);
                 SetSliderMaximum(SliderMedia, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
+                // Re-set media settings
                 if (Mute == true)
                 {
                     mediaPlayer.Mute = true;
@@ -1352,6 +1403,7 @@ namespace PMedia
 
                 mediaPlayer.SetRate((float)Speed);
 
+                // Things that need to run on the main thread
                 this.Dispatcher.Invoke(() =>
                 {
                     this.MenuSettingsVideoTracks.Items.Clear();
@@ -1373,7 +1425,7 @@ namespace PMedia
 
                     this.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
                     this.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
-                    this.MenuSettingsSubtitleTracks.Items.Add(menuDisableSubtitle);
+                    //this.MenuSettingsSubtitleTracks.Items.Add(menuDisableSubtitle); - NEEDS WORK
 
                     videoPosition.SetNewFile(currentFile.Name, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
@@ -1387,12 +1439,17 @@ namespace PMedia
                             mediaPlayer.Time = currentPosition;
                         });
                     }
+
+                    recents.AddRecent(currentFile.FullName);
+                    RefreshRecentsMenu();
                 });
 
+                // Load tracks
                 foreach(MediaTrack mediaTrack in e.Media.Tracks)
                 {
                     try
                     {
+                        // Track name - doesn't matter what type it is
                         string TrackName = string.Empty;
                         int TrackID = mediaTrack.Id;
 
@@ -1415,9 +1472,10 @@ namespace PMedia
 
                         if (string.IsNullOrWhiteSpace(TrackName))
                             TrackName = "Track";
-                        
-                        switch(mediaTrack.TrackType)
+
+                        switch (mediaTrack.TrackType)
                         {
+                            // Video track
                             case TrackType.Video:
                                 {
                                     this.Dispatcher.Invoke(() =>
@@ -1436,6 +1494,7 @@ namespace PMedia
                                     break;
                                 }
 
+                            // Audio track
                             case TrackType.Audio:
                                 {
                                     this.Dispatcher.Invoke(() =>
@@ -1463,38 +1522,69 @@ namespace PMedia
                                     break;
                                 }
 
-                            case TrackType.Text:
-                                {
-                                    this.Dispatcher.Invoke(() =>
-                                    {
-                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+                               // Subtitle track - SPU gets more subtitle - THIS PART NEEDS WORK
+                            //case TrackType.Text:
+                            //    {
+                            //        TrackName += $" [{TrackID}]";
 
-                                        newTrack.Click += delegate
-                                        {
-                                            mediaPlayer.SetSpu(TrackID);
-                                        };
+                            //        this.Dispatcher.Invoke(() =>
+                            //        {
+                            //            MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
 
-                                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                                        this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
-                                    });
+                            //            newTrack.Click += delegate
+                            //            {
+                            //                mediaPlayer.SetSpu(TrackID);
+                            //            };
 
-                                    if (AutoSubtitleSelect && SubtitleSelected == false)
-                                    {
-                                        if (HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
-                                        {
-                                            mediaPlayer.SetSpu(TrackID);
-                                            SubtitleSelected = true;
-                                        }
-                                    }
+                            //            newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+                            //            this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+                            //        });
 
-                                    break;
-                                }
+                            //        if (AutoSubtitleSelect && SubtitleSelected == false)
+                            //        {
+                            //            if (HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
+                            //            {
+                            //                mediaPlayer.SetSpu(TrackID);
+                            //                SubtitleSelected = true;
+                            //            }
+                            //        }
+
+                            //        break;
+                            //    }
 
                             default:
                                 break;
                         }
 
                     } catch { }
+                }
+
+                /// This is where I'm stuck at
+                for (int i = 0; i < mediaPlayer.SpuCount; i++)
+                {
+                    string SubName = mediaPlayer.SpuDescription[i].Name;
+
+                    if (string.IsNullOrWhiteSpace(SubName))
+                        SubName = $"Track";
+
+                    SubName += $" [{mediaPlayer.SpuDescription[i].Id}]";
+
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        MenuItem newTrack = new MenuItem { Header = SubName, Style = MenuSettingsVideoTracks.Style };
+
+                        newTrack.Click += delegate
+                        {
+                            //string newSubtitle = i.ToString();
+                            //CMBox.Show(newSubtitle);
+                            //mediaPlayer.SetSpu(Convert.ToInt32(newSubtitle));
+                            //mediaPlayer.SetSpu(3);
+                            CMBox.Show(i.ToString());
+                        };
+
+                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+                        this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+                    });
                 }
             });
         }
@@ -1570,6 +1660,71 @@ namespace PMedia
             }
             return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
         }
+
+        private void RefreshRecentsMenu()
+        {
+            try
+            {
+                if (MenuPlaylistRecent.HasItems)
+                    MenuPlaylistRecent.Items.Clear();
+
+                List<string> RecentList = recents.GetList();
+
+                if (RecentList.Count > 0)
+                {
+                    // Foreground color
+                    var brush = new SolidColorBrush(Color.FromArgb(255, (byte)78, (byte)173, (byte)254));
+
+                    // File list
+                    foreach (string Item in RecentList)
+                    {
+                        string name = new FileInfo(Item).Name;
+
+                        MenuItem menuRecent = new MenuItem
+                        {
+                            Header = WithMaxLength(name, 30),
+                            Style = MenuPlaylistRecent.Style,
+                            Foreground = brush,
+                        };
+                        menuRecent.Click += (sender, e) => { OpenFile(Item); };
+
+                        MenuPlaylistRecent.Items.Add(menuRecent);
+                    }
+
+                    // Separator
+                    MenuItem newSeparator = new MenuItem
+                    {
+                        Style = MenuPlaylistSeparator01.Style,
+                        BorderThickness = MenuPlaylistSeparator01.BorderThickness,
+                        Background = MenuPlaylistSeparator01.Background,
+                        Margin = new Thickness(0),
+                        MinWidth = 115,
+                        Height = 2
+                    };
+                    MenuPlaylistRecent.Items.Add(newSeparator);
+
+                    // Clear Recents
+                    MenuItem menuClearRecents = new MenuItem
+                    {
+                        Header = "Clear",
+                        Style = MenuPlaylistRecent.Style,
+                        Name = "ClearR",
+                        Foreground = brush,
+                        Icon = new Image { Source = ImageResource(Images.btnTrash) }
+                    };
+                    menuClearRecents.Click += (sender, e) => 
+                    { 
+                        recents.ClearRecent(); 
+                        RefreshRecentsMenu(); 
+                    };
+                    MenuPlaylistRecent.Items.Add(menuClearRecents);
+                }
+            }
+            catch (Exception ex)
+            {
+                CMBox.Show("Error", "Couldn't refresh recents, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+            }
+        }
         #endregion
 
         #region "Handles"
@@ -1577,7 +1732,7 @@ namespace PMedia
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // For Custom Messages
-            System.Windows.Forms.Application.EnableVisualStyles();
+            
 
             // Controls handles init
             VolumeSlider.VolumeSlider.ValueChanged += (s, nE) =>
@@ -1597,6 +1752,10 @@ namespace PMedia
             {
                 Owner = this
             };
+
+            // Recents
+            recents.Load();
+            RefreshRecentsMenu();
 
             // End
             IsLoading = false; 
@@ -1907,6 +2066,26 @@ namespace PMedia
             AutoSubtitleSelect = MenuSettingsSubtitleAutoSelect.IsChecked;
         }
 
+        private void MenuSettingsSubtitleAdd_Click(object sender, RoutedEventArgs e)
+        {
+            if (mediaPlayer.Media == null)
+                return;
+
+            OpenFileDialog subtitleDialog = new OpenFileDialog()
+            {
+                Filter = @"Subtitle|" + string.Join(";", Extensions.Subtitle.Select( x => @"*" + x )) + "|All files|*.*",
+                Title = "Add new subtitle",
+                CheckFileExists = true,
+                SupportMultiDottedExtensions = false,
+                Multiselect = false
+            };
+
+            if (subtitleDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                LoadSubtitle(subtitleDialog.FileName);
+            }
+        }
+
         private void MenuSettingsOnTop_Click(object sender, RoutedEventArgs e)
         {
             OnTop = MenuSettingsOnTop.IsChecked;
@@ -2043,6 +2222,12 @@ namespace PMedia
             videoListWindow.SetTvShow(tvShow);
         }
 
+        private void MenuAbout_Click(object sender, RoutedEventArgs e)
+        {
+            AboutWindow aboutWindow = new AboutWindow();
+            aboutWindow.ShowDialog();
+        }
+
         // UI Button Controls
         private void BtnPlay_Click(object sender, RoutedEventArgs e)
         {
@@ -2175,12 +2360,6 @@ namespace PMedia
         private void OnPropertyChanged(string info)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
-        }
-
-        private void MenuAbout_Click(object sender, RoutedEventArgs e)
-        {
-            AboutWindow aboutWindow = new AboutWindow();
-            aboutWindow.ShowDialog();
         }
         #endregion
     }

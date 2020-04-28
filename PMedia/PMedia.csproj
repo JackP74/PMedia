@@ -120,6 +120,7 @@
     <Compile Include="PoperContainer.designer.cs">
       <DependentUpon>PoperContainer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Recents.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="TvShow.cs" />
     <Compile Include="VideoListWindow.xaml.cs">

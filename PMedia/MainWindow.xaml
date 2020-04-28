@@ -206,7 +206,7 @@
 
             </MenuItem>
 
-            <MenuItem Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True">
+            <MenuItem VerticalAlignment="Top" ClipToBounds="True" Margin="0" Height="23" Style="{DynamicResource SimpleMenuItem}">
 
                 <MenuItem.Icon>
                     <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSettings.png" Margin="0,0,0,0" Height="15" Width="15"/>
@@ -216,76 +216,76 @@
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Settings</TextBlock>
                 </MenuItem.Header>
 
-                <MenuItem x:Name="MenuSettingsVideo" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0">
+                <MenuItem x:Name="MenuSettingsVideo" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
 
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVideo.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVideo.png" Height="16" Width="16" />
                     </MenuItem.Icon>
 
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Video</TextBlock>
                     </MenuItem.Header>
 
-                    <MenuItem x:Name="MenuSettingsVideoAspectRatio" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,1">
+                    <MenuItem x:Name="MenuSettingsVideoAspectRatio" BorderThickness="1,1,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
 
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSet.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSet.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
 
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Aspect Ratio</TextBlock>
                         </MenuItem.Header>
 
-                        <MenuItem x:Name="MenuSettingsVideoAspectRatio43" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingsVideoAspectRatio43" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">4:3</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingsVideoAspectRatio54" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingsVideoAspectRatio54" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">5:4</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingsVideoAspectRatio169" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingsVideoAspectRatio169" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">16:9</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingsVideoAspectRatio1610" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingsVideoAspectRatio1610" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">16:10</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingsVideoAspectRatio189" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingsVideoAspectRatio189" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">18:9</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingsVideoAspectRatio219" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingsVideoAspectRatio219" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">21:9</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" MinWidth="80" />
+                        <MenuItem x:Name="MenuSettingSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" MinWidth="80" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                        <MenuItem x:Name="MenuSettingVideoAspectRatioCustom" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingVideoAspectRatioCustom" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Icon>
-                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnEdit.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnEdit.png" Height="16" Width="16" />
                             </MenuItem.Icon>
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Custom</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingVideoAspectRatioReset" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" Click="MenuSettingsVideoAspectRatio_Click">
+                        <MenuItem x:Name="MenuSettingVideoAspectRatioReset" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsVideoAspectRatio_Click">
                             <MenuItem.Icon>
-                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnTrash.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnTrash.png" Height="16" Width="16" />
                             </MenuItem.Icon>
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Reset</TextBlock>
@@ -294,9 +294,9 @@
 
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsVideoTracks" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1">
+                    <MenuItem x:Name="MenuSettingsVideoTracks" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSelectTrack.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSelectTrack.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Sub Tracks</TextBlock>
@@ -304,52 +304,52 @@
                     </MenuItem>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuSettingsAudio" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0">
+                <MenuItem x:Name="MenuSettingsAudio" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAudio.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAudio.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
 
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Audio</TextBlock>
                     </MenuItem.Header>
 
-                    <MenuItem x:Name="MenuSettingsAudioMode" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,1">
+                    <MenuItem x:Name="MenuSettingsAudioMode" BorderThickness="1,1,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
 
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSet.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSet.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
 
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Mode</TextBlock>
                         </MenuItem.Header>
 
-                        <MenuItem x:Name="MenuSettingsAudioModeStereo" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" Click="MenuSettingsAudioMode_Click">
+                        <MenuItem x:Name="MenuSettingsAudioModeStereo" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsAudioMode_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Stereo</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
 
-                        <MenuItem x:Name="MenuSettingsAudioModeSurrond" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" Click="MenuSettingsAudioMode_Click">
+                        <MenuItem x:Name="MenuSettingsAudioModeSurrond" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsAudioMode_Click">
                             <MenuItem.Header>
                                 <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Surround</TextBlock>
                             </MenuItem.Header>
                         </MenuItem>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsAudioTracks" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1">
+                    <MenuItem x:Name="MenuSettingsAudioTracks" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSelectTrack.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSelectTrack.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Sub Tracks</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsAudioSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" MinWidth="80" />
+                    <MenuItem x:Name="MenuSettingsAudioSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" MinWidth="80" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                    <MenuItem x:Name="MenuSettingsAudioAutoSelect" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" IsCheckable="True" Checked="MenuSettingsAudioAutoSelect_Checked" Unchecked="MenuSettingsAudioAutoSelect_Checked">
+                    <MenuItem x:Name="MenuSettingsAudioAutoSelect" IsCheckable="True" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Checked="MenuSettingsAudioAutoSelect_Checked" Unchecked="MenuSettingsAudioAutoSelect_Checked">
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Auto Select</TextBlock>
@@ -357,18 +357,18 @@
                     </MenuItem>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuSettingsSubtitle" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0">
+                <MenuItem x:Name="MenuSettingsSubtitle" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSubtitle.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSubtitle.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Subtitle</TextBlock>
                     </MenuItem.Header>
 
-                    <MenuItem x:Name="MenuSettingsSubtitleAdd" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,1">
+                    <MenuItem x:Name="MenuSettingsSubtitleAdd" BorderThickness="1,1,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsSubtitleAdd_Click">
 
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAdd.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAdd.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
 
                         <MenuItem.Header>
@@ -377,20 +377,20 @@
 
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsSubtitleTracks" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1">
+                    <MenuItem x:Name="MenuSettingsSubtitleTracks" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSelectTrack.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSelectTrack.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Sub Tracks</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsSubtitleSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" MinWidth="80" />
+                    <MenuItem x:Name="MenuSettingsSubtitleSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" MinWidth="80" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                    <MenuItem x:Name="MenuSettingsSubtitleAutoSelect" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" IsCheckable="True" Checked="MenuSettingsSubtitleAutoSelect_Checked" Unchecked="MenuSettingsSubtitleAutoSelect_Checked">
+                    <MenuItem x:Name="MenuSettingsSubtitleAutoSelect" IsCheckable="True" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Checked="MenuSettingsSubtitleAutoSelect_Checked" Unchecked="MenuSettingsSubtitleAutoSelect_Checked">
                         <MenuItem.Icon>
-                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" Height="16" Width="16"/>
                         </MenuItem.Icon>
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Auto Select</TextBlock>
@@ -398,57 +398,57 @@
                     </MenuItem>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuSettingsSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
+                <MenuItem x:Name="MenuSettingsSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                <MenuItem x:Name="MenuSettingsOnTop" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsOnTop_Click">
+                <MenuItem x:Name="MenuSettingsOnTop" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsOnTop_Click">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnOnTop.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnOnTop.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">On Top</TextBlock>
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuSettingsGameMode" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsGameMode_Click">
+                <MenuItem x:Name="MenuSettingsGameMode" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsGameMode_Click">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnGameModeOff.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnGameModeOff.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Game Mode</TextBlock>
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuSettingsSeparator02" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
+                <MenuItem x:Name="MenuSettingsSeparator02" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                <MenuItem x:Name="MenuSettingsShutDown" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1">
+                <MenuItem x:Name="MenuSettingsShutDown" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
 
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnShutDown.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnShutDown.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
 
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Shutdown</TextBlock>
                     </MenuItem.Header>
 
-                    <MenuItem x:Name="MenuSettingsShutDownAfterThis" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" IsCheckable="True" Click="MenuSettingsShutDown_Click">
+                    <MenuItem x:Name="MenuSettingsShutDownAfterThis" IsCheckable="True" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">After this episode</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsShutDownAfterN" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsShutDown_Click">
+                    <MenuItem x:Name="MenuSettingsShutDownAfterN" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">After ... episodes</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsShutDownAfterTime" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" IsCheckable="True" Click="MenuSettingsShutDown_Click">
+                    <MenuItem x:Name="MenuSettingsShutDownAfterTime" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">In ... minutes</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
-                    <MenuItem x:Name="MenuSettingsShutDownEndPlaylist" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1" IsCheckable="True" Click="MenuSettingsShutDown_Click">
+                    <MenuItem x:Name="MenuSettingsShutDownEndPlaylist" IsCheckable="True" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsShutDown_Click">
                         <MenuItem.Header>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">End of playlist</TextBlock>
                         </MenuItem.Header>
@@ -458,7 +458,7 @@
 
             </MenuItem>
 
-            <MenuItem Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True">
+            <MenuItem VerticalAlignment="Top" ClipToBounds="True" Margin="0" Height="23" Style="{DynamicResource SimpleMenuItem}">
 
                 <MenuItem.Icon>
                     <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnPlaylist.png" Margin="0,0,0,0" Height="15" Width="15"/>
@@ -468,10 +468,10 @@
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Playlist</TextBlock>
                 </MenuItem.Header>
 
-                <MenuItem x:Name="MenuPlaylistAutoplay" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,1,1,0" IsCheckable="true" Click="MenuPlaylistAutoplay_Click" Loaded="MenuPlaylistAutoplay_Loaded">
+                <MenuItem x:Name="MenuPlaylistAutoplay" IsCheckable="true" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuPlaylistAutoplay_Click" Loaded="MenuPlaylistAutoplay_Loaded">
 
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" Margin="0,0,0,0" Height="15" Width="15"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" Height="15" Width="15"/>
                     </MenuItem.Icon>
 
                     <MenuItem.Header>
@@ -483,13 +483,13 @@
                 <MenuItem x:Name="MenuPlaylistSliderAutoplay" Header="Jump" Style="{DynamicResource SimpleMenuItem}">
                     <MenuItem.Template>
                         <ControlTemplate TargetType="{x:Type MenuItem}">
-                            <Slider Width="100" 
-                                    Name="SliderAutoplay" 
+                            <Slider Name="SliderAutoplay" 
+                                    IsSnapToTickEnabled="True"
                                     Minimum="1" 
                                     Maximum="120" 
                                     TickFrequency="1" 
-                                    IsSnapToTickEnabled="True"
                                     Background="#333333"
+                                    Width="100" 
                                     Value="5"
                                     ValueChanged="SliderAutoplay_ValueChanged"
                                     Loaded="SliderAutoplay_Loaded"/>
@@ -497,40 +497,40 @@
                     </MenuItem.Template>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaylistSeparator01" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" MinWidth="115" />
+                <MenuItem x:Name="MenuPlaylistSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" MinWidth="115" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                <MenuItem x:Name="MenuPlaylistNext" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuPlaylistNext_Click">
+                <MenuItem x:Name="MenuPlaylistNext" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuPlaylistNext_Click">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnNext.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnNext.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Next</TextBlock>
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaylistPrevious" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuPlaylistPrevious_Click">
+                <MenuItem x:Name="MenuPlaylistPrevious" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}"  Click="MenuPlaylistPrevious_Click">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnPrevious.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnPrevious.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Previous</TextBlock>
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaylistVideoList" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,0" Click="MenuPlaylistVideoList_Click">
+                <MenuItem x:Name="MenuPlaylistVideoList" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuPlaylistVideoList_Click">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVideoList.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnVideoList.png" Height="16" Width="16" />
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Video List</TextBlock>
                     </MenuItem.Header>
                 </MenuItem>
 
-                <MenuItem x:Name="MenuPlaylistSeparator02" Style="{DynamicResource SimpleMenuItem}" Height="2" Margin="0,0,0,0" Background="#1d1d1d" BorderThickness="1,0,1,0" />
+                <MenuItem x:Name="MenuPlaylistSeparator02" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>
 
-                <MenuItem x:Name="MenuPlaylistRecent" Style="{DynamicResource SimpleMenuItem}" Height="22" Margin="0,0,0,0" Background="#333333" BorderThickness="1,0,1,1">
+                <MenuItem x:Name="MenuPlaylistRecent" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                     <MenuItem.Icon>
-                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnRecent.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnRecent.png" Height="16" Width="16"/>
                     </MenuItem.Icon>
                     <MenuItem.Header>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Recent</TextBlock>
@@ -539,16 +539,16 @@
 
             </MenuItem>
 
-            <MenuItem x:Name="MenuAbout" Style="{DynamicResource SimpleMenuItem}" Margin="0" Height="23" VerticalAlignment="Top" ClipToBounds="True" Click="MenuAbout_Click">
+            <MenuItem x:Name="MenuAbout" VerticalAlignment="Top" ClipToBounds="True" Margin="0" Height="23" Style="{DynamicResource SimpleMenuItem}" Click="MenuAbout_Click">
 
                 <MenuItem.Icon>
-                    <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAbout.png" Margin="0,0,0,0" Height="15" Width="15"/>
+                    <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAbout.png" Height="15" Width="15"/>
                 </MenuItem.Icon>
 
                 <MenuItem.Header>
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">About</TextBlock>
                 </MenuItem.Header>
-
+                
             </MenuItem>
 
         </Menu>
