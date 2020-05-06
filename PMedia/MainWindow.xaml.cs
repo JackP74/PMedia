@@ -1236,6 +1236,19 @@ namespace PMedia
             return int.TryParse(Input, out _);
         }
 
+        private int IdFromTrackName(string Name)
+        {
+            try
+            {
+                return Convert.ToInt32(Name.Split("[".ToCharArray()).Last().Split("]".ToCharArray()).First());
+            }
+            catch (Exception ex)
+            {
+                CMBox.Show("Error", "Couldn't get id from name, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                return -1;
+            }
+        }
+
         private void NewFile()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog()
@@ -1275,6 +1288,8 @@ namespace PMedia
         {
             mediaPlayer.AddSlave(MediaSlaveType.Subtitle, new Uri(FilePath).ToString(), true);
 
+            Thread.Sleep(1000);
+
             // Track name
             string TrackName = string.Empty;
             int TrackID = mediaPlayer.Spu;
@@ -1289,9 +1304,12 @@ namespace PMedia
             // Add track to menu
             MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
 
-            newTrack.Click += delegate
+            newTrack.Click += (sender, e) =>
             {
-                mediaPlayer.SetSpu(TrackID);
+                MenuItem menuItem = (MenuItem)sender;
+                int newSPU = IdFromTrackName(menuItem.Header.ToString());
+
+                mediaPlayer.SetSpu(newSPU);
             };
 
             newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
@@ -1425,7 +1443,6 @@ namespace PMedia
 
                     this.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
                     this.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
-                    //this.MenuSettingsSubtitleTracks.Items.Add(menuDisableSubtitle); - NEEDS WORK
 
                     videoPosition.SetNewFile(currentFile.Name, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
@@ -1522,35 +1539,12 @@ namespace PMedia
                                     break;
                                 }
 
-                               // Subtitle track - SPU gets more subtitle - THIS PART NEEDS WORK
-                            //case TrackType.Text:
-                            //    {
-                            //        TrackName += $" [{TrackID}]";
-
-                            //        this.Dispatcher.Invoke(() =>
-                            //        {
-                            //            MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
-
-                            //            newTrack.Click += delegate
-                            //            {
-                            //                mediaPlayer.SetSpu(TrackID);
-                            //            };
-
-                            //            newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                            //            this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
-                            //        });
-
-                            //        if (AutoSubtitleSelect && SubtitleSelected == false)
-                            //        {
-                            //            if (HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
-                            //            {
-                            //                mediaPlayer.SetSpu(TrackID);
-                            //                SubtitleSelected = true;
-                            //            }
-                            //        }
-
-                            //        break;
-                            //    }
+                            // Subtitle track
+                            case TrackType.Text:
+                                {
+                                    // Nothing needed
+                                    break;
+                                }
 
                             default:
                                 break;
@@ -1559,32 +1553,44 @@ namespace PMedia
                     } catch { }
                 }
 
-                /// This is where I'm stuck at
+                // Subtitle track - TO DO: See Track Id Selection
                 for (int i = 0; i < mediaPlayer.SpuCount; i++)
                 {
                     string SubName = mediaPlayer.SpuDescription[i].Name;
+                    int SubID = mediaPlayer.SpuDescription[i].Id;
 
                     if (string.IsNullOrWhiteSpace(SubName))
                         SubName = $"Track";
 
-                    SubName += $" [{mediaPlayer.SpuDescription[i].Id}]";
+                    SubName += $" [{SubID}]";
 
                     this.Dispatcher.Invoke(() =>
                     {
                         MenuItem newTrack = new MenuItem { Header = SubName, Style = MenuSettingsVideoTracks.Style };
 
-                        newTrack.Click += delegate
+                        newTrack.Click += (sender, e) =>
                         {
-                            //string newSubtitle = i.ToString();
-                            //CMBox.Show(newSubtitle);
-                            //mediaPlayer.SetSpu(Convert.ToInt32(newSubtitle));
-                            //mediaPlayer.SetSpu(3);
-                            CMBox.Show(i.ToString());
+                            MenuItem menuItem = (MenuItem)sender;
+                            int newSPU = IdFromTrackName(menuItem.Header.ToString());
+
+                            mediaPlayer.SetSpu(newSPU);
                         };
 
                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                         this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
                     });
+
+                    Thread.Sleep(500);
+
+                    // Subtitle auto select
+                    if (AutoSubtitleSelect && SubtitleSelected == false)
+                    {
+                        if (HasRegexMatch(SubName, @"^.*\b(eng|english)\b.*$"))
+                        {
+                            mediaPlayer.SetSpu(mediaPlayer.SpuDescription[i].Id);
+                            SubtitleSelected = true;
+                        }
+                    }
                 }
             });
         }
