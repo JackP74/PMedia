@@ -9,8 +9,8 @@
         ResizeMode="NoResize">
     <Grid>
         <Image HorizontalAlignment="Left" Height="30" Margin="20,20,0,0" VerticalAlignment="Top" Width="30" Source="/PMedia;component/App.ico"/>
-        <Label Content="PMedia v0.0.0.12 alpha" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Width="162" Foreground="WhiteSmoke"/>
-        <Label Content="date 4/27/2020" HorizontalAlignment="Left" Margin="20,67,0,0" VerticalAlignment="Top" Width="197" Foreground="WhiteSmoke"/>
+        <Label Content="PMedia v0.0.1.0 alpha" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Width="162" Foreground="WhiteSmoke"/>
+        <Label Content="date 5/9/2020" HorizontalAlignment="Left" Margin="20,67,0,0" VerticalAlignment="Top" Width="197" Foreground="WhiteSmoke"/>
 
     </Grid>
 </Window>

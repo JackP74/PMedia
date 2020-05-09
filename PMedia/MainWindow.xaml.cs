@@ -29,6 +29,7 @@ using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using System.Windows.Interop;
 #endregion
 
 namespace PMedia
@@ -592,43 +593,43 @@ namespace PMedia
         #region "Internal Classes"
         internal static class Images
         {
-            public static string btnAbout = "Resources/btnAbout.png";
-            public static string btnAdd = "Resources/btnAdd.png";
-            public static string btnAudio = "Resources/btnAudio.png";
-            public static string btnBackward = "Resources/btnBackward.png";
-            public static string btnEdit = "Resources/btnEdit.png";
-            public static string btnFile = "Resources/btnFile.png";
-            public static string btnForward = "Resources/btnForward.png";
-            public static string btnFullScreenOff = "Resources/btnFullScreenOff.png";
-            public static string btnFullScreenOn = "Resources/btnFullScreenOn.png";
-            public static string btnGameModeOff = "Resources/btnGameModeOff.png";
-            public static string btnGameModeOn = "Resources/btnGameModeOn.png";
-            public static string btnMediaInfo = "Resources/btnMediaInfo.png";
-            public static string btnMute = "Resources/btnMute.png";
-            public static string btnNext = "Resources/btnNext.png";
-            public static string btnOnTop = "Resources/btnOnTop.png";
-            public static string btnOpen = "Resources/btnOpen.png";
-            public static string btnPause = "Resources/btnPause.png";
-            public static string btnPlay = "Resources/btnPlay.png";
-            public static string btnPlayback = "Resources/btnPlayback.png";
-            public static string btnPlaylist = "Resources/btnPlaylist.png";
-            public static string btnPrevious = "Resources/btnPrevious.png";
-            public static string btnQuit = "Resources/btnQuit.png";
-            public static string btnRecent = "Resources/btnRecent.png";
-            public static string btnScreenShot = "Resources/btnScreenShot.png";
-            public static string btnSelectTrack = "Resources/btnSelectTrack.png";
-            public static string btnSet = "Resources/btnSet.png";
-            public static string btnSettings = "Resources/btnSettings.png";
-            public static string btnShutDown = "Resources/btnShutDown.png";
-            public static string btnStop = "Resources/btnStop.png";
-            public static string btnSubtitle = "Resources/btnSubtitle.png";
-            public static string btnSwitch = "Resources/btnSwitch.png";
-            public static string btnTrash = "Resources/btnTrash.png";
-            public static string btnVideo = "Resources/btnVideo.png";
-            public static string btnVideoList = "Resources/btnVideoList.png";
-            public static string btnVolume1 = "Resources/BtnVolume1.png";
-            public static string btnVolume2 = "Resources/BtnVolume2.png";
-            public static string btnVolume3 = "Resources/BtnVolume3.png";
+            public static readonly string btnAbout = "Resources/btnAbout.png";
+            public static readonly string btnAdd = "Resources/btnAdd.png";
+            public static readonly string btnAudio = "Resources/btnAudio.png";
+            public static readonly string btnBackward = "Resources/btnBackward.png";
+            public static readonly string btnEdit = "Resources/btnEdit.png";
+            public static readonly string btnFile = "Resources/btnFile.png";
+            public static readonly string btnForward = "Resources/btnForward.png";
+            public static readonly string btnFullScreenOff = "Resources/btnFullScreenOff.png";
+            public static readonly string btnFullScreenOn = "Resources/btnFullScreenOn.png";
+            public static readonly string btnGameModeOff = "Resources/btnGameModeOff.png";
+            public static readonly string btnGameModeOn = "Resources/btnGameModeOn.png";
+            public static readonly string btnMediaInfo = "Resources/btnMediaInfo.png";
+            public static readonly string btnMute = "Resources/btnMute.png";
+            public static readonly string btnNext = "Resources/btnNext.png";
+            public static readonly string btnOnTop = "Resources/btnOnTop.png";
+            public static readonly string btnOpen = "Resources/btnOpen.png";
+            public static readonly string btnPause = "Resources/btnPause.png";
+            public static readonly string btnPlay = "Resources/btnPlay.png";
+            public static readonly string btnPlayback = "Resources/btnPlayback.png";
+            public static readonly string btnPlaylist = "Resources/btnPlaylist.png";
+            public static readonly string btnPrevious = "Resources/btnPrevious.png";
+            public static readonly string btnQuit = "Resources/btnQuit.png";
+            public static readonly string btnRecent = "Resources/btnRecent.png";
+            public static readonly string btnScreenShot = "Resources/btnScreenShot.png";
+            public static readonly string btnSelectTrack = "Resources/btnSelectTrack.png";
+            public static readonly string btnSet = "Resources/btnSet.png";
+            public static readonly string btnSettings = "Resources/btnSettings.png";
+            public static readonly string btnShutDown = "Resources/btnShutDown.png";
+            public static readonly string btnStop = "Resources/btnStop.png";
+            public static readonly string btnSubtitle = "Resources/btnSubtitle.png";
+            public static readonly string btnSwitch = "Resources/btnSwitch.png";
+            public static readonly string btnTrash = "Resources/btnTrash.png";
+            public static readonly string btnVideo = "Resources/btnVideo.png";
+            public static readonly string btnVideoList = "Resources/btnVideoList.png";
+            public static readonly string btnVolume1 = "Resources/BtnVolume1.png";
+            public static readonly string btnVolume2 = "Resources/BtnVolume2.png";
+            public static readonly string btnVolume3 = "Resources/BtnVolume3.png";
         }
 
         internal class JumpCommand
@@ -677,6 +678,21 @@ namespace PMedia
             {
                 //base.OnPaintBackground(e);
             }
+        }
+
+        internal static class ExternalCommands
+        {
+            public const int PM_PLAY = 0xFFF0;
+            public const int PM_PAUSE = 0xFFF1;
+            public const int PM_STOP = 0xFFF2;
+            public const int PM_FORWARD = 0xFFF3;
+            public const int PM_BACKWARD = 0xFFF4;
+            public const int PM_NEXT = 0xFFF5;
+            public const int PM_PREVIOUS = 0xFFF6;
+            public const int PM_VOLUMEUP = 0xFFF7;
+            public const int PM_VOLUMEDOWN = 0xFFF8;
+            public const int PM_MUTE = 0xFFF9;
+            public const int PM_AUTOPLAY = 0xFFFA;
         }
         #endregion
 
@@ -1087,7 +1103,6 @@ namespace PMedia
             if (Environment.Is64BitProcess == true) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
             Core.Initialize(vlcPath);
-            //VideoView.Loaded += VideoView_Loaded;
 
             CreateMediaPlayer();
 
@@ -1121,86 +1136,17 @@ namespace PMedia
             recents = new Recents(recentsPath);
         }
 
-        private void CreateMediaPlayer()
+        private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            // VLC init
-            libVLC = new LibVLC();
-
-            mediaPlayer = new MediaPlayer(libVLC)
+            if (msg >= ExternalCommands.PM_PLAY && msg <= ExternalCommands.PM_AUTOPLAY)
             {
-                EnableMouseInput = false
-            };
+                int Command = msg;
+                int Arg = (Int32)wParam;
 
-            // media player events
-            mediaPlayer.Playing += MediaPlayer_Playing;
-            mediaPlayer.Paused += MediaPlayer_Paused;
-            mediaPlayer.MediaChanged += MediaPlayer_MediaChanged;
-            mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
-            mediaPlayer.EndReached += MediaPlayer_EndReached;
-            mediaPlayer.Stopped += MediaPlayer_Stopped;
+                ProcessExternalCommand(Command, Arg);
+            }
 
-            // WinForm styles
-            LibVLCSharp.WinForms.VideoView videoView = new LibVLCSharp.WinForms.VideoView()
-            {
-                Dock = DockStyle.Fill,
-                BackColor = System.Drawing.Color.Black
-            };
-            videoView.MediaPlayer = mediaPlayer;
-
-            // context menu hack for uniform style
-            ContextMedia = new ContextMenuMedia();
-            poperContextMedia = new PoperContainer(ContextMedia);
-
-            // overlay panel for context menu and double click fullscreen
-            TransparentPanel overlayPanel = new TransparentPanel()
-            {
-                Dock = DockStyle.Fill
-            };
-
-            // fullscreen toggle on double click
-            overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
-
-            // hide context menu on btn press and media controls when fullscreen because controls don't hide when context menu is visible
-            ContextMedia.OnMouseClickBtn += delegate 
-            { 
-                poperContextMedia.HideContext();
-
-                if (this.WindowStyle == WindowStyle.None)
-                {
-                    MainGrid.RowDefinitions[0].Height = new GridLength(0);
-                    MainGrid.RowDefinitions[2].Height = new GridLength(0);
-                }
-            };
-
-            // btns handles on existing handles for simplicity
-            ContextMedia.OnPlayBtn += delegate { BtnPlay_Click(null, null); };
-            ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
-            ContextMedia.OnBackwardBtn += delegate { BtnBackward_Click(null, null); };
-            ContextMedia.OnForwardBtn += delegate { BtnForward_Click(null, null); };
-            ContextMedia.OnVolumeUpBtn += delegate { MenuPlaybackVolumeUp_Click(null, null); };
-            ContextMedia.OnVolumeDownBtn += delegate { MenuPlaybackVolumeDown_Click(null, null); };
-            ContextMedia.OnMuteBtn += delegate { BtnMute_Click(null, null); };
-            ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
-
-            // add everything to win host
-            System.Windows.Forms.Panel videoPanel = new System.Windows.Forms.Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = System.Drawing.Color.Black
-            };
-            videoPanel.Controls.Add(overlayPanel);
-            videoPanel.Controls.Add(videoView);
-
-            WinHost.Child = videoPanel;
-
-            // Show context
-            overlayPanel.MouseClick += (object sender, System.Windows.Forms.MouseEventArgs e) => 
-            {
-                if (e.Button == MouseButtons.Right)
-                {
-                    poperContextMedia.ShowContext(overlayPanel, e.Location);
-                }
-            };
+            return IntPtr.Zero;
         }
 
         private void StartThread(ThreadStart newStart)
@@ -1321,7 +1267,7 @@ namespace PMedia
         {
             return Regex.IsMatch(ToCompare, RegexMatch, RegexOptions.IgnoreCase);
         }
-
+        
         private Screen GetCurrentScreen()
         {
             return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
@@ -1334,6 +1280,174 @@ namespace PMedia
         #endregion
 
         #region "MediaPlayer"
+        private int ProcessExternalCommand(int Command, int Arg)
+        {
+            try
+            {
+                switch (Command)
+                {
+                    case ExternalCommands.PM_PLAY:
+                        {
+                            if (mediaPlayer.State == VLCState.Paused)
+                                mediaPlayer.Play();
+
+                            break;
+                        }
+
+                    case ExternalCommands.PM_PAUSE:
+                        {
+                            if (mediaPlayer.CanPause == true)
+                                mediaPlayer.Pause();
+
+                            break;
+                        }
+
+                    case ExternalCommands.PM_STOP:
+                        {
+                            StopMediaPlayer();
+                            break;
+                        }
+
+                    case ExternalCommands.PM_FORWARD:
+                        {
+                            BtnForward_Click(null, null);
+                            break;
+                        }
+
+                    case ExternalCommands.PM_BACKWARD:
+                        {
+                            BtnBackward_Click(null, null);
+                            break;
+                        }
+
+                    case ExternalCommands.PM_NEXT:
+                        {
+                            Next();
+                            break;
+                        }
+
+                    case ExternalCommands.PM_PREVIOUS:
+                        {
+                            Previous();
+                            break;
+                        }
+
+                    case ExternalCommands.PM_VOLUMEUP:
+                        {
+                            Volume += Arg;
+                            break;
+                        }
+
+                    case ExternalCommands.PM_VOLUMEDOWN:
+                        {
+                            Volume -= Arg;
+                            break;
+                        }
+
+                    case ExternalCommands.PM_MUTE:
+                        {
+                            Mute = !Mute;
+                            break;
+                        }
+
+                    case ExternalCommands.PM_AUTOPLAY:
+                        {
+                            AutoPlay = !AutoPlay;
+                            break;
+                        }
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                StartThread(() => { CMBox.Show("Error", "Couldn't process external command, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString()); });
+                return 0;
+            }
+        }
+
+        private void CreateMediaPlayer()
+        {
+            // VLC init
+            libVLC = new LibVLC();
+
+            mediaPlayer = new MediaPlayer(libVLC)
+            {
+                EnableMouseInput = false
+            };
+
+            // media player events
+            mediaPlayer.Playing += MediaPlayer_Playing;
+            mediaPlayer.Paused += MediaPlayer_Paused;
+            mediaPlayer.MediaChanged += MediaPlayer_MediaChanged;
+            mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
+            mediaPlayer.EndReached += MediaPlayer_EndReached;
+            mediaPlayer.Stopped += MediaPlayer_Stopped;
+
+            // WinForm styles
+            LibVLCSharp.WinForms.VideoView videoView = new LibVLCSharp.WinForms.VideoView()
+            {
+                Dock = DockStyle.Fill,
+                BackColor = System.Drawing.Color.Black
+            };
+            videoView.MediaPlayer = mediaPlayer;
+
+            // context menu hack for uniform style
+            ContextMedia = new ContextMenuMedia();
+            poperContextMedia = new PoperContainer(ContextMedia);
+
+            // overlay panel for context menu and double click fullscreen
+            TransparentPanel overlayPanel = new TransparentPanel()
+            {
+                Dock = DockStyle.Fill
+            };
+
+            // fullscreen toggle on double click
+            overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
+
+            // hide context menu on btn press and media controls when fullscreen because controls don't hide when context menu is visible
+            ContextMedia.OnMouseClickBtn += delegate
+            {
+                poperContextMedia.HideContext();
+
+                if (this.WindowStyle == WindowStyle.None)
+                {
+                    MainGrid.RowDefinitions[0].Height = new GridLength(0);
+                    MainGrid.RowDefinitions[2].Height = new GridLength(0);
+                }
+            };
+
+            // btns handles on existing handles for simplicity
+            ContextMedia.OnPlayBtn += delegate { BtnPlay_Click(null, null); };
+            ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
+            ContextMedia.OnBackwardBtn += delegate { BtnBackward_Click(null, null); };
+            ContextMedia.OnForwardBtn += delegate { BtnForward_Click(null, null); };
+            ContextMedia.OnVolumeUpBtn += delegate { MenuPlaybackVolumeUp_Click(null, null); };
+            ContextMedia.OnVolumeDownBtn += delegate { MenuPlaybackVolumeDown_Click(null, null); };
+            ContextMedia.OnMuteBtn += delegate { BtnMute_Click(null, null); };
+            ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
+
+            // add everything to win host
+            System.Windows.Forms.Panel videoPanel = new System.Windows.Forms.Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = System.Drawing.Color.Black
+            };
+            videoPanel.Controls.Add(overlayPanel);
+            videoPanel.Controls.Add(videoView);
+
+            WinHost.Child = videoPanel;
+
+            // Show context
+            overlayPanel.MouseClick += (object sender, System.Windows.Forms.MouseEventArgs e) =>
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    poperContextMedia.ShowContext(overlayPanel, e.Location);
+                }
+            };
+        }
+
         private void ProcessShow(string FileName)
         {
             StartThread(() =>
@@ -1366,6 +1480,18 @@ namespace PMedia
                 if (this.mediaPlayer.Media != null)
                     this.mediaPlayer.Media.Dispose();
             });
+        }
+
+        private void Next()
+        {
+            if (tvShow.HasNextEpisode() && tvShow.NextEpisode().IsTvShow)
+                OpenFile(tvShow.NextEpisode().FilePath);
+        }
+
+        private void Previous()
+        {
+            if (tvShow.HasPreviousEpisode() && tvShow.PreviousEpisode().IsTvShow)
+                OpenFile(tvShow.PreviousEpisode().FilePath);
         }
 
         private void MediaPlayer_Playing(object sender, EventArgs e)
@@ -1785,20 +1911,6 @@ namespace PMedia
                 SetImage(btnMuteImage, Images.btnMute);
         }
 
-        private void VideoView_Loaded(object sender, RoutedEventArgs e)
-        {
-            libVLC = new LibVLC();
-            mediaPlayer = new MediaPlayer(libVLC);
-            //VideoView.MediaPlayer = mediaPlayer;
-
-            mediaPlayer.Playing += MediaPlayer_Playing;
-            mediaPlayer.Paused += MediaPlayer_Paused;
-            mediaPlayer.MediaChanged += MediaPlayer_MediaChanged;
-            mediaPlayer.TimeChanged += MediaPlayer_TimeChanged;
-            mediaPlayer.EndReached += MediaPlayer_EndReached;
-            mediaPlayer.Stopped += MediaPlayer_Stopped;
-        }
-
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Space)
@@ -1862,6 +1974,20 @@ namespace PMedia
             {
                 GameMode = !GameMode;
             }
+        }
+
+        private void MainWindow_SourceInitialized(object sender, EventArgs e)
+        {
+            IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
+            HwndSource src = HwndSource.FromHwnd(windowHandle);
+            src.AddHook(new HwndSourceHook(WndProc));
+        }
+
+        private void MainWindow_Closing(object sender, EventArgs e)
+        {
+            IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
+            HwndSource src = HwndSource.FromHwnd(windowHandle);
+            src.RemoveHook(new HwndSourceHook(this.WndProc));
         }
 
         // Form Events
@@ -2212,14 +2338,12 @@ namespace PMedia
 
         private void MenuPlaylistNext_Click(object sender, RoutedEventArgs e)
         {
-            if (tvShow.HasNextEpisode() && tvShow.NextEpisode().IsTvShow)
-                OpenFile(tvShow.NextEpisode().FilePath);
+            Next();
         }
 
         private void MenuPlaylistPrevious_Click(object sender, RoutedEventArgs e)
         {
-            if (tvShow.HasPreviousEpisode() && tvShow.PreviousEpisode().IsTvShow)
-                OpenFile(tvShow.PreviousEpisode().FilePath);
+            Previous();
         }
 
         private void MenuPlaylistVideoList_Click(object sender, RoutedEventArgs e)
