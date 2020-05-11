@@ -16,6 +16,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using System.Windows.Interop;
 
 using SuperContextMenu;
 using Ookii.Dialogs.WinForms;
@@ -29,7 +30,6 @@ using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using System.Windows.Interop;
 #endregion
 
 namespace PMedia
@@ -37,9 +37,6 @@ namespace PMedia
     public partial class MainWindow : INotifyPropertyChanged
     {
         #region "Win32 Imports"
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr FindWindow(string strClassName, string strWindowName);
-
         // WPF has no real X-Y location, this fixes that
         [DllImport("user32.dll")]
         private static extern bool GetWindowRect(IntPtr hwnd, ref Rect rectangle);
@@ -87,7 +84,7 @@ namespace PMedia
         private ContextMenuMedia ContextMedia;
         private PoperContainer poperContextMedia;
 
-        private Recents recents;
+        private readonly Recents recents;
         #endregion
 
         #region "Proprieties"
@@ -467,6 +464,22 @@ namespace PMedia
             }
         }
 
+        private bool Acceleration
+        {
+            set
+            {
+                settings.Acceleration = value;
+
+                SetMenuItemChecked(MenuSettingsAcceleration, value);
+
+                ReOpenFile();
+            }
+            get
+            {
+                return settings.Acceleration;
+            }
+        }
+
         private bool GameMode
         {
             set
@@ -594,6 +607,7 @@ namespace PMedia
         internal static class Images
         {
             public static readonly string btnAbout = "Resources/btnAbout.png";
+            public static readonly string btnAcceleration = "Resources/btnAcceleration.png";
             public static readonly string btnAdd = "Resources/btnAdd.png";
             public static readonly string btnAudio = "Resources/btnAudio.png";
             public static readonly string btnBackward = "Resources/btnBackward.png";
@@ -1099,6 +1113,9 @@ namespace PMedia
             DataContext = this;
             PlayBtnTxt = "Play";
 
+            settings = new Settings();
+            settings.Load();
+
             string vlcPath = AppDomain.CurrentDomain.BaseDirectory;
             if (Environment.Is64BitProcess == true) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
@@ -1106,15 +1123,15 @@ namespace PMedia
 
             CreateMediaPlayer();
 
-            settings = new Settings();
-            settings.Load();
-
-            Mute = settings.IsMute;
             Volume = settings.Volume;
+            Mute = settings.IsMute;
             Speed = settings.Rate;
             Jump = settings.Jump;
+            AutoPlay = settings.AutoPlay;
+            AutoPlayTime = settings.AutoPlayTime;
             AutoAudioSelect = settings.AutoAudio;
             AutoSubtitleSelect = settings.AutoSubtitle;
+            Acceleration = settings.Acceleration;
 
             jumpCommands = new List<JumpCommand>();
             SetLabelsColors();
@@ -1225,8 +1242,28 @@ namespace PMedia
 
                 StartThread(() =>
                 {
-                    mediaPlayer.Play(new Media(libVLC, FilePath, FromType.FromPath));
+                    Media media = new Media(libVLC, FilePath, FromType.FromPath);
+
+                    if (settings.Acceleration == false)
+                        media.AddOption(@":avcodec-hw=none");
+
+                    mediaPlayer.Play(media);
                 });
+            }
+        }
+
+        public void ReOpenFile()
+        {
+            if (mediaPlayer.Media != null)
+            {
+                FileInfo currentFile = new FileInfo(System.Net.WebUtility.UrlDecode(new Uri(mediaPlayer.Media.Mrl).AbsolutePath));
+
+                if (currentFile.Exists == false)
+                    return;
+
+                StopMediaPlayer();
+
+                OpenFile(currentFile.FullName);
             }
         }
 
@@ -1310,13 +1347,13 @@ namespace PMedia
 
                     case ExternalCommands.PM_FORWARD:
                         {
-                            BtnForward_Click(null, null);
+                            JumpForward();
                             break;
                         }
 
                     case ExternalCommands.PM_BACKWARD:
                         {
-                            BtnBackward_Click(null, null);
+                            JumpBackward();
                             break;
                         }
 
@@ -1420,11 +1457,11 @@ namespace PMedia
             // btns handles on existing handles for simplicity
             ContextMedia.OnPlayBtn += delegate { BtnPlay_Click(null, null); };
             ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
-            ContextMedia.OnBackwardBtn += delegate { BtnBackward_Click(null, null); };
-            ContextMedia.OnForwardBtn += delegate { BtnForward_Click(null, null); };
-            ContextMedia.OnVolumeUpBtn += delegate { MenuPlaybackVolumeUp_Click(null, null); };
-            ContextMedia.OnVolumeDownBtn += delegate { MenuPlaybackVolumeDown_Click(null, null); };
-            ContextMedia.OnMuteBtn += delegate { BtnMute_Click(null, null); };
+            ContextMedia.OnBackwardBtn += delegate { JumpBackward(); };
+            ContextMedia.OnForwardBtn += delegate { JumpForward(); };
+            ContextMedia.OnVolumeUpBtn += delegate { Volume += 5; };
+            ContextMedia.OnVolumeDownBtn += delegate { Volume -= 5; };
+            ContextMedia.OnMuteBtn += delegate { Mute = !Mute; };
             ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
 
             // add everything to win host
@@ -1492,6 +1529,22 @@ namespace PMedia
         {
             if (tvShow.HasPreviousEpisode() && tvShow.PreviousEpisode().IsTvShow)
                 OpenFile(tvShow.PreviousEpisode().FilePath);
+        }
+
+        private void JumpForward()
+        {
+            if (mediaPlayer.IsSeekable)
+            {
+                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
+            }
+        }
+
+        private void JumpBackward()
+        {
+            if (mediaPlayer.IsSeekable)
+            {
+                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
+            }
         }
 
         private void MediaPlayer_Playing(object sender, EventArgs e)
@@ -1863,9 +1916,6 @@ namespace PMedia
         // Initial Loading
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // For Custom Messages
-            
-
             // Controls handles init
             VolumeSlider.VolumeSlider.ValueChanged += (s, nE) =>
             {
@@ -1909,6 +1959,49 @@ namespace PMedia
             // Can't set new image until old one is rendered, because fuck WPF
             if(Mute == true)
                 SetImage(btnMuteImage, Images.btnMute);
+        }
+
+        private void MainWindow_SourceInitialized(object sender, EventArgs e)
+        {
+            IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
+            HwndSource src = HwndSource.FromHwnd(windowHandle);
+            src.AddHook(new HwndSourceHook(WndProc));
+        }
+
+        private void MainWindow_Closing(object sender, EventArgs e)
+        {
+            IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
+            HwndSource src = HwndSource.FromHwnd(windowHandle);
+            src.RemoveHook(new HwndSourceHook(this.WndProc));
+        }
+
+        // Form Events
+        private void MainWindow_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (this.WindowStyle == WindowStyle.None)
+            {
+                MainGrid.RowDefinitions[0].Height = new GridLength(0);
+                MainGrid.RowDefinitions[2].Height = new GridLength(0);
+            }
+        }
+
+        private void MainWindow_StateChanged(object sender, EventArgs e)
+        {
+            if (this.WindowStyle == WindowStyle.None && this.WindowState == WindowState.Maximized)
+            {
+                Process process = Process.GetCurrentProcess();
+                IntPtr ptr = process.MainWindowHandle;
+                GetWindowRect(ptr, ref rect);
+
+                rect.Top += 7;
+                rect.Left += 7;
+
+                MouseTimer.Start();
+            }
+            else
+            {
+                MouseTimer.Stop();
+            }
         }
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -1973,49 +2066,6 @@ namespace PMedia
             else if (e.Key == Key.G)
             {
                 GameMode = !GameMode;
-            }
-        }
-
-        private void MainWindow_SourceInitialized(object sender, EventArgs e)
-        {
-            IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
-            HwndSource src = HwndSource.FromHwnd(windowHandle);
-            src.AddHook(new HwndSourceHook(WndProc));
-        }
-
-        private void MainWindow_Closing(object sender, EventArgs e)
-        {
-            IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
-            HwndSource src = HwndSource.FromHwnd(windowHandle);
-            src.RemoveHook(new HwndSourceHook(this.WndProc));
-        }
-
-        // Form Events
-        private void MainWindow_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (this.WindowStyle == WindowStyle.None)
-            {
-                MainGrid.RowDefinitions[0].Height = new GridLength(0);
-                MainGrid.RowDefinitions[2].Height = new GridLength(0);
-            }
-        }
-
-        private void MainWindow_StateChanged(object sender, EventArgs e)
-        {
-            if (this.WindowStyle == WindowStyle.None && this.WindowState == WindowState.Maximized)
-            {
-                Process process = Process.GetCurrentProcess();
-                IntPtr ptr = process.MainWindowHandle;
-                GetWindowRect(ptr, ref rect);
-
-                rect.Top += 7;
-                rect.Left += 7;
-
-                MouseTimer.Start();
-            }
-            else
-            {
-                MouseTimer.Stop();
             }
         }
 
@@ -2223,6 +2273,11 @@ namespace PMedia
             OnTop = MenuSettingsOnTop.IsChecked;
         }
 
+        private void MenuSettingsAcceleration_Click(object sender, RoutedEventArgs e)
+        {
+            Acceleration = MenuSettingsAcceleration.IsChecked;
+        }
+
         private void MenuSettingsGameMode_Click(object sender, RoutedEventArgs e)
         {
             GameMode = MenuSettingsGameMode.IsChecked;
@@ -2385,18 +2440,12 @@ namespace PMedia
 
         private void BtnForward_Click(object sender, RoutedEventArgs e)
         {
-            if(mediaPlayer.IsSeekable)
-            {
-                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
-            }
+            JumpForward();
         }
 
         private void BtnBackward_Click(object sender, RoutedEventArgs e)
         {
-            if(mediaPlayer.IsSeekable)
-            {
-                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
-            }
+            JumpBackward();
         }
 
         private void BtnOpenFile_Click(object sender, RoutedEventArgs e)

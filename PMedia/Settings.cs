@@ -1,5 +1,4 @@
-﻿using MessageCustomHandler;
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Soap;
 
@@ -23,6 +22,7 @@ namespace PMedia
             public int Rate;
             public bool AutoAudio;
             public bool AutoSubtitle;
+            public bool HardwareAcceleration;
         }
 
         public int Jump
@@ -128,11 +128,26 @@ namespace PMedia
             set
             {
                 mainSettings.AutoSubtitle = value;
+                NeedsSaving = true;
             }
 
             get
             {
                 return mainSettings.AutoSubtitle;
+            }
+        }
+
+        public bool Acceleration
+        {
+            set
+            {
+                mainSettings.HardwareAcceleration = value;
+                NeedsSaving = true;
+            }
+
+            get
+            {
+                return mainSettings.HardwareAcceleration;
             }
         }
 
@@ -147,7 +162,8 @@ namespace PMedia
                 AutoPlayTime = 15,
                 Rate = 1,
                 AutoAudio = true,
-                AutoSubtitle = true
+                AutoSubtitle = true,
+                HardwareAcceleration = true
             };
 
             SoapFormat = new SoapFormatter();
@@ -187,6 +203,7 @@ namespace PMedia
                 Rate = 1;
                 AutoAudio = true;
                 AutoSubtitle = true;
+                Acceleration = true;
 
                 Save();
             }

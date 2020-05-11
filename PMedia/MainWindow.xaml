@@ -409,6 +409,15 @@
                     </MenuItem.Header>
                 </MenuItem>
 
+                <MenuItem x:Name="MenuSettingsAcceleration" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsAcceleration_Click">
+                    <MenuItem.Icon>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnAcceleration.png" Height="16" Width="16"/>
+                    </MenuItem.Icon>
+                    <MenuItem.Header>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Acceleration</TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+
                 <MenuItem x:Name="MenuSettingsGameMode" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}" Click="MenuSettingsGameMode_Click">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnGameModeOff.png" Height="16" Width="16"/>
