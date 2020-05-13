@@ -85,6 +85,8 @@ namespace PMedia
         private PoperContainer poperContextMedia;
 
         private readonly Recents recents;
+
+        private KeyboardHook keyboardHook = null;
         #endregion
 
         #region "Proprieties"
@@ -487,6 +489,19 @@ namespace PMedia
                 gameMode = value;
 
                 SetMenuItemChecked(MenuSettingsGameMode, value);
+
+                if (value == true)
+                {
+                    if (keyboardHook != null)
+                        keyboardHook.Dispose();
+
+                    keyboardHook = new KeyboardHook();
+                }
+                else
+                {
+                    if (keyboardHook != null)
+                        keyboardHook.Dispose();
+                }
             }
 
             get
@@ -1509,6 +1524,17 @@ namespace PMedia
             { }
         }
 
+        private void Play()
+        {
+            try
+            {
+                if (mediaPlayer.State == VLCState.Paused)
+                    mediaPlayer.Play();
+            }
+            catch
+            { }
+        }
+
         private void StopMediaPlayer()
         {
             ThreadPool.QueueUserWorkItem(_ => {
@@ -1939,8 +1965,9 @@ namespace PMedia
             recents.Load();
             RefreshRecentsMenu();
 
-            // End
-            IsLoading = false; 
+            // Others
+            IsLoading = false;
+            KeyboardHook.OnKeyPress += KeyboardHook_OnKeyPress;
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -1973,6 +2000,9 @@ namespace PMedia
             IntPtr windowHandle = (new WindowInteropHelper(this)).Handle;
             HwndSource src = HwndSource.FromHwnd(windowHandle);
             src.RemoveHook(new HwndSourceHook(this.WndProc));
+
+            if (keyboardHook != null) 
+                keyboardHook.Dispose();
         }
 
         // Form Events
@@ -2006,6 +2036,9 @@ namespace PMedia
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
+            if (gameMode == true)
+                return;
+
             if (e.Key == Key.Space)
             {
                 e.Handled = true;
@@ -2066,6 +2099,34 @@ namespace PMedia
             else if (e.Key == Key.G)
             {
                 GameMode = !GameMode;
+            }
+        }
+
+        private void KeyboardHook_OnKeyPress(Key key)
+        {
+            if (gameMode == false)
+            {
+                if (keyboardHook != null)
+                    keyboardHook.Dispose();
+            }
+
+            switch (key)
+            {
+                case Key.F9:
+                    Play();
+                    break;
+
+                case Key.F10:
+                    Pause();
+                    break;
+
+                case Key.PageUp:
+                    JumpForward();
+                    break;
+
+                case Key.PageDown:
+                    JumpBackward();
+                    break;
             }
         }
 
