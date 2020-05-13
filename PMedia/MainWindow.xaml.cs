@@ -44,6 +44,9 @@ namespace PMedia
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        private static extern bool SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, ref COPYDATASTRUCT lParam);
         #endregion
 
         #region "Variables"
@@ -56,6 +59,7 @@ namespace PMedia
         private Rect rect = new Rect(); // used in X-Y location
         private System.Windows.Forms.Timer MouseTimer;
 
+        private string AppName;
         public event PropertyChangedEventHandler PropertyChanged;
         private string playBtnTxt = "Play";
         private string speedText = "Speed (1x)";
@@ -293,6 +297,8 @@ namespace PMedia
                     Mute = false;
 
                 settings.Volume = FinalValue;
+
+                SetOverlay("Volume " + FinalValue.ToString());
             }
             get
             {
@@ -323,6 +329,8 @@ namespace PMedia
                 }
 
                 SpeedText = "Speed (" + FinalSpeed.ToString() + "x)";
+
+                SetOverlay("Speed " + FinalSpeed.ToString() + "x");
             }
             get
             {
@@ -345,6 +353,8 @@ namespace PMedia
                 settings.Jump = FinalJump;
 
                 JumpText = "Jump (" + FinalJump.ToString() + "s)";
+
+                SetOverlay("Jump " + FinalJump.ToString() + "s");
             }
 
             get
@@ -358,7 +368,15 @@ namespace PMedia
             set
             {
                 settings.AutoPlay = value;
+
+                string finalText = "on";
+
+                if (value == false)
+                    finalText = "off";
+
+                SetOverlay("AutoPlay " + finalText);
             }
+
             get
             {
                 return settings.AutoPlay;
@@ -380,6 +398,8 @@ namespace PMedia
                 settings.AutoPlayTime = FinalAutoPlay;
 
                 AutoPlayText = "AutoPlay (" + FinalAutoPlay.ToString() + "s)";
+
+                SetOverlay("AutoPlay " + FinalAutoPlay.ToString() + "s");
             }
             get
             {
@@ -393,6 +413,8 @@ namespace PMedia
             {
                 aspectRatio = value;
                 mediaPlayer.AspectRatio = aspectRatio;
+
+                SetOverlay("AspectRatio " + value);
             }
 
             get
@@ -412,6 +434,8 @@ namespace PMedia
 
                 if (audioMode == AudioType.Stereo)
                     mediaPlayer.SetChannel(AudioOutputChannel.Stereo);
+
+                SetOverlay("AudioMode " + value.ToString());
             }
 
             get
@@ -459,6 +483,12 @@ namespace PMedia
                 SetTopMost(value);
 
                 SetMenuItemChecked(MenuSettingsOnTop, value);
+
+                string finalValue = "on";
+                if (value == false)
+                    finalValue = "off";
+
+                SetOverlay("AudioMode " + finalValue);
             }
             get
             {
@@ -475,6 +505,12 @@ namespace PMedia
                 SetMenuItemChecked(MenuSettingsAcceleration, value);
 
                 ReOpenFile();
+
+                string finalValue = "on";
+                if (value == false)
+                    finalValue = "off";
+
+                SetOverlay("Hardware acceleration " + finalValue);
             }
             get
             {
@@ -502,6 +538,12 @@ namespace PMedia
                     if (keyboardHook != null)
                         keyboardHook.Dispose();
                 }
+
+                string finalValue = "on";
+                if (value == false)
+                    finalValue = "off";
+
+                SetOverlay("Game mode " + finalValue);
             }
 
             get
@@ -567,7 +609,8 @@ namespace PMedia
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)] internal struct POINT
+        [StructLayout(LayoutKind.Sequential)] 
+        internal struct POINT
         {
             public int X;
             public int Y;
@@ -616,8 +659,17 @@ namespace PMedia
                 return !(left == right);
             }
         }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)] 
+        public struct COPYDATASTRUCT
+        {
+            public IntPtr dwData;
+            public int cbData;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string lpData;
+        }
         #endregion
-        
+
         #region "Internal Classes"
         internal static class Images
         {
@@ -722,6 +774,8 @@ namespace PMedia
             public const int PM_VOLUMEDOWN = 0xFFF8;
             public const int PM_MUTE = 0xFFF9;
             public const int PM_AUTOPLAY = 0xFFFA;
+            public const int PM_FILE = 0xFFFB;
+            public const int WM_COPYDATA = 0x004A;
         }
         #endregion
 
@@ -730,7 +784,6 @@ namespace PMedia
         private void CreateJumpTimer()
         {
             // created a timer for jumping this was so you can go in any direcion without stutter
-
             System.Timers.Timer JumpTimer = new System.Timers.Timer()
             {
                 Interval = 250
@@ -770,7 +823,12 @@ namespace PMedia
                         finalTime = currentLenght + finalJump;
                     }
 
+                    if (finalJump == 0)
+                        return;
+
                     mediaPlayer.Time = finalTime;
+
+                    SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time).ToString(@"hh\:mm\:ss"));
 
                 }
                 else
@@ -1123,6 +1181,12 @@ namespace PMedia
         {
             System.Windows.Forms.Application.EnableVisualStyles();
 
+            AppName = Process.GetCurrentProcess().ProcessName;
+            string[] Args = App.Args;
+
+            // TO DO add more arguments
+            ProcessArgs(Args);
+
             InitializeComponent();
 
             DataContext = this;
@@ -1168,6 +1232,39 @@ namespace PMedia
             recents = new Recents(recentsPath);
         }
 
+        private void ProcessArgs(string[] Args)
+        {
+            if (Args != null)
+            {
+                if (Args.Count() != 1)
+                    return;
+
+                bool FileFound = FileExists(Args[0]);
+
+                if (FileFound == false)
+                    return;
+
+                if (IsRunning() == true)
+                {
+                    SendFile(Args[0]);
+                    this.Close();
+                    return;
+                }
+                else
+                {
+                    StartThread(() =>
+                    {
+                        while (IsLoading == true)
+                        {
+                            Thread.Sleep(200);
+                        }
+
+                        OpenFile(Args[0]);
+                    });
+                }
+            }
+        }
+
         private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             if (msg >= ExternalCommands.PM_PLAY && msg <= ExternalCommands.PM_AUTOPLAY)
@@ -1175,10 +1272,55 @@ namespace PMedia
                 int Command = msg;
                 int Arg = (Int32)wParam;
 
-                ProcessExternalCommand(Command, Arg);
+                ProcessExternalCommand(Command, Arg, lParam);
+            }
+            else if (msg == ExternalCommands.WM_COPYDATA)
+            {
+                if (wParam == IntPtr.Zero)
+                {
+                    COPYDATASTRUCT cd = new COPYDATASTRUCT();
+                    cd = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
+                    string file = cd.lpData;
+
+                    if (FileExists(file) == true)
+                    OpenFile(file);
+                }
             }
 
             return IntPtr.Zero;
+        }
+
+        private bool IsRunning()
+        {
+            return (Process.GetProcessesByName(AppName).Count() > 1);
+        }
+
+        private bool FileExists(string file)
+        {
+            try
+            {
+                return File.Exists(file);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void SendFile(string file)
+        {
+            foreach (var p in Process.GetProcessesByName(AppName))
+            {
+                if (p.MainWindowHandle == Process.GetCurrentProcess().MainWindowHandle) continue;
+                {
+                    COPYDATASTRUCT cd = new COPYDATASTRUCT();
+                    cd.lpData = file;
+                    cd.dwData = p.MainWindowHandle;
+                    cd.cbData = cd.lpData.Length + 1;
+
+                    SendMessage(p.MainWindowHandle, ExternalCommands.WM_COPYDATA, IntPtr.Zero, ref cd);
+                }
+            }
         }
 
         private void StartThread(ThreadStart newStart)
@@ -1332,7 +1474,7 @@ namespace PMedia
         #endregion
 
         #region "MediaPlayer"
-        private int ProcessExternalCommand(int Command, int Arg)
+        private int ProcessExternalCommand(int Command, int Arg, IntPtr lParam)
         {
             try
             {
@@ -1407,6 +1549,11 @@ namespace PMedia
                             AutoPlay = !AutoPlay;
                             break;
                         }
+                    case ExternalCommands.PM_FILE:
+                        {
+
+                            break;
+                        }
                 }
 
                 return 0;
@@ -1427,6 +1574,8 @@ namespace PMedia
             {
                 EnableMouseInput = false
             };
+
+            mediaPlayer.SetVideoTitleDisplay(Position.Bottom, 3000);
 
             // media player events
             mediaPlayer.Playing += MediaPlayer_Playing;
@@ -1456,6 +1605,7 @@ namespace PMedia
 
             // fullscreen toggle on double click
             overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
+            overlayPanel.MouseWheel += OverlayPanel_MouseWheel; ;
 
             // hide context menu on btn press and media controls when fullscreen because controls don't hide when context menu is visible
             ContextMedia.OnMouseClickBtn += delegate
@@ -1510,6 +1660,17 @@ namespace PMedia
                 SetMenuItemEnable(MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
 
                 this.Dispatcher.Invoke(delegate { videoListWindow.SetTvShow(tvShow); });
+            });
+        }
+
+        private void SetOverlay(string newOverlay)
+        {
+            StartThread(() =>
+            {
+                if (mediaPlayer == null || mediaPlayer.IsSeekable == false)
+                    return;
+
+                mediaPlayer.SetMarqueeString(VideoMarqueeOption.Text, newOverlay);
             });
         }
 
@@ -1579,6 +1740,8 @@ namespace PMedia
             {
                 PlayBtnTxt = "Pause";
             });
+
+            SetOverlay("Playing");
         }
 
         private void MediaPlayer_Paused(object sender, EventArgs e)
@@ -1587,6 +1750,8 @@ namespace PMedia
             {
                 PlayBtnTxt = "Play";
             });
+
+            SetOverlay("Paused");
         }
 
         private void MediaPlayer_MediaChanged(object sender, MediaPlayerMediaChangedEventArgs e)
@@ -1711,6 +1876,8 @@ namespace PMedia
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsVideoTracks.Items.Add(newTrack);
+
+                                        SetOverlay("New video track");
                                     });
 
                                     break;
@@ -1730,6 +1897,8 @@ namespace PMedia
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsAudioTracks.Items.Add(newTrack);
+
+                                        SetOverlay("New audio track");
                                     });
 
                                     if (AutoAudioSelect && AudioSelected == false)
@@ -1779,6 +1948,8 @@ namespace PMedia
                             int newSPU = IdFromTrackName(menuItem.Header.ToString());
 
                             mediaPlayer.SetSpu(newSPU);
+
+                            SetOverlay("New subtitle track");
                         };
 
                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
@@ -1965,9 +2136,16 @@ namespace PMedia
             recents.Load();
             RefreshRecentsMenu();
 
+            // Marquee - for info on actions
+            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.X, 15);
+            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Y, 15);
+            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Timeout, 4000);
+            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Refresh, 150);
+            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Enable, 1);
+
             // Others
-            IsLoading = false;
             KeyboardHook.OnKeyPress += KeyboardHook_OnKeyPress;
+            IsLoading = false;
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -2127,6 +2305,30 @@ namespace PMedia
                 case Key.PageDown:
                     JumpBackward();
                     break;
+            }
+        }
+
+        private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                Volume += 5;
+            }
+            else if (e.Delta < 0)
+            {
+                Volume -= 5;
+            }
+        }
+
+        private void OverlayPanel_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                Volume += 5;
+            }
+            else if (e.Delta < 0)
+            {
+                Volume -= 5;
             }
         }
 
