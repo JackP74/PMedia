@@ -658,6 +658,11 @@ namespace PMedia
             {
                 return !(left == right);
             }
+
+            public override string ToString()
+            {
+                return $"{X}x{Y}";
+            }
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)] 
@@ -875,7 +880,7 @@ namespace PMedia
                 if (GetCursorPos(out POINT p))
                 {
                     Screen screen = GetCurrentScreen();
-                    bool XL = p.X >= screen.Bounds.X && p.X <= screen.Bounds.Width;
+                    bool XL = p.X >= screen.Bounds.X && p.X <= (screen.Bounds.Width + screen.Bounds.X - 1);
 
                     if (MainGrid.RowDefinitions[0].Height.Value <= 0 && p.Y < TopSize && XL)
                     {
@@ -1272,7 +1277,7 @@ namespace PMedia
                 int Command = msg;
                 int Arg = (Int32)wParam;
 
-                ProcessExternalCommand(Command, Arg, lParam);
+                ProcessExternalCommand(Command, Arg);
             }
             else if (msg == ExternalCommands.WM_COPYDATA)
             {
@@ -1426,6 +1431,9 @@ namespace PMedia
 
         public void LoadSubtitle(string FilePath)
         {
+            if (mediaPlayer.Media == null)
+                return;
+
             mediaPlayer.AddSlave(MediaSlaveType.Subtitle, new Uri(FilePath).ToString(), true);
 
             Thread.Sleep(1000);
@@ -1474,7 +1482,7 @@ namespace PMedia
         #endregion
 
         #region "MediaPlayer"
-        private int ProcessExternalCommand(int Command, int Arg, IntPtr lParam)
+        private int ProcessExternalCommand(int Command, int Arg)
         {
             try
             {
@@ -1549,11 +1557,6 @@ namespace PMedia
                             AutoPlay = !AutoPlay;
                             break;
                         }
-                    case ExternalCommands.PM_FILE:
-                        {
-
-                            break;
-                        }
                 }
 
                 return 0;
@@ -1600,12 +1603,15 @@ namespace PMedia
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
             {
-                Dock = DockStyle.Fill
+                Dock = DockStyle.Fill,
+                AllowDrop = true
             };
 
             // fullscreen toggle on double click
             overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
-            overlayPanel.MouseWheel += OverlayPanel_MouseWheel; ;
+            overlayPanel.MouseWheel += OverlayPanel_MouseWheel;
+            overlayPanel.DragOver += OverlayPanel_DragOver;
+            overlayPanel.DragDrop += OverlayPanel_DragDrop;
 
             // hide context menu on btn press and media controls when fullscreen because controls don't hide when context menu is visible
             ContextMedia.OnMouseClickBtn += delegate
@@ -1648,6 +1654,30 @@ namespace PMedia
                     poperContextMedia.ShowContext(overlayPanel, e.Location);
                 }
             };
+        }
+
+        private void ProcessDrop(string[] Files)
+        {
+            if (Files.Count() != 1)
+                return;
+
+            bool videoLoaded = false;
+
+            foreach (string Path in Files)
+            {
+                if (FileExists(Path) == false)
+                    continue;
+
+                if (Extensions.IsSubtitle(Path) == true)
+                {
+                    LoadSubtitle(Path);
+                }
+                else if (Extensions.IsVideo(Path) == true)
+                {
+                    if (videoLoaded == false)
+                        OpenFile(Path);
+                }
+            }
         }
 
         private void ProcessShow(string FileName)
@@ -1731,6 +1761,85 @@ namespace PMedia
             if (mediaPlayer.IsSeekable)
             {
                 jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
+            }
+        }
+
+        private BitmapImage ImageResource(string pathInApplication, Assembly assembly = null)
+        {
+            if (assembly == null)
+            {
+                assembly = Assembly.GetCallingAssembly();
+            }
+
+            if (pathInApplication[0] == '/')
+            {
+                pathInApplication = pathInApplication.Substring(1);
+            }
+            return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
+        }
+
+        private void RefreshRecentsMenu()
+        {
+            try
+            {
+                if (MenuPlaylistRecent.HasItems)
+                    MenuPlaylistRecent.Items.Clear();
+
+                List<string> RecentList = recents.GetList();
+
+                if (RecentList.Count > 0)
+                {
+                    // Foreground color
+                    var brush = new SolidColorBrush(Color.FromArgb(255, (byte)78, (byte)173, (byte)254));
+
+                    // File list
+                    foreach (string Item in RecentList)
+                    {
+                        string name = new FileInfo(Item).Name;
+
+                        MenuItem menuRecent = new MenuItem
+                        {
+                            Header = WithMaxLength(name, 30),
+                            Style = MenuPlaylistRecent.Style,
+                            Foreground = brush,
+                        };
+                        menuRecent.Click += (sender, e) => { OpenFile(Item); };
+
+                        MenuPlaylistRecent.Items.Add(menuRecent);
+                    }
+
+                    // Separator
+                    MenuItem newSeparator = new MenuItem
+                    {
+                        Style = MenuPlaylistSeparator01.Style,
+                        BorderThickness = MenuPlaylistSeparator01.BorderThickness,
+                        Background = MenuPlaylistSeparator01.Background,
+                        Margin = new Thickness(0),
+                        MinWidth = 115,
+                        Height = 2
+                    };
+                    MenuPlaylistRecent.Items.Add(newSeparator);
+
+                    // Clear Recents
+                    MenuItem menuClearRecents = new MenuItem
+                    {
+                        Header = "Clear",
+                        Style = MenuPlaylistRecent.Style,
+                        Name = "ClearR",
+                        Foreground = brush,
+                        Icon = new Image { Source = ImageResource(Images.btnTrash) }
+                    };
+                    menuClearRecents.Click += (sender, e) =>
+                    {
+                        recents.ClearRecent();
+                        RefreshRecentsMenu();
+                    };
+                    MenuPlaylistRecent.Items.Add(menuClearRecents);
+                }
+            }
+            catch (Exception ex)
+            {
+                CMBox.Show("Error", "Couldn't refresh recents, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
             }
         }
 
@@ -1872,12 +1981,12 @@ namespace PMedia
                                         newTrack.Click += delegate
                                         {
                                             mediaPlayer.SetVideoTrack(TrackID);
+
+                                            SetOverlay("New video track");
                                         };
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsVideoTracks.Items.Add(newTrack);
-
-                                        SetOverlay("New video track");
                                     });
 
                                     break;
@@ -1893,12 +2002,12 @@ namespace PMedia
                                         newTrack.Click += delegate
                                         {
                                             mediaPlayer.SetAudioTrack(TrackID);
+
+                                            SetOverlay("New audio track");
                                         };
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MenuSettingsAudioTracks.Items.Add(newTrack);
-
-                                        SetOverlay("New audio track");
                                     });
 
                                     if (AutoAudioSelect && AudioSelected == false)
@@ -2027,85 +2136,6 @@ namespace PMedia
                 this.MenuSettingsAudioTracks.Items.Clear();
                 this.MenuSettingsSubtitleTracks.Items.Clear();
             });
-        }
-
-        private BitmapImage ImageResource(string pathInApplication, Assembly assembly = null)
-        {
-            if (assembly == null)
-            {
-                assembly = Assembly.GetCallingAssembly();
-            }
-
-            if (pathInApplication[0] == '/')
-            {
-                pathInApplication = pathInApplication.Substring(1);
-            }
-            return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
-        }
-
-        private void RefreshRecentsMenu()
-        {
-            try
-            {
-                if (MenuPlaylistRecent.HasItems)
-                    MenuPlaylistRecent.Items.Clear();
-
-                List<string> RecentList = recents.GetList();
-
-                if (RecentList.Count > 0)
-                {
-                    // Foreground color
-                    var brush = new SolidColorBrush(Color.FromArgb(255, (byte)78, (byte)173, (byte)254));
-
-                    // File list
-                    foreach (string Item in RecentList)
-                    {
-                        string name = new FileInfo(Item).Name;
-
-                        MenuItem menuRecent = new MenuItem
-                        {
-                            Header = WithMaxLength(name, 30),
-                            Style = MenuPlaylistRecent.Style,
-                            Foreground = brush,
-                        };
-                        menuRecent.Click += (sender, e) => { OpenFile(Item); };
-
-                        MenuPlaylistRecent.Items.Add(menuRecent);
-                    }
-
-                    // Separator
-                    MenuItem newSeparator = new MenuItem
-                    {
-                        Style = MenuPlaylistSeparator01.Style,
-                        BorderThickness = MenuPlaylistSeparator01.BorderThickness,
-                        Background = MenuPlaylistSeparator01.Background,
-                        Margin = new Thickness(0),
-                        MinWidth = 115,
-                        Height = 2
-                    };
-                    MenuPlaylistRecent.Items.Add(newSeparator);
-
-                    // Clear Recents
-                    MenuItem menuClearRecents = new MenuItem
-                    {
-                        Header = "Clear",
-                        Style = MenuPlaylistRecent.Style,
-                        Name = "ClearR",
-                        Foreground = brush,
-                        Icon = new Image { Source = ImageResource(Images.btnTrash) }
-                    };
-                    menuClearRecents.Click += (sender, e) => 
-                    { 
-                        recents.ClearRecent(); 
-                        RefreshRecentsMenu(); 
-                    };
-                    MenuPlaylistRecent.Items.Add(menuClearRecents);
-                }
-            }
-            catch (Exception ex)
-            {
-                CMBox.Show("Error", "Couldn't refresh recents, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
-            }
         }
         #endregion
 
@@ -2308,6 +2338,19 @@ namespace PMedia
             }
         }
 
+        private void MainWindow_DragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop))
+                e.Effects = System.Windows.DragDropEffects.Copy;
+        }
+
+        private void MainWindow_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            string[] Files = (string[])e.Data.GetData(System.Windows.Forms.DataFormats.FileDrop);
+
+            ProcessDrop(Files);
+        }
+
         private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Delta > 0)
@@ -2330,6 +2373,19 @@ namespace PMedia
             {
                 Volume -= 5;
             }
+        }
+
+        private void OverlayPanel_DragOver(object sender, System.Windows.Forms.DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop))
+                e.Effect = System.Windows.Forms.DragDropEffects.Copy;
+        }
+
+        private void OverlayPanel_DragDrop(object sender, System.Windows.Forms.DragEventArgs e)
+        {
+            string[] Files = (string[])e.Data.GetData(System.Windows.Forms.DataFormats.FileDrop);
+
+            ProcessDrop(Files);
         }
 
         // Top Menu

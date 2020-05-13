@@ -5,8 +5,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:local="clr-namespace:PMedia" WindowStartupLocation="CenterScreen"
         mc:Ignorable="d" Title="PMedia alpha" Height="400" Width="700" Icon="App.ico" Background="#333333"
-        MinHeight="350" MinWidth="450" Closing="MainWindow_Closing" SourceInitialized="MainWindow_SourceInitialized" 
-        MouseWheel="MainWindow_MouseWheel">
+        MinHeight="350" MinWidth="450" AllowDrop="True" DragOver="MainWindow_DragOver" DragDrop.Drop="MainWindow_Drop"  
+        Closing="MainWindow_Closing" SourceInitialized="MainWindow_SourceInitialized" MouseWheel="MainWindow_MouseWheel">
 
     <Window.Resources>
         <ResourceDictionary>
