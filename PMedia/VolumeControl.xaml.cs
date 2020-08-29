@@ -25,7 +25,7 @@ namespace PMedia
                 }
                 catch (Exception ex)
                 {
-                    CMBox.Show("Error", "Couldn't initialize thumb", MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                    CMBox.Show("Error", "Couldn't initialize thumb", MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString());
                 }
 
                 LinearGradientBrush linearGradientBrush = new LinearGradientBrush();

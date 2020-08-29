@@ -10,7 +10,6 @@ namespace PMedia
     class FormattedSlider : Slider
     {
         private ToolTip _autoToolTip;
-        private string _autoToolTipFormat;
 
         static FormattedSlider()
         {
@@ -19,11 +18,7 @@ namespace PMedia
                 new FrameworkPropertyMetadata(typeof(Slider)));
         }
 
-        public string AutoToolTipFormat
-        {
-            get { return _autoToolTipFormat; }
-            set { _autoToolTipFormat = value; }
-        }
+        public string AutoToolTipFormat { get; set; }
 
         protected override void OnThumbDragStarted(DragStartedEventArgs e)
         {
@@ -51,7 +46,7 @@ namespace PMedia
                 } 
                 catch (Exception ex)
                 {
-                    CMBox.Show("Error in slider", Content, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                    CMBox.Show("Error in slider", Content, MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString());
                 }
             }
         }

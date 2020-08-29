@@ -16,6 +16,9 @@ namespace SuperContextMenu
         private const int totalduration = 100;
         private const int frameduration = totalduration / frames;
 
+        public delegate void OnClseHandler(object sender, EventArgs e);
+        public event OnClseHandler OnClose;
+
         public PoperContainer(Control popedControl)
         {
             InitializeComponent();
@@ -92,6 +95,16 @@ namespace SuperContextMenu
                 Opacity = opacity * (double)i / (double)frames;
             }
             Opacity = opacity;
+        }
+
+        protected override void OnClosed(ToolStripDropDownClosedEventArgs e)
+        {
+            // Make sure someone is listening to event
+            if (OnClose == null) return;
+
+            OnClose(this, e);
+
+            base.OnClosed(e);
         }
 
         protected override void OnOpening(CancelEventArgs e)

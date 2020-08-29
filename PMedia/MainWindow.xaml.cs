@@ -22,6 +22,7 @@ using SuperContextMenu;
 using Ookii.Dialogs.WinForms;
 using MessageCustomHandler;
 using LibVLCSharp.Shared;
+using LibVLCSharp.WPF;
 
 using MenuItem = System.Windows.Controls.MenuItem;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
@@ -32,6 +33,7 @@ using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 #endregion
 
+// TO DO: OPTIMIZE !!!!!!!!
 namespace PMedia
 {
     public partial class MainWindow : INotifyPropertyChanged
@@ -50,6 +52,8 @@ namespace PMedia
         #endregion
 
         #region "Variables"
+        private PlayerOverlay? MainOverlay { get; set; }
+
         private readonly string videoPositionDir = AppDomain.CurrentDomain.BaseDirectory + @"\Data";
         private readonly string recentsPath = AppDomain.CurrentDomain.BaseDirectory + @"\recents.ini";
 
@@ -59,7 +63,7 @@ namespace PMedia
         private Rect rect = new Rect(); // used in X-Y location
         private System.Windows.Forms.Timer MouseTimer;
 
-        private string AppName;
+        private readonly string AppName;
         public event PropertyChangedEventHandler PropertyChanged;
         private string playBtnTxt = "Play";
         private string speedText = "Speed (1x)";
@@ -71,6 +75,7 @@ namespace PMedia
         private bool IsLoading = true;
         private bool onTop = false;
         private bool gameMode = false;
+        private ShutDownCommand shutDownCmd;
 
         private MediaPlayer mediaPlayer;
         private LibVLC libVLC;
@@ -87,6 +92,8 @@ namespace PMedia
 
         private ContextMenuMedia ContextMedia;
         private PoperContainer poperContextMedia;
+        private bool MenuOpen = false;
+        Screen screen;
 
         private readonly Recents recents;
 
@@ -120,33 +127,33 @@ namespace PMedia
 
                 if (value.ToLower().Trim() == "play")
                 {
-                    if (btnPlay.Dispatcher.CheckAccess())
+                    if (MainOverlay.btnPlay.Dispatcher.CheckAccess())
                     {
-                        btnPlayImage.Source = ImageResource(Images.btnPlay);
-                        MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
+                        MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPlay);
+                        MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
                     }
                     else
                     {
                         this.Dispatcher.Invoke(() =>
                         {
-                            btnPlayImage.Source = ImageResource(Images.btnPlay);
-                            MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
+                            MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPlay);
+                            MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
                         });
                     }
                 }
                 else
                 {
-                    if (btnPlay.Dispatcher.CheckAccess())
+                    if (MainOverlay.btnPlay.Dispatcher.CheckAccess())
                     {
-                        btnPlayImage.Source = ImageResource(Images.btnPause);
-                        MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
+                        MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPause);
+                        MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
                     }
                     else
                     {
                         this.Dispatcher.Invoke(() =>
                         {
-                            btnPlayImage.Source = ImageResource(Images.btnPause);
-                            MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
+                            MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPause);
+                            MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
                         });
                     }
                        
@@ -205,7 +212,7 @@ namespace PMedia
 
                 if (value == true)
                 {
-                    SetImage(btnMuteImage, Images.btnMute);
+                    SetImage(MainOverlay.btnMuteImage, Images.btnMute);
 
                     if (mediaPlayer != null && mediaPlayer.Media != null)
                     {
@@ -231,15 +238,15 @@ namespace PMedia
 
                     if(cVolume >= 67)
                     {
-                        SetImage(btnMuteImage, Images.btnVolume3);
+                        SetImage(MainOverlay.btnMuteImage, Images.btnVolume3);
                     }
                     else if(cVolume >= 34)
                     {
-                        SetImage(btnMuteImage, Images.btnVolume2);
+                        SetImage(MainOverlay.btnMuteImage, Images.btnVolume2);
                     }
                     else
                     {
-                        SetImage(btnMuteImage, Images.btnVolume1);
+                        SetImage(MainOverlay.btnMuteImage, Images.btnVolume1);
                     }
 
                 }
@@ -262,8 +269,8 @@ namespace PMedia
                 if (FinalValue < 0)
                     FinalValue = 0;
 
-                SetSliderValue(VolumeSlider.VolumeSlider, FinalValue);
-                SetLabelContent(VolumeSlider.labelVolume, FinalValue.ToString() + @"%");
+                SetSliderValue(MainOverlay.VolumeSlider.VolumeSlider, FinalValue);
+                SetLabelContent(MainOverlay.VolumeSlider.labelVolume, FinalValue.ToString() + @"%");
 
                 settings.Volume = FinalValue;
 
@@ -276,21 +283,19 @@ namespace PMedia
                 }
 
                 int cVolume = Volume;
-                string cPic = btnMuteImage.Source.ToString();
+                string cPic = MainOverlay.btnMuteImage.Source.ToString();
 
                 if (cVolume >= 67 && cPic.EndsWith(Images.btnVolume3) == false)
                 {
-                    SetImage(btnMuteImage, Images.btnVolume3);
+                    SetImage(MainOverlay.btnMuteImage, Images.btnVolume3);
                 }
-
-                if (cVolume < 67 && cVolume >= 34 && cPic.EndsWith(Images.btnVolume2) == false)
+                else if (cVolume < 67 && cVolume >= 34 && cPic.EndsWith(Images.btnVolume2) == false)
                 {
-                    SetImage(btnMuteImage, Images.btnVolume2);
+                    SetImage(MainOverlay.btnMuteImage, Images.btnVolume2);
                 }
-                
-                if (cVolume < 34 && cPic.EndsWith(Images.btnVolume1) == false)
+                else if (cVolume < 34 && cPic.EndsWith(Images.btnVolume1) == false)
                 {
-                    SetImage(btnMuteImage, Images.btnVolume1);
+                    SetImage(MainOverlay.btnMuteImage, Images.btnVolume1);
                 }
 
                 if (Mute == true && IsLoading == false) // IsLoading used so mute is loaded from settings
@@ -450,7 +455,7 @@ namespace PMedia
             {
                 settings.AutoAudio = value;
 
-                SetMenuItemChecked(MenuSettingsAudioAutoSelect, value);
+                SetMenuItemChecked(MainOverlay.MenuSettingsAudioAutoSelect, value);
             }
 
             get
@@ -465,7 +470,7 @@ namespace PMedia
             {
                 settings.AutoSubtitle = value;
 
-                SetMenuItemChecked(MenuSettingsSubtitleAutoSelect, value);
+                SetMenuItemChecked(MainOverlay.MenuSettingsSubtitleAutoSelect, value);
             }
 
             get
@@ -482,7 +487,7 @@ namespace PMedia
 
                 SetTopMost(value);
 
-                SetMenuItemChecked(MenuSettingsOnTop, value);
+                SetMenuItemChecked(MainOverlay.MenuSettingsOnTop, value);
 
                 string finalValue = "on";
                 if (value == false)
@@ -502,7 +507,7 @@ namespace PMedia
             {
                 settings.Acceleration = value;
 
-                SetMenuItemChecked(MenuSettingsAcceleration, value);
+                SetMenuItemChecked(MainOverlay.MenuSettingsAcceleration, value);
 
                 ReOpenFile();
 
@@ -524,7 +529,7 @@ namespace PMedia
             {
                 gameMode = value;
 
-                SetMenuItemChecked(MenuSettingsGameMode, value);
+                SetMenuItemChecked(MainOverlay.MenuSettingsGameMode, value);
 
                 if (value == true)
                 {
@@ -552,7 +557,45 @@ namespace PMedia
             }
         }
 
-        private ShutDownCommand shutDownCmd;
+        private bool TopOpen
+        {
+            set
+            {
+                if (value)
+                {
+                    MainOverlay.TopMenu.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    MainOverlay.TopMenu.Visibility = Visibility.Hidden;
+                }
+            }
+
+            get
+            {
+                return MainOverlay.TopMenu.Visibility == Visibility.Visible;
+            }
+        }
+
+        private bool BottomOpen
+        {
+            set
+            {
+                if (value)
+                {
+                    MainOverlay.BottomMenu.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    MainOverlay.BottomMenu.Visibility = Visibility.Hidden;
+                }
+            }
+
+            get
+            {
+                return MainOverlay.BottomMenu.Visibility == Visibility.Visible;
+            }
+        }
         #endregion
 
         #region "Enums & Structs"
@@ -749,23 +792,6 @@ namespace PMedia
 
         }
 
-        internal class TransparentPanel : System.Windows.Forms.Panel
-        {
-            protected override CreateParams CreateParams
-            {
-                get
-                {
-                    CreateParams cp = base.CreateParams;
-                    cp.ExStyle |= 0x00000020; // WS_EX_TRANSPARENT
-                    return cp;
-                }
-            }
-            protected override void OnPaintBackground(PaintEventArgs e)
-            {
-                //base.OnPaintBackground(e);
-            }
-        }
-
         internal static class ExternalCommands
         {
             public const int PM_PLAY = 0xFFF0;
@@ -794,56 +820,75 @@ namespace PMedia
                 Interval = 250
             };
 
+            jumpCommands.Clear();
+
             JumpTimer.Elapsed += delegate
             {
-
-                if (jumpCommands.Count <= 0)
-                    return;
-
-                bool isSeekable = mediaPlayer.IsSeekable;
-
-                if (isSeekable)
+                try
                 {
-                    long finalJump = (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Forward).ToList().Sum(x => x.jump);
-                    finalJump -= (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Backward).ToList().Sum(x => x.jump);
-                    finalJump *= 1000;
+                    if (jumpCommands.Count <= 0)
+                        return;
 
-                    jumpCommands.Clear();
+                    bool isSeekable = mediaPlayer.IsSeekable;
 
-                    long totalLenght = mediaPlayer.Media.Duration;
-                    long currentLenght = mediaPlayer.Time;
-
-                    long finalTime = 0;
-
-                    if (finalJump > 0 && (totalLenght - currentLenght) < (finalJump + 500))
+                    if (isSeekable)
                     {
-                        finalTime = totalLenght - 500;
-                    }
-                    else if (finalJump < 0 && currentLenght < finalJump)
-                    {
-                        finalTime = 0;
+                        long finalJump = (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Forward).ToList().Sum(x => x.jump);
+                        finalJump -= (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Backward).ToList().Sum(x => x.jump);
+                        finalJump *= 1000;
+
+                        jumpCommands.Clear();
+
+                        long totalLenght = mediaPlayer.Media.Duration;
+                        long currentLenght = mediaPlayer.Time;
+
+                        long finalTime = 0;
+
+                        int maxPlusValue = 500;
+                        if (AutoPlay)
+                            maxPlusValue = AutoPlayTime;
+
+                        if (finalJump > 0 && (totalLenght - currentLenght) < (finalJump + maxPlusValue))
+                        {
+                           // if (AutoPlay)
+                           // {
+                           //     Next();
+                            //    return;
+                            //}
+                           // else
+                            //{
+                                finalTime = totalLenght - maxPlusValue;
+                           // }
+                        }
+                        else if (finalJump < 0 && currentLenght < finalJump)
+                        {
+                            finalTime = 0;
+                        }
+                        else
+                        {
+                            finalTime = currentLenght + finalJump;
+                        }
+
+                        if (finalJump == 0)
+                            return;
+
+                        StartThread(() =>
+                        {
+                            mediaPlayer.Time = finalTime;
+                        });
+                        
+                        SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time).ToString(@"hh\:mm\:ss"));
+
                     }
                     else
                     {
-                        finalTime = currentLenght + finalJump;
+                        jumpCommands.Clear();
                     }
-
-                    if (finalJump == 0)
-                        return;
-
-                    mediaPlayer.Time = finalTime;
-
-                    SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time).ToString(@"hh\:mm\:ss"));
-
                 }
-                else
-                {
-                    jumpCommands.Clear();
-                }
+                catch { }
             };
 
             JumpTimer.Start();
-
         }
 
         private void CreateSaveTimer()
@@ -869,27 +914,54 @@ namespace PMedia
         {
             MouseTimer = new System.Windows.Forms.Timer
             {
-                Interval = 200
+                Interval = 150
             };
+
+            int MouseOffset = 20;
 
             MouseTimer.Tick += delegate
             {
-                if (gameMode)
+                if (gameMode || MenuOpen)
                     return;
 
                 if (GetCursorPos(out POINT p))
                 {
-                    Screen screen = GetCurrentScreen();
                     bool XL = p.X >= screen.Bounds.X && p.X <= (screen.Bounds.Width + screen.Bounds.X - 1);
 
-                    if (MainGrid.RowDefinitions[0].Height.Value <= 0 && p.Y < TopSize && XL)
+                    if (p.Y <= TopSize + MouseOffset && XL)
                     {
-                        MainGrid.RowDefinitions[0].Height = new GridLength(TopSize);
+                        if (TopOpen == false)
+                            TopOpen = true;
+
+                        if (BottomOpen)
+                            BottomOpen = false;
+
+                        //if (BottomMenu.Visibility != Visibility.Hidden)
+                        //    BottomMenu.Visibility = Visibility.Hidden;
                     }
-                    else if (MainGrid.RowDefinitions[2].Height.Value <= 0 && p.Y > (screen.Bounds.Height - BottomSize) && XL)
+                    else if (p.Y >= (screen.Bounds.Height - BottomSize - MouseOffset) && XL)
                     {
-                        MainGrid.RowDefinitions[2].Height = new GridLength(BottomSize);
+                        if (BottomOpen == false)
+                            BottomOpen = true;
+
+                        if (TopOpen)
+                            TopOpen = false;
+
+                        //if (BottomMenu.Visibility != Visibility.Visible)
+                        //    BottomMenu.Visibility = Visibility.Visible;
                     }
+                    else
+                    {
+                        if (TopOpen)
+                            TopOpen = false;
+
+                        if (BottomOpen)
+                            BottomOpen = false;
+
+                        //if (BottomMenu.Visibility != Visibility.Hidden)
+                        //    BottomMenu.Visibility = Visibility.Hidden;
+                    }
+
                 }
             };
         }
@@ -902,8 +974,8 @@ namespace PMedia
             linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(255, (byte)97, (byte)156, (byte)202), 0));
             linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(255, (byte)91, (byte)135, (byte)184), 1));
 
-            labelLenght.Foreground = linearGradientBrush;
-            labelPosition.Foreground = linearGradientBrush;
+            MainOverlay.labelLenght.Foreground = linearGradientBrush;
+            MainOverlay.labelPosition.Foreground = linearGradientBrush;
         }
 
         private void SetImage(Image image, string newImage)
@@ -1030,10 +1102,10 @@ namespace PMedia
         #region "ShutDown"
         private void UnCheckShutDown()
         {
-            SetMenuItemChecked(MenuSettingsShutDownAfterThis, false);
-            SetMenuItemChecked(MenuSettingsShutDownAfterN, false);
-            SetMenuItemChecked(MenuSettingsShutDownAfterTime, false);
-            SetMenuItemChecked(MenuSettingsShutDownEndPlaylist, false);
+            SetMenuItemChecked(MainOverlay.MenuSettingsShutDownAfterThis, false);
+            SetMenuItemChecked(MainOverlay.MenuSettingsShutDownAfterN, false);
+            SetMenuItemChecked(MainOverlay.MenuSettingsShutDownAfterTime, false);
+            SetMenuItemChecked(MainOverlay.MenuSettingsShutDownEndPlaylist, false);
         }
 
         private void ShutDownNow()
@@ -1058,7 +1130,7 @@ namespace PMedia
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't shutdown", MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't shutdown", MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString());
             }
 
         }
@@ -1167,8 +1239,10 @@ namespace PMedia
                                 }
                             }
                         }
-                    });
-                    threadShutDown.IsBackground = true;
+                    })
+                    {
+                        IsBackground = true
+                    };
                     threadShutDown.SetApartmentState(ApartmentState.STA);
                     threadShutDown.Start();
                 }
@@ -1190,9 +1264,15 @@ namespace PMedia
             string[] Args = App.Args;
 
             // TO DO add more arguments
-            ProcessArgs(Args);
-
+            StartThread(() =>
+            {
+                ProcessArgs(Args);
+            });
+            
             InitializeComponent();
+
+            MainOverlay = new PlayerOverlay(WinHost);
+            AddHandlers();
 
             DataContext = this;
             PlayBtnTxt = "Play";
@@ -1204,7 +1284,6 @@ namespace PMedia
             if (Environment.Is64BitProcess == true) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
             Core.Initialize(vlcPath);
-
             CreateMediaPlayer();
 
             Volume = settings.Volume;
@@ -1227,14 +1306,89 @@ namespace PMedia
 
             tvShow = new TvShow();
 
-            MenuPlaylistNext.IsEnabled = false;
-            MenuPlaylistPrevious.IsEnabled = false;
+            MainOverlay.MenuPlaylistNext.IsEnabled = false;
+            MainOverlay.MenuPlaylistPrevious.IsEnabled = false;
 
             shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
 
             videoPosition = new VideoPosition(videoPositionDir);
 
             recents = new Recents(recentsPath);
+        }
+
+        private void AddHandlers()
+        {
+            //Bottom media controls
+            MainOverlay.btnPlay.Click += BtnPlay_Click;
+            MainOverlay.btnBackward.Click += BtnBackward_Click;
+            MainOverlay.btnStop.Click += BtnStop_Click;
+            MainOverlay.btnForward.Click += BtnForward_Click;
+            MainOverlay.btnOpenFile.Click += BtnOpenFile_Click;
+
+            MainOverlay.SliderDragStarted += SliderMedia_DragStarted;
+            MainOverlay.SliderDragCompleted += SliderMedia_DragCompleted;
+            MainOverlay.SliderMouseEnter += SliderMedia_MouseEnter;
+
+            MainOverlay.btnMute.Click += BtnMute_Click;
+            MainOverlay.btnFullscreen.Click += BtnFullscreen_Click;
+
+            //Top menu controls
+            MainOverlay.MenuFileMediaInfo.Click += MenuFileMediaInfo_Click;
+            MainOverlay.MenuFileScreenShot.Click += MenuFileScreenShot_Click;
+            MainOverlay.MenuFileOpenFile.Click += BtnOpenFile_Click;
+            MainOverlay.MenuFileQuit.Click += MenuFileQuit_Click;
+
+            MainOverlay.MenuPlaybackPlay.Click += BtnPlay_Click;
+            MainOverlay.MenuPlaybackStop.Click += BtnStop_Click;
+            MainOverlay.MenuPlaybackBackward.Click += BtnBackward_Click;
+            MainOverlay.MenuPlaybackForward.Click += BtnForward_Click;
+            MainOverlay.MenuPlaybackVolumeUp.Click += MenuPlaybackVolumeUp_Click;
+            MainOverlay.MenuPlaybackVolumeDown.Click += MenuPlaybackVolumeDown_Click;
+            MainOverlay.MenuPlaybackMute.Click += BtnMute_Click;
+            MainOverlay.SpeedChanged += SliderSpeed_ValueChanged;
+            MainOverlay.SpeedLoaded += SliderSpeed_Loaded;
+            MainOverlay.JumpChanged += SliderJump_ValueChanged;
+            MainOverlay.JumpLoaded += SliderJump_Loaded;
+
+            MainOverlay.MenuSettingsVideoAspectRatio43.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingsVideoAspectRatio54.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingsVideoAspectRatio169.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingsVideoAspectRatio1610.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingsVideoAspectRatio189.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingsVideoAspectRatio219.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingVideoAspectRatioCustom.Click += MenuSettingsVideoAspectRatio_Click;
+            MainOverlay.MenuSettingVideoAspectRatioReset.Click += MenuSettingsVideoAspectRatio_Click;
+
+            MainOverlay.MenuSettingsAudioModeStereo.Click += MenuSettingsAudioMode_Click;
+            MainOverlay.MenuSettingsAudioModeSurrond.Click += MenuSettingsAudioMode_Click;
+            MainOverlay.MenuSettingsAudioAutoSelect.Checked += MenuSettingsAudioAutoSelect_Checked;
+            MainOverlay.MenuSettingsAudioAutoSelect.Unchecked += MenuSettingsAudioAutoSelect_Checked;
+
+            MainOverlay.MenuSettingsSubtitleAdd.Click += MenuSettingsSubtitleAdd_Click;
+            MainOverlay.MenuSettingsSubtitleAutoSelect.Checked += MenuSettingsSubtitleAutoSelect_Checked;
+            MainOverlay.MenuSettingsSubtitleAutoSelect.Unchecked += MenuSettingsSubtitleAutoSelect_Checked;
+
+            MainOverlay.MenuSettingsOnTop.Click += MenuSettingsOnTop_Click;
+            MainOverlay.MenuSettingsAcceleration.Click += MenuSettingsAcceleration_Click;
+            MainOverlay.MenuSettingsGameMode.Click += MenuSettingsGameMode_Click;
+
+            MainOverlay.MenuSettingsShutDownAfterThis.Click += MenuSettingsShutDown_Click;
+            MainOverlay.MenuSettingsShutDownAfterN.Click += MenuSettingsShutDown_Click;
+            MainOverlay.MenuSettingsShutDownAfterTime.Click += MenuSettingsShutDown_Click;
+            MainOverlay.MenuSettingsShutDownEndPlaylist.Click += MenuSettingsShutDown_Click;
+
+            MainOverlay.MenuPlaylistAutoplay.Click += MenuPlaylistAutoplay_Click;
+            MainOverlay.MenuPlaylistAutoplay.Loaded += MenuPlaylistAutoplay_Loaded;
+
+            MainOverlay.AutoPlayChanged += SliderAutoplay_ValueChanged;
+            MainOverlay.AutoPlayLoaded += SliderAutoplay_Loaded;
+
+            MainOverlay.MenuPlaylistNext.Click += MenuPlaylistNext_Click;
+            MainOverlay.MenuPlaylistPrevious.Click += MenuPlaylistPrevious_Click;
+
+            MainOverlay.MenuPlaylistVideoList.Click += MenuPlaylistVideoList_Click;
+
+            MainOverlay.MenuAbout.Click += MenuAbout_Click;
         }
 
         private void ProcessArgs(string[] Args)
@@ -1244,7 +1398,7 @@ namespace PMedia
                 if (Args.Count() != 1)
                     return;
 
-                bool FileFound = FileExists(Args[0]);
+                bool FileFound = File.Exists(Args[0]);
 
                 if (FileFound == false)
                     return;
@@ -1263,6 +1417,8 @@ namespace PMedia
                         {
                             Thread.Sleep(200);
                         }
+
+                        Thread.Sleep(500);
 
                         OpenFile(Args[0]);
                     });
@@ -1283,11 +1439,10 @@ namespace PMedia
             {
                 if (wParam == IntPtr.Zero)
                 {
-                    COPYDATASTRUCT cd = new COPYDATASTRUCT();
-                    cd = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
+                    COPYDATASTRUCT cd = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
                     string file = cd.lpData;
 
-                    if (FileExists(file) == true)
+                    if (File.Exists(file) == true)
                     OpenFile(file);
                 }
             }
@@ -1297,34 +1452,13 @@ namespace PMedia
 
         private bool IsRunning()
         {
-            return (Process.GetProcessesByName(AppName).Count() > 1);
-        }
-
-        private bool FileExists(string file)
-        {
             try
             {
-                return File.Exists(file);
+                return (Process.GetProcessesByName(AppName).Count() > 1);
             }
             catch
             {
                 return false;
-            }
-        }
-
-        private void SendFile(string file)
-        {
-            foreach (var p in Process.GetProcessesByName(AppName))
-            {
-                if (p.MainWindowHandle == Process.GetCurrentProcess().MainWindowHandle) continue;
-                {
-                    COPYDATASTRUCT cd = new COPYDATASTRUCT();
-                    cd.lpData = file;
-                    cd.dwData = p.MainWindowHandle;
-                    cd.cbData = cd.lpData.Length + 1;
-
-                    SendMessage(p.MainWindowHandle, ExternalCommands.WM_COPYDATA, IntPtr.Zero, ref cd);
-                }
             }
         }
 
@@ -1361,6 +1495,23 @@ namespace PMedia
             return int.TryParse(Input, out _);
         }
 
+        private bool HasRegexMatch(string ToCompare, string RegexMatch)
+        {
+            return Regex.IsMatch(ToCompare, RegexMatch, RegexOptions.IgnoreCase);
+        }
+        
+        private Screen GetCurrentScreen()
+        {
+            return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+        }
+
+        private string WithMaxLength(string Value, int maxLength)
+        {
+            return Value?.Substring(0, Math.Min(Value.Length, maxLength));
+        }
+        #endregion
+
+        #region "MediaPlayer"
         private int IdFromTrackName(string Name)
         {
             try
@@ -1369,7 +1520,7 @@ namespace PMedia
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't get id from name, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't get id from name, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString());
                 return -1;
             }
         }
@@ -1380,7 +1531,7 @@ namespace PMedia
             {
                 Title = "Open new media",
                 Multiselect = true,
-                Filter = "Video Files|" + string.Join(";", Extensions.Video.Select( x => @"*" + x )) + "|All files|*.*",
+                Filter = "Video Files|" + string.Join(";", Extensions.Video.Select(x => @"*" + x)) + "|All files|*.*",
                 CheckFileExists = true
             };
 
@@ -1450,7 +1601,7 @@ namespace PMedia
             TrackName += $" [{TrackID}]";
 
             // Add track to menu
-            MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+            MenuItem newTrack = new MenuItem { Header = TrackName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
 
             newTrack.Click += (sender, e) =>
             {
@@ -1461,27 +1612,28 @@ namespace PMedia
             };
 
             newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-            this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+            this.MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
 
         }
 
-        private bool HasRegexMatch(string ToCompare, string RegexMatch)
+        private void SendFile(string file)
         {
-            return Regex.IsMatch(ToCompare, RegexMatch, RegexOptions.IgnoreCase);
-        }
-        
-        private Screen GetCurrentScreen()
-        {
-            return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            foreach (var p in Process.GetProcessesByName(AppName))
+            {
+                if (p.MainWindowHandle == Process.GetCurrentProcess().MainWindowHandle) continue;
+                {
+                    COPYDATASTRUCT cd = new COPYDATASTRUCT
+                    {
+                        lpData = file,
+                        dwData = p.MainWindowHandle
+                    };
+                    cd.cbData = cd.lpData.Length + 1;
+
+                    SendMessage(p.MainWindowHandle, ExternalCommands.WM_COPYDATA, IntPtr.Zero, ref cd);
+                }
+            }
         }
 
-        private string WithMaxLength(string Value, int maxLength)
-        {
-            return Value?.Substring(0, Math.Min(Value.Length, maxLength));
-        }
-        #endregion
-
-        #region "MediaPlayer"
         private int ProcessExternalCommand(int Command, int Arg)
         {
             try
@@ -1490,17 +1642,13 @@ namespace PMedia
                 {
                     case ExternalCommands.PM_PLAY:
                         {
-                            if (mediaPlayer.State == VLCState.Paused)
-                                mediaPlayer.Play();
-
+                            Play(true);
                             break;
                         }
 
                     case ExternalCommands.PM_PAUSE:
                         {
-                            if (mediaPlayer.CanPause == true)
-                                mediaPlayer.Pause();
-
+                            Pause();
                             break;
                         }
 
@@ -1563,7 +1711,7 @@ namespace PMedia
             }
             catch (Exception ex)
             {
-                StartThread(() => { CMBox.Show("Error", "Couldn't process external command, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString()); });
+                StartThread(() => { CMBox.Show("Error", "Couldn't process external command, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString()); });
                 return 0;
             }
         }
@@ -1600,6 +1748,12 @@ namespace PMedia
             ContextMedia = new ContextMenuMedia();
             poperContextMedia = new PoperContainer(ContextMedia);
 
+            // fix for media controls
+            poperContextMedia.OnClose += delegate
+            {
+                MenuOpen = false;
+            };
+
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
             {
@@ -1620,13 +1774,17 @@ namespace PMedia
 
                 if (this.WindowStyle == WindowStyle.None)
                 {
-                    MainGrid.RowDefinitions[0].Height = new GridLength(0);
-                    MainGrid.RowDefinitions[2].Height = new GridLength(0);
+                    TopOpen = false;
+                    BottomOpen = false;
                 }
             };
 
             // btns handles on existing handles for simplicity
-            ContextMedia.OnPlayBtn += delegate { BtnPlay_Click(null, null); };
+            ContextMedia.OnMediaInfoBtn += delegate { MenuFileMediaInfo_Click(null, null); };
+            ContextMedia.OnVideoListBtn += delegate { MenuPlaylistVideoList_Click(null, null); };
+            ContextMedia.OnNextBtn += delegate { Next(); };
+            ContextMedia.OnPreviousBtn += delegate { Previous(); };
+            ContextMedia.OnPlayBtn += delegate { Play(true); };
             ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
             ContextMedia.OnBackwardBtn += delegate { JumpBackward(); };
             ContextMedia.OnForwardBtn += delegate { JumpForward(); };
@@ -1651,6 +1809,13 @@ namespace PMedia
             {
                 if (e.Button == MouseButtons.Right)
                 {
+                    MenuOpen = true;
+                    if (this.WindowStyle == WindowStyle.None)
+                    {
+                        TopOpen = false;
+                        BottomOpen = false;
+                    }
+
                     poperContextMedia.ShowContext(overlayPanel, e.Location);
                 }
             };
@@ -1665,7 +1830,7 @@ namespace PMedia
 
             foreach (string Path in Files)
             {
-                if (FileExists(Path) == false)
+                if (File.Exists(Path) == false)
                     continue;
 
                 if (Extensions.IsSubtitle(Path) == true)
@@ -1686,8 +1851,11 @@ namespace PMedia
             {
                 tvShow.Load(FileName);
 
-                SetMenuItemEnable(MenuPlaylistNext, tvShow.HasNextEpisode());
-                SetMenuItemEnable(MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
+                SetMenuItemEnable(MainOverlay.MenuPlaylistNext, tvShow.HasNextEpisode());
+                SetMenuItemEnable(MainOverlay.MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
+
+                ContextMedia.NextActive = tvShow.HasNextEpisode();
+                ContextMedia.PreviousActive = tvShow.HasPreviousEpisode();
 
                 this.Dispatcher.Invoke(delegate { videoListWindow.SetTvShow(tvShow); });
             });
@@ -1697,10 +1865,12 @@ namespace PMedia
         {
             StartThread(() =>
             {
-                if (mediaPlayer == null || mediaPlayer.IsSeekable == false)
-                    return;
+                //if (mediaPlayer == null || mediaPlayer.IsSeekable == false)
+                //    return;
 
-                mediaPlayer.SetMarqueeString(VideoMarqueeOption.Text, newOverlay);
+                //mediaPlayer.SetMarqueeString(VideoMarqueeOption.Text, newOverlay);
+
+                MainOverlay.SetOverlayText(newOverlay);
             });
         }
 
@@ -1715,12 +1885,22 @@ namespace PMedia
             { }
         }
 
-        private void Play()
+        private void Play(bool OpenRecent)
         {
             try
             {
                 if (mediaPlayer.State == VLCState.Paused)
+                {
                     mediaPlayer.Play();
+                }
+                else
+                {
+                    if (OpenRecent == true && recents.GetList().Count > 0)
+                    {
+                        OpenFile(recents.GetList().Last());
+                    }
+                }
+                    
             }
             catch
             { }
@@ -1782,8 +1962,8 @@ namespace PMedia
         {
             try
             {
-                if (MenuPlaylistRecent.HasItems)
-                    MenuPlaylistRecent.Items.Clear();
+                if (MainOverlay.MenuPlaylistRecent.HasItems)
+                    MainOverlay.MenuPlaylistRecent.Items.Clear();
 
                 List<string> RecentList = recents.GetList();
 
@@ -1800,31 +1980,31 @@ namespace PMedia
                         MenuItem menuRecent = new MenuItem
                         {
                             Header = WithMaxLength(name, 30),
-                            Style = MenuPlaylistRecent.Style,
+                            Style = MainOverlay.MenuPlaylistRecent.Style,
                             Foreground = brush,
                         };
                         menuRecent.Click += (sender, e) => { OpenFile(Item); };
 
-                        MenuPlaylistRecent.Items.Add(menuRecent);
+                        MainOverlay.MenuPlaylistRecent.Items.Add(menuRecent);
                     }
 
                     // Separator
                     MenuItem newSeparator = new MenuItem
                     {
-                        Style = MenuPlaylistSeparator01.Style,
-                        BorderThickness = MenuPlaylistSeparator01.BorderThickness,
-                        Background = MenuPlaylistSeparator01.Background,
+                        Style = MainOverlay.MenuPlaylistSeparator01.Style,
+                        BorderThickness = MainOverlay.MenuPlaylistSeparator01.BorderThickness,
+                        Background = MainOverlay.MenuPlaylistSeparator01.Background,
                         Margin = new Thickness(0),
                         MinWidth = 115,
                         Height = 2
                     };
-                    MenuPlaylistRecent.Items.Add(newSeparator);
+                    MainOverlay.MenuPlaylistRecent.Items.Add(newSeparator);
 
                     // Clear Recents
                     MenuItem menuClearRecents = new MenuItem
                     {
                         Header = "Clear",
-                        Style = MenuPlaylistRecent.Style,
+                        Style = MainOverlay.MenuPlaylistRecent.Style,
                         Name = "ClearR",
                         Foreground = brush,
                         Icon = new Image { Source = ImageResource(Images.btnTrash) }
@@ -1834,12 +2014,12 @@ namespace PMedia
                         recents.ClearRecent();
                         RefreshRecentsMenu();
                     };
-                    MenuPlaylistRecent.Items.Add(menuClearRecents);
+                    MainOverlay.MenuPlaylistRecent.Items.Add(menuClearRecents);
                 }
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't refresh recents, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't refresh recents, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString());
             }
         }
 
@@ -1870,23 +2050,30 @@ namespace PMedia
 
             StartThread(() =>
             {
-                int InSleep = 0;
-
-                // Need to wait for the tracks to load
-                while (mediaPlayer.Media.Tracks.Count() <= 0 && mediaPlayer.Media.Duration <= 0 && InSleep <= 15)
+                try
                 {
-                    Thread.Sleep(200);
-                    InSleep += 1;
-                }
+                    int InSleep = 0;
 
+                    // Need to wait for the tracks to load
+                    while (mediaPlayer.Media.Tracks.Count() <= 0 && mediaPlayer.Media.Duration <= 0 && InSleep <= 15)
+                    {
+                        Thread.Sleep(200);
+                        InSleep += 1;
+                    }
+                }
+                catch
+                {
+                    Thread.CurrentThread.Abort();
+                }
+                
                 FileInfo currentFile = new FileInfo(System.Net.WebUtility.UrlDecode(new Uri(e.Media.Mrl).AbsolutePath));
 
                 ProcessShow(currentFile.FullName);
 
-                SetLabelContent(labelTitle, currentFile.Name);
-                SetLabelContent(labelLenght, TimeSpan.FromMilliseconds(mediaPlayer.Media.Duration).ToString(@"hh\:mm\:ss"));
-                SetSliderValue(SliderMedia, 0);
-                SetSliderMaximum(SliderMedia, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
+                SetLabelContent(MainOverlay.labelTitle, currentFile.Name);
+                SetLabelContent(MainOverlay.labelLenght, TimeSpan.FromMilliseconds(mediaPlayer.Media.Duration).ToString(@"hh\:mm\:ss"));
+                SetSliderValue(MainOverlay.SliderMedia, 0);
+                SetSliderMaximum(MainOverlay.SliderMedia, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
                 // Re-set media settings
                 if (Mute == true)
@@ -1903,25 +2090,25 @@ namespace PMedia
                 // Things that need to run on the main thread
                 this.Dispatcher.Invoke(() =>
                 {
-                    this.MenuSettingsVideoTracks.Items.Clear();
-                    this.MenuSettingsAudioTracks.Items.Clear();
-                    this.MenuSettingsSubtitleTracks.Items.Clear();
+                    this.MainOverlay.MenuSettingsVideoTracks.Items.Clear();
+                    this.MainOverlay.MenuSettingsAudioTracks.Items.Clear();
+                    this.MainOverlay.MenuSettingsSubtitleTracks.Items.Clear();
 
-                    MenuItem menuDisableVideo = new MenuItem { Header = "Disable", Style = MenuSettingsVideoTracks.Style, Name = "VideoD" };
+                    MenuItem menuDisableVideo = new MenuItem { Header = "Disable", Style = MainOverlay.MenuSettingsVideoTracks.Style, Name = "VideoD" };
                     menuDisableVideo.Click += MenuTrackDisable_Click;
 
-                    MenuItem menuDisableAudio = new MenuItem { Header = "Disable",  Style = MenuSettingsVideoTracks.Style, Name = "AudioD" };
+                    MenuItem menuDisableAudio = new MenuItem { Header = "Disable",  Style = MainOverlay.MenuSettingsVideoTracks.Style, Name = "AudioD" };
                     menuDisableAudio.Click += MenuTrackDisable_Click;
 
-                    MenuItem menuDisableSubtitle = new MenuItem { Header = "Disable", Style = MenuSettingsVideoTracks.Style, Name = "SubtitleD"};
+                    MenuItem menuDisableSubtitle = new MenuItem { Header = "Disable", Style = MainOverlay.MenuSettingsVideoTracks.Style, Name = "SubtitleD"};
                     menuDisableSubtitle.Click += MenuTrackDisable_Click;
 
                     menuDisableVideo.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                     menuDisableAudio.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                     menuDisableSubtitle.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
 
-                    this.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
-                    this.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
+                    this.MainOverlay.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
+                    this.MainOverlay.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
 
                     videoPosition.SetNewFile(currentFile.Name, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
@@ -1976,7 +2163,7 @@ namespace PMedia
                                 {
                                     this.Dispatcher.Invoke(() =>
                                     {
-                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
 
                                         newTrack.Click += delegate
                                         {
@@ -1986,7 +2173,7 @@ namespace PMedia
                                         };
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                                        this.MenuSettingsVideoTracks.Items.Add(newTrack);
+                                        this.MainOverlay.MenuSettingsVideoTracks.Items.Add(newTrack);
                                     });
 
                                     break;
@@ -1997,7 +2184,7 @@ namespace PMedia
                                 {
                                     this.Dispatcher.Invoke(() =>
                                     {
-                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MenuSettingsVideoTracks.Style };
+                                        MenuItem newTrack = new MenuItem { Header = TrackName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
 
                                         newTrack.Click += delegate
                                         {
@@ -2007,7 +2194,7 @@ namespace PMedia
                                         };
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                                        this.MenuSettingsAudioTracks.Items.Add(newTrack);
+                                        this.MainOverlay.MenuSettingsAudioTracks.Items.Add(newTrack);
                                     });
 
                                     if (AutoAudioSelect && AudioSelected == false)
@@ -2036,47 +2223,50 @@ namespace PMedia
                     } catch { }
                 }
 
-                // Subtitle track - TO DO: See Track Id Selection
-                for (int i = 0; i < mediaPlayer.SpuCount; i++)
+                try
                 {
-                    string SubName = mediaPlayer.SpuDescription[i].Name;
-                    int SubID = mediaPlayer.SpuDescription[i].Id;
-
-                    if (string.IsNullOrWhiteSpace(SubName))
-                        SubName = $"Track";
-
-                    SubName += $" [{SubID}]";
-
-                    this.Dispatcher.Invoke(() =>
+                    // Subtitle track - TO DO: See Track Id Selection
+                    for (int i = 0; i < mediaPlayer.SpuCount; i++)
                     {
-                        MenuItem newTrack = new MenuItem { Header = SubName, Style = MenuSettingsVideoTracks.Style };
+                        string SubName = mediaPlayer.SpuDescription[i].Name;
+                        int SubID = mediaPlayer.SpuDescription[i].Id;
 
-                        newTrack.Click += (sender, e) =>
+                        if (string.IsNullOrWhiteSpace(SubName))
+                            SubName = $"Track";
+
+                        SubName += $" [{SubID}]";
+
+                        this.Dispatcher.Invoke(() =>
                         {
-                            MenuItem menuItem = (MenuItem)sender;
-                            int newSPU = IdFromTrackName(menuItem.Header.ToString());
+                            MenuItem newTrack = new MenuItem { Header = SubName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
 
-                            mediaPlayer.SetSpu(newSPU);
+                            newTrack.Click += (sender, e) =>
+                            {
+                                MenuItem menuItem = (MenuItem)sender;
+                                int newSPU = IdFromTrackName(menuItem.Header.ToString());
 
-                            SetOverlay("New subtitle track");
-                        };
+                                mediaPlayer.SetSpu(newSPU);
 
-                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                        this.MenuSettingsSubtitleTracks.Items.Add(newTrack);
-                    });
+                                SetOverlay("New subtitle track");
+                            };
 
-                    Thread.Sleep(500);
+                            newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
+                            this.MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+                        });
 
-                    // Subtitle auto select
-                    if (AutoSubtitleSelect && SubtitleSelected == false)
-                    {
-                        if (HasRegexMatch(SubName, @"^.*\b(eng|english)\b.*$"))
+                        Thread.Sleep(500);
+
+                        // Subtitle auto select
+                        if (AutoSubtitleSelect && SubtitleSelected == false)
                         {
-                            mediaPlayer.SetSpu(mediaPlayer.SpuDescription[i].Id);
-                            SubtitleSelected = true;
+                            if (HasRegexMatch(SubName, @"^.*\b(eng|english)\b.*$"))
+                            {
+                                mediaPlayer.SetSpu(mediaPlayer.SpuDescription[i].Id);
+                                SubtitleSelected = true;
+                            }
                         }
                     }
-                }
+                } catch { }
             });
         }
 
@@ -2084,21 +2274,18 @@ namespace PMedia
         {
             StartThread(() =>
             {
-                SetLabelContent(labelPosition, TimeSpan.FromMilliseconds(e.Time).ToString(@"hh\:mm\:ss"));
+                SetLabelContent(MainOverlay.labelPosition, TimeSpan.FromMilliseconds(e.Time).ToString(@"hh\:mm\:ss"));
 
                 if (isSliderControl == false)
                 {
-                    SetSliderValue(SliderMedia, Convert.ToInt32(e.Time / 1000));
+                    SetSliderValue(MainOverlay.SliderMedia, Convert.ToInt32(e.Time / 1000));
                 };
 
                 if (AutoPlay)
                 {
                     if (Math.Abs(mediaPlayer.Media.Duration - e.Time) / 1000 <= AutoPlayTime)
                     {
-                        if (ShutDownSignal(shutDownCmd.shutDownType, shutDownCmd.Arg) == false && tvShow.HasNextEpisode())
-                        {
-                            OpenFile(tvShow.NextEpisode().FilePath);
-                        }
+                        Next();
                     }
                 }
             });
@@ -2117,13 +2304,13 @@ namespace PMedia
                 PlayBtnTxt = "Play";
             });
 
-            SetLabelContent(labelTitle, string.Empty);
+            SetLabelContent(MainOverlay.labelTitle, string.Empty);
 
-            SetLabelContent(labelPosition, "00:00:00");
-            SetLabelContent(labelLenght, "00:00:00");
+            SetLabelContent(MainOverlay.labelPosition, "00:00:00");
+            SetLabelContent(MainOverlay.labelLenght, "00:00:00");
 
-            SetSliderMaximum(SliderMedia, 1);
-            SetSliderValue(SliderMedia, 0);
+            SetSliderMaximum(MainOverlay.SliderMedia, 1);
+            SetSliderValue(MainOverlay.SliderMedia, 0);
 
             if (mediaPlayer.Media != null)
                 mediaPlayer.Media.Dispose();
@@ -2132,9 +2319,9 @@ namespace PMedia
 
             this.Dispatcher.Invoke(() =>
             {
-                this.MenuSettingsVideoTracks.Items.Clear();
-                this.MenuSettingsAudioTracks.Items.Clear();
-                this.MenuSettingsSubtitleTracks.Items.Clear();
+                this.MainOverlay.MenuSettingsVideoTracks.Items.Clear();
+                this.MainOverlay.MenuSettingsAudioTracks.Items.Clear();
+                this.MainOverlay.MenuSettingsSubtitleTracks.Items.Clear();
             });
         }
         #endregion
@@ -2144,12 +2331,10 @@ namespace PMedia
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Controls handles init
-            VolumeSlider.VolumeSlider.ValueChanged += (s, nE) =>
+            MainOverlay.VolumeSlider.VolumeSlider.ValueChanged += (s, nE) =>
             {
                 Volume = Convert.ToInt32(nE.NewValue);
             };
-
-            this.MouseLeave += MainWindow_MouseLeave;
 
             // Timers
             CreateJumpTimer();
@@ -2180,20 +2365,9 @@ namespace PMedia
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
         {
-            // Fix for click at new position on slider
-            try
-            {
-                Thumb thumb = (SliderMedia.Template.FindName("PART_Track", SliderMedia) as Track).Thumb;
-                thumb.MouseEnter += new System.Windows.Input.MouseEventHandler(SliderMedia_MouseEnter);
-            }
-            catch (Exception ex)
-            {
-                CMBox.Show("Error", "Couldn't initialize thumb, Error: " + ex.Message, MessageCustomHandler.Style.Error, Buttons.OK, null, ex.ToString());
-            }
-
             // Can't set new image until old one is rendered, because fuck WPF
             if(Mute == true)
-                SetImage(btnMuteImage, Images.btnMute);
+                SetImage(MainOverlay.btnMuteImage, Images.btnMute);
         }
 
         private void MainWindow_SourceInitialized(object sender, EventArgs e)
@@ -2214,15 +2388,6 @@ namespace PMedia
         }
 
         // Form Events
-        private void MainWindow_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (this.WindowStyle == WindowStyle.None)
-            {
-                MainGrid.RowDefinitions[0].Height = new GridLength(0);
-                MainGrid.RowDefinitions[2].Height = new GridLength(0);
-            }
-        }
-
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
             if (this.WindowStyle == WindowStyle.None && this.WindowState == WindowState.Maximized)
@@ -2262,31 +2427,21 @@ namespace PMedia
             }
             if (e.Key == Key.Up)
             {
-                e.Handled = true;
                 Volume += 5;
             }
             if (e.Key == Key.Down)
             {
-                e.Handled = true;
                 Volume -= 5;
             }
             else if (e.Key == Key.Left)
             {
                 e.Handled = true;
-
-                if (mediaPlayer.IsSeekable)
-                {
-                    jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
-                }
+                JumpBackward();
             }
             else if (e.Key == Key.Right)
             {
                 e.Handled = true;
-
-                if (mediaPlayer.IsSeekable)
-                {
-                    jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
-                }
+                JumpForward();
             }
             else if (e.Key == Key.F)
             {
@@ -2308,6 +2463,14 @@ namespace PMedia
             {
                 GameMode = !GameMode;
             }
+            else if (e.Key == Key.N)
+            {
+                Previous();
+            }
+            else if (e.Key == Key.M)
+            {
+                Next();
+            }
         }
 
         private void KeyboardHook_OnKeyPress(Key key)
@@ -2321,7 +2484,7 @@ namespace PMedia
             switch (key)
             {
                 case Key.F9:
-                    Play();
+                    Play(false);
                     break;
 
                 case Key.F10:
@@ -2559,12 +2722,12 @@ namespace PMedia
 
         private void MenuSettingsAudioAutoSelect_Checked(object sender, RoutedEventArgs e)
         {
-            AutoAudioSelect = MenuSettingsAudioAutoSelect.IsChecked;
+            AutoAudioSelect = MainOverlay.MenuSettingsAudioAutoSelect.IsChecked;
         }
 
         private void MenuSettingsSubtitleAutoSelect_Checked(object sender, RoutedEventArgs e)
         {
-            AutoSubtitleSelect = MenuSettingsSubtitleAutoSelect.IsChecked;
+            AutoSubtitleSelect = MainOverlay.MenuSettingsSubtitleAutoSelect.IsChecked;
         }
 
         private void MenuSettingsSubtitleAdd_Click(object sender, RoutedEventArgs e)
@@ -2589,17 +2752,17 @@ namespace PMedia
 
         private void MenuSettingsOnTop_Click(object sender, RoutedEventArgs e)
         {
-            OnTop = MenuSettingsOnTop.IsChecked;
+            OnTop = MainOverlay.MenuSettingsOnTop.IsChecked;
         }
 
         private void MenuSettingsAcceleration_Click(object sender, RoutedEventArgs e)
         {
-            Acceleration = MenuSettingsAcceleration.IsChecked;
+            Acceleration = MainOverlay.MenuSettingsAcceleration.IsChecked;
         }
 
         private void MenuSettingsGameMode_Click(object sender, RoutedEventArgs e)
         {
-            GameMode = MenuSettingsGameMode.IsChecked;
+            GameMode = MainOverlay.MenuSettingsGameMode.IsChecked;
         }
 
         private void MenuSettingsShutDown_Click(object sender, RoutedEventArgs e)
@@ -2618,11 +2781,11 @@ namespace PMedia
 
                 UnCheckShutDown();
 
-                if (menuItem == MenuSettingsShutDownAfterThis)
+                if (menuItem == MainOverlay.MenuSettingsShutDownAfterThis)
                 {
                     ShutDown(ShutDownType.After, 0);
                 }
-                else if (menuItem == MenuSettingsShutDownAfterN)
+                else if (menuItem == MainOverlay.MenuSettingsShutDownAfterN)
                 {
                     InputDialog argInput = new InputDialog
                     {
@@ -2643,7 +2806,7 @@ namespace PMedia
                         }
                     }
                 }
-                else if (menuItem == MenuSettingsShutDownAfterTime)
+                else if (menuItem == MainOverlay.MenuSettingsShutDownAfterTime)
                 {
                     InputDialog argInput = new InputDialog
                     {
@@ -2664,7 +2827,7 @@ namespace PMedia
                         }
                     }
                 }
-                else if (menuItem == MenuSettingsShutDownEndPlaylist)
+                else if (menuItem == MainOverlay.MenuSettingsShutDownEndPlaylist)
                 {
                     ShutDown(ShutDownType.End, 0);
                 }
@@ -2675,12 +2838,12 @@ namespace PMedia
 
         private void MenuPlaylistAutoplay_Click(object sender, RoutedEventArgs e)
         {
-            AutoPlay = MenuPlaylistAutoplay.IsChecked;
+            AutoPlay = MainOverlay.MenuPlaylistAutoplay.IsChecked;
         }
 
         private void MenuPlaylistAutoplay_Loaded(object sender, RoutedEventArgs e)
         {
-            MenuPlaylistAutoplay.IsChecked = AutoPlay;
+            MainOverlay.MenuPlaylistAutoplay.IsChecked = AutoPlay;
         }
 
         private void MenuTrackDisable_Click(object sender, RoutedEventArgs e)
@@ -2739,7 +2902,14 @@ namespace PMedia
             {
                 if (mediaPlayer.Media == null) 
                 {
-                    NewFile();
+                    if (recents.GetList().Count > 0)
+                    {
+                        OpenFile(recents.GetList().Last());
+                    }
+                    else
+                    {
+                        NewFile();
+                    }
                 } 
                 else
                 {
@@ -2786,13 +2956,20 @@ namespace PMedia
                 this.WindowStyle = WindowStyle.None;
                 this.WindowState = WindowState.Maximized;
 
-                SetImage(btnFullscreenImage, Images.btnFullScreenOff);
+                SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
 
-                Grid.SetRow(WinHost, 1);
-                Grid.SetRowSpan(WinHost, 1);
+                TopOpen = false;
+                BottomOpen = false;
 
-                MainGrid.RowDefinitions[0].Height = new GridLength(0);
-                MainGrid.RowDefinitions[2].Height = new GridLength(0);
+                screen = GetCurrentScreen();
+
+                //Grid CurrentGrid = BottomMenu;
+
+                //MainGrid.Children.Remove(CurrentGrid);
+
+                //GridInside.Children.Add(CurrentGrid);
+
+                //CurrentGrid.Visibility = Visibility.Hidden;
             }
             else if (this.WindowState == WindowState.Maximized)
             {
@@ -2804,26 +2981,37 @@ namespace PMedia
                     this.WindowStyle = WindowStyle.None;
                     this.WindowState = WindowState.Maximized;
 
-                    SetImage(btnFullscreenImage, Images.btnFullScreenOff);
+                    SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
 
-                    Grid.SetRow(WinHost, 1);
-                    Grid.SetRowSpan(WinHost, 1);
+                    TopOpen = false;
+                    BottomOpen = false;
 
-                    MainGrid.RowDefinitions[0].Height = new GridLength(0);
-                    MainGrid.RowDefinitions[2].Height = new GridLength(0);
+                    //Grid CurrentGrid = BottomMenu;
+
+                    //MainGrid.Children.Remove(CurrentGrid);
+
+                    //GridInside.Children.Add(CurrentGrid);
+
+                    //CurrentGrid.Visibility = Visibility.Hidden;
                 }
                 else
                 {
                     this.WindowState = lastState;
                     this.WindowStyle = WindowStyle.SingleBorderWindow;
 
-                    SetImage(btnFullscreenImage, Images.btnFullScreenOn);
+                    SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOn);
 
-                    Grid.SetRow(WinHost, 1);
-                    Grid.SetRowSpan(WinHost, 1);
+                    TopOpen = true;
+                    BottomOpen = true;
 
-                    MainGrid.RowDefinitions[0].Height = new GridLength(TopSize);
-                    MainGrid.RowDefinitions[2].Height = new GridLength(BottomSize);
+                    //Grid CurrentGrid = BottomMenu;
+
+                    //GridInside.Children.Remove(CurrentGrid);
+
+                    //MainGrid.Children.Add(CurrentGrid);
+
+                    //CurrentGrid.Visibility = Visibility.Visible;
+
                 }
             }
         }
@@ -2831,7 +3019,7 @@ namespace PMedia
         // Slider Control
         private void SliderMedia_DragCompleted(object sender, DragCompletedEventArgs e)
         {
-            mediaPlayer.Time = Convert.ToInt64(SliderMedia.Value * 1000);
+            mediaPlayer.Time = Convert.ToInt64(MainOverlay.SliderMedia.Value * 1000);
             isSliderControl = false;
         }
 

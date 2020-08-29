@@ -1,15 +1,22 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 
 namespace SuperContextMenu
 {
     public partial class ContextMenuMedia : UserControl
     {
+        public delegate void MediaInfoBtnHandler(object sender, EventArgs e);
+        public event MediaInfoBtnHandler OnMediaInfoBtn;
+
+        public delegate void VideoListBtnHandler(object sender, EventArgs e);
+        public event VideoListBtnHandler OnVideoListBtn;
+
+        public delegate void NextBtnHandler(object sender, EventArgs e);
+        public event NextBtnHandler OnNextBtn;
+
+        public delegate void PreviousBtnHandler(object sender, EventArgs e);
+        public event PreviousBtnHandler OnPreviousBtn;
+
         public delegate void PlayBtnHandler(object sender, EventArgs e);
         public event PlayBtnHandler OnPlayBtn;
 
@@ -37,9 +44,87 @@ namespace SuperContextMenu
         public delegate void MouseClickBtnHandler(object sender, EventArgs e);
         public event MouseClickBtnHandler OnMouseClickBtn;
 
+        public bool NextActive
+        {
+            set
+            {
+                if (BtnNext.InvokeRequired)
+                {
+                    BtnNext.Invoke(new Action(() => { BtnNext.Enabled = value; }));
+                }
+                else
+                {
+                    BtnNext.Enabled = value;
+                }
+            }
+        }
+
+        public bool PreviousActive
+        {
+            set
+            {
+                if (BtnPrevious.InvokeRequired)
+                {
+                    BtnPrevious.Invoke(new Action(() => { BtnPrevious.Enabled = value; }));
+                }
+                else
+                {
+                    BtnPrevious.Enabled = value;
+                }
+                
+            }
+        }
+
         public ContextMenuMedia()
         {
             InitializeComponent();
+
+            NextActive = false;
+            PreviousActive = false;
+        }
+
+        private void BtnMediaInfo_Click(object sender, EventArgs e)
+        {
+            // Make sure someone is listening to event
+            if (OnMediaInfoBtn == null) return;
+
+            OnMediaInfoBtn(sender, e);
+
+            //Safe closing
+            OnMouseClickBtn(sender, e);
+        }
+
+        private void BtnVideoList_Click(object sender, EventArgs e)
+        {
+            // Make sure someone is listening to event
+            if (OnVideoListBtn == null) return;
+
+            OnVideoListBtn(sender, e);
+
+            //Safe closing
+            OnMouseClickBtn(sender, e);
+        }
+
+        private void BtnNext_Click(object sender, EventArgs e)
+        {
+            // Make sure someone is listening to event
+            if (OnNextBtn == null) return;
+
+            OnNextBtn(sender, e);
+
+            //Safe closing
+            OnMouseClickBtn(sender, e);
+        }
+
+        private void BtnPrevious_Click(object sender, EventArgs e)
+        {
+            // Make sure someone is listening to event
+            if (OnPreviousBtn == null) return;
+
+            OnPreviousBtn(sender, e);
+
+            //Safe closing
+            OnMouseClickBtn(sender, e);
         }
 
         private void BtnPlay_Click(object sender, EventArgs e)

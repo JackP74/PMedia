@@ -34,14 +34,12 @@ namespace PMedia
         {
             try
             {
-                using (Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-                {
-                    BinaryFormat.Serialize(fStream, recents);
-                }
+                using Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                BinaryFormat.Serialize(fStream, recents);
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't save recents, Error: " + ex.Message, Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't save recents, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
                 return;
             }
         }
@@ -53,14 +51,12 @@ namespace PMedia
 
             try
             {
-                using (Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-                {
-                    recents = (RecentList)BinaryFormat.Deserialize(fStream);
-                }
+                using Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                recents = (RecentList)BinaryFormat.Deserialize(fStream);
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't load recents, Error: " + ex.Message, Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't load recents, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
                 return;
             }
         }

@@ -9,6 +9,7 @@ namespace PMedia
     {
         private readonly string path;
         private string name;
+        private int duration;
 
         public VideoPosition(string Path)
         {
@@ -20,7 +21,7 @@ namespace PMedia
                 }
                 catch (Exception ex)
                 {
-                    CMBox.Show("Error", "Couldn't set video position directory, Error: " + ex.Message, Style.Error, Buttons.OK, null, ex.ToString());
+                    CMBox.Show("Error", "Couldn't set video position directory, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
                     return;
                 }
             }
@@ -31,14 +32,16 @@ namespace PMedia
         public void SetNewFile(string FilePath, int Duration)
         {
             this.name = FilePath + @"-" + Duration.ToString();
+            this.duration = Duration;
         }
 
         public void ClearName()
         {
             this.name = string.Empty;
+            this.duration = 0;
         }
 
-        public int GetPosition()
+        public long GetPosition()
         {
             try
             {
@@ -46,14 +49,30 @@ namespace PMedia
 
                 if (File.Exists(filePath) == false)
                     return 0;
+                string position = "0";
 
-                string position = File.ReadAllText(filePath, Encoding.ASCII);
+                if (duration > 180)
+                    position = File.ReadAllText(filePath, Encoding.ASCII);
 
-                return Convert.ToInt32(position) * 1000;
+                int finalPosition = Convert.ToInt32(position);
+
+                if ((duration - finalPosition) < 180)
+                {
+                    if (duration > 180)
+                    {
+                        finalPosition = duration - 180;
+                    }
+                    else
+                    {
+                        finalPosition = 0;
+                    }
+                }
+
+                return finalPosition * 1000;
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't get video position, Error: " + ex.Message, Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't get video position, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
                 return 0;
             }
         }
@@ -71,7 +90,7 @@ namespace PMedia
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't save video position, Error: " + ex.Message, Style.Error, Buttons.OK, null, ex.ToString());
+                CMBox.Show("Error", "Couldn't save video position, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
                 return;
             }
         }
