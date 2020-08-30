@@ -18,7 +18,6 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows.Interop;
 
-using SuperContextMenu;
 using Ookii.Dialogs.WinForms;
 using MessageCustomHandler;
 using LibVLCSharp.Shared;
@@ -33,7 +32,7 @@ using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 #endregion
 
-// TO DO: OPTIMIZE !!!!!!!!
+// TO DO: OPTIMIZE & FIX STOP FREEZE BUG
 namespace PMedia
 {
     public partial class MainWindow : INotifyPropertyChanged
@@ -52,7 +51,7 @@ namespace PMedia
         #endregion
 
         #region "Variables"
-        private PlayerOverlay? MainOverlay { get; set; }
+        private PlayerOverlay MainOverlay { get; set; }
 
         private readonly string videoPositionDir = AppDomain.CurrentDomain.BaseDirectory + @"\Data";
         private readonly string recentsPath = AppDomain.CurrentDomain.BaseDirectory + @"\recents.ini";
@@ -81,46 +80,38 @@ namespace PMedia
         private LibVLC libVLC;
         private VideoListWindow videoListWindow;
         private readonly VideoPosition videoPosition;
+        private ContextMenuStrip PlayerContextMenu;
+        private PlayerContextMenuItems ContextItems;
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
         private Thread threadShutDown;
 
         private WindowState lastState = WindowState.Normal;
-        private const int TopSize = 23;
         private const int BottomSize = 40;
 
-        private ContextMenuMedia ContextMedia;
-        private PoperContainer poperContextMedia;
-        private bool MenuOpen = false;
-        Screen screen;
-
+        private Screen screen;
         private readonly Recents recents;
-
         private KeyboardHook keyboardHook = null;
         #endregion
 
         #region "Proprieties"
         public System.Drawing.Point Location
         {
-            get
-            {
-                return new System.Drawing.Point(rect.Left, rect.Top);
-            }
             set
             {
                 Left = value.X;
                 Top = value.Y;
             }
+
+            get
+            {
+                return new System.Drawing.Point(rect.Left, rect.Top);
+            }
         }
 
         public string PlayBtnTxt
         {
-            get
-            {
-                return playBtnTxt;
-            }
-
             set
             {
                 playBtnTxt = value;
@@ -161,46 +152,52 @@ namespace PMedia
 
                 OnPropertyChanged("PlayBtnTxt");
             }
+
+            get
+            {
+                return playBtnTxt;
+            }
         }
 
         public string SpeedText
         {
-            get
-            {
-                return speedText;
-            }
             set
             {
                 speedText = value;
                 OnPropertyChanged("SpeedText");
             }
+
+            get
+            {
+                return speedText;
+            }
         }
 
         public string JumpText
         {
-            get
-            {
-                return jumpText;
-            }
-
             set
             {
                 jumpText = value;
                 OnPropertyChanged("JumpText");
             }
+
+            get
+            {
+                return jumpText;
+            }
         }
 
         public string AutoPlayText
         {
-            get
-            {
-                return autoPlayText;
-            }
-
             set
             {
                 autoPlayText = value;
                 OnPropertyChanged("AutoPlayText");
+            }
+
+            get
+            {
+                return autoPlayText;
             }
         }
 
@@ -210,16 +207,13 @@ namespace PMedia
             {
                 settings.IsMute = value;
 
-                if (value == true)
+                if (value)
                 {
                     SetImage(MainOverlay.btnMuteImage, Images.btnMute);
 
                     if (mediaPlayer != null && mediaPlayer.Media != null)
                     {
-                        StartThread(() =>
-                        {
-                            mediaPlayer.Mute = true;
-                        });
+                        StartThread(() => { mediaPlayer.Mute = true; });
                     }
 
                 }
@@ -228,10 +222,7 @@ namespace PMedia
 
                     if (mediaPlayer != null && mediaPlayer.Media != null)
                     {
-                        StartThread(() =>
-                        {
-                            mediaPlayer.Mute = false;
-                        });
+                        StartThread(() => { mediaPlayer.Mute = false; });
                     }
 
                     int cVolume = Volume;
@@ -261,13 +252,7 @@ namespace PMedia
         {
             set
             {
-                int FinalValue = value;
-
-                if (FinalValue > 200)
-                    FinalValue = 200;
-
-                if (FinalValue < 0)
-                    FinalValue = 0;
+                int FinalValue = value.LimitToRange(0, 200);
 
                 SetSliderValue(MainOverlay.VolumeSlider.VolumeSlider, FinalValue);
                 SetLabelContent(MainOverlay.VolumeSlider.labelVolume, FinalValue.ToString() + @"%");
@@ -276,35 +261,31 @@ namespace PMedia
 
                 if(mediaPlayer != null && mediaPlayer.Media != null)
                 {
-                    StartThread(() =>
-                    {
-                        mediaPlayer.Volume = FinalValue;
-                    });
+                    StartThread(() => { mediaPlayer.Volume = FinalValue; });
                 }
 
                 int cVolume = Volume;
                 string cPic = MainOverlay.btnMuteImage.Source.ToString();
 
-                if (cVolume >= 67 && cPic.EndsWith(Images.btnVolume3) == false)
+                if (cVolume >= 67 && !cPic.EndsWith(Images.btnVolume3))
                 {
                     SetImage(MainOverlay.btnMuteImage, Images.btnVolume3);
                 }
-                else if (cVolume < 67 && cVolume >= 34 && cPic.EndsWith(Images.btnVolume2) == false)
+                else if (cVolume < 67 && cVolume >= 34 && !cPic.EndsWith(Images.btnVolume2))
                 {
                     SetImage(MainOverlay.btnMuteImage, Images.btnVolume2);
                 }
-                else if (cVolume < 34 && cPic.EndsWith(Images.btnVolume1) == false)
+                else if (cVolume < 34 && !cPic.EndsWith(Images.btnVolume1))
                 {
                     SetImage(MainOverlay.btnMuteImage, Images.btnVolume1);
                 }
 
-                if (Mute == true && IsLoading == false) // IsLoading used so mute is loaded from settings
+                if (Mute && !IsLoading) // IsLoading used so mute is loaded from settings
                     Mute = false;
 
-                settings.Volume = FinalValue;
-
-                SetOverlay("Volume " + FinalValue.ToString());
+                SetOverlay($"Volume {FinalValue}%");
             }
+
             get
             {
                 return settings.Volume;
@@ -315,27 +296,16 @@ namespace PMedia
         {
             set
             {
-                int FinalSpeed = value;
-
-                if (FinalSpeed < 1)
-                    FinalSpeed = 1;
-
-                if (FinalSpeed > 10)
-                    FinalSpeed = 10;
-
+                int FinalSpeed = value.LimitToRange(1, 10);
                 settings.Rate = FinalSpeed;
 
                 if (mediaPlayer != null && mediaPlayer.Media != null)
                 {
-                    StartThread(() =>
-                    {
-                        mediaPlayer.SetRate((float)FinalSpeed);
-                    });
+                    StartThread(() => { mediaPlayer.SetRate((float)FinalSpeed); });
                 }
-
-                SpeedText = "Speed (" + FinalSpeed.ToString() + "x)";
-
-                SetOverlay("Speed " + FinalSpeed.ToString() + "x");
+                
+                SpeedText = $"Speed ({FinalSpeed}x)";
+                SetOverlay($"Speed ({FinalSpeed}x");
             }
             get
             {
@@ -347,19 +317,11 @@ namespace PMedia
         {
             set
             {
-                int FinalJump = value;
-
-                if (FinalJump < 1)
-                    FinalJump = 1;
-
-                if (FinalJump > 120)
-                    FinalJump = 120;
-
+                int FinalJump = value.LimitToRange(1, 120);
                 settings.Jump = FinalJump;
 
-                JumpText = "Jump (" + FinalJump.ToString() + "s)";
-
-                SetOverlay("Jump " + FinalJump.ToString() + "s");
+                JumpText = $"Jump ({ FinalJump} s)";
+                SetOverlay($"Jump ({ FinalJump} s)");
             }
 
             get
@@ -374,11 +336,7 @@ namespace PMedia
             {
                 settings.AutoPlay = value;
 
-                string finalText = "on";
-
-                if (value == false)
-                    finalText = "off";
-
+                string finalText = value ? "on" : "off";
                 SetOverlay("AutoPlay " + finalText);
             }
 
@@ -392,20 +350,13 @@ namespace PMedia
         {
             set
             {
-                int FinalAutoPlay = value;
-
-                if (FinalAutoPlay < 1)
-                    FinalAutoPlay = 1;
-
-                if (FinalAutoPlay > 120)
-                    FinalAutoPlay = 120;
-
+                int FinalAutoPlay = value.LimitToRange(1, 120);
                 settings.AutoPlayTime = FinalAutoPlay;
 
-                AutoPlayText = "AutoPlay (" + FinalAutoPlay.ToString() + "s)";
-
-                SetOverlay("AutoPlay " + FinalAutoPlay.ToString() + "s");
+                AutoPlayText = $"AutoPlay ({FinalAutoPlay} s)";
+                SetOverlay($"AutoPlay ({FinalAutoPlay} s)");
             }
+
             get
             {
                 return settings.AutoPlayTime;
@@ -424,7 +375,7 @@ namespace PMedia
 
             get
             {
-                return aspectRatio;
+                return aspectRatio == string.Empty ? "default" : aspectRatio;
             }
         }
 
@@ -440,7 +391,7 @@ namespace PMedia
                 if (audioMode == AudioType.Stereo)
                     mediaPlayer.SetChannel(AudioOutputChannel.Stereo);
 
-                SetOverlay("AudioMode " + value.ToString());
+                SetOverlay($"AudioMode {value}");
             }
 
             get
@@ -454,7 +405,6 @@ namespace PMedia
             set
             {
                 settings.AutoAudio = value;
-
                 SetMenuItemChecked(MainOverlay.MenuSettingsAudioAutoSelect, value);
             }
 
@@ -469,7 +419,6 @@ namespace PMedia
             set
             {
                 settings.AutoSubtitle = value;
-
                 SetMenuItemChecked(MainOverlay.MenuSettingsSubtitleAutoSelect, value);
             }
 
@@ -484,15 +433,11 @@ namespace PMedia
             set
             {
                 onTop = value;
-
                 SetTopMost(value);
 
                 SetMenuItemChecked(MainOverlay.MenuSettingsOnTop, value);
 
-                string finalValue = "on";
-                if (value == false)
-                    finalValue = "off";
-
+                string finalValue = value ? "on" : "off";
                 SetOverlay("AudioMode " + finalValue);
             }
             get
@@ -506,16 +451,7 @@ namespace PMedia
             set
             {
                 settings.Acceleration = value;
-
                 SetMenuItemChecked(MainOverlay.MenuSettingsAcceleration, value);
-
-                ReOpenFile();
-
-                string finalValue = "on";
-                if (value == false)
-                    finalValue = "off";
-
-                SetOverlay("Hardware acceleration " + finalValue);
             }
             get
             {
@@ -528,10 +464,9 @@ namespace PMedia
             set
             {
                 gameMode = value;
-
                 SetMenuItemChecked(MainOverlay.MenuSettingsGameMode, value);
 
-                if (value == true)
+                if (value)
                 {
                     if (keyboardHook != null)
                         keyboardHook.Dispose();
@@ -544,10 +479,7 @@ namespace PMedia
                         keyboardHook.Dispose();
                 }
 
-                string finalValue = "on";
-                if (value == false)
-                    finalValue = "off";
-
+                string finalValue = value ? "on" : "off";
                 SetOverlay("Game mode " + finalValue);
             }
 
@@ -850,15 +782,15 @@ namespace PMedia
 
                         if (finalJump > 0 && (totalLenght - currentLenght) < (finalJump + maxPlusValue))
                         {
-                           // if (AutoPlay)
-                           // {
-                           //     Next();
-                            //    return;
-                            //}
-                           // else
-                            //{
+                            if (AutoPlay)
+                            {
+                                Next();
+                                return;
+                            }
+                            else
+                            {
                                 finalTime = totalLenght - maxPlusValue;
-                           // }
+                            }
                         }
                         else if (finalJump < 0 && currentLenght < finalJump)
                         {
@@ -878,7 +810,6 @@ namespace PMedia
                         });
                         
                         SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time).ToString(@"hh\:mm\:ss"));
-
                     }
                     else
                     {
@@ -900,7 +831,7 @@ namespace PMedia
 
             SaveTimer.Elapsed += delegate
             {
-                if (settings.NeedsSaving == true)
+                if (settings.NeedsSaving)
                     settings.Save();
 
                 if (mediaPlayer.IsPlaying || mediaPlayer.State == VLCState.Paused)
@@ -921,45 +852,22 @@ namespace PMedia
 
             MouseTimer.Tick += delegate
             {
-                if (gameMode || MenuOpen)
+                if (gameMode)
                     return;
 
                 if (GetCursorPos(out POINT p))
                 {
                     bool XL = p.X >= screen.Bounds.X && p.X <= (screen.Bounds.Width + screen.Bounds.X - 1);
 
-                    if (p.Y <= TopSize + MouseOffset && XL)
+                    if (p.Y >= (screen.Bounds.Height - BottomSize - MouseOffset) && XL)
                     {
-                        if (TopOpen == false)
-                            TopOpen = true;
-
-                        if (BottomOpen)
-                            BottomOpen = false;
-
-                        //if (BottomMenu.Visibility != Visibility.Hidden)
-                        //    BottomMenu.Visibility = Visibility.Hidden;
-                    }
-                    else if (p.Y >= (screen.Bounds.Height - BottomSize - MouseOffset) && XL)
-                    {
-                        if (BottomOpen == false)
+                        if (!BottomOpen)
                             BottomOpen = true;
-
-                        if (TopOpen)
-                            TopOpen = false;
-
-                        //if (BottomMenu.Visibility != Visibility.Visible)
-                        //    BottomMenu.Visibility = Visibility.Visible;
                     }
                     else
                     {
-                        if (TopOpen)
-                            TopOpen = false;
-
                         if (BottomOpen)
                             BottomOpen = false;
-
-                        //if (BottomMenu.Visibility != Visibility.Hidden)
-                        //    BottomMenu.Visibility = Visibility.Hidden;
                     }
 
                 }
@@ -1281,7 +1189,7 @@ namespace PMedia
             settings.Load();
 
             string vlcPath = AppDomain.CurrentDomain.BaseDirectory;
-            if (Environment.Is64BitProcess == true) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
+            if (Environment.Is64BitProcess) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
             Core.Initialize(vlcPath);
             CreateMediaPlayer();
@@ -1318,6 +1226,10 @@ namespace PMedia
 
         private void AddHandlers()
         {
+            //Input handlers
+            MainOverlay.KeyDown += MainWindow_KeyDown;
+            MainOverlay.MouseWheel += MainWindow_MouseWheel;
+
             //Bottom media controls
             MainOverlay.btnPlay.Click += BtnPlay_Click;
             MainOverlay.btnBackward.Click += BtnBackward_Click;
@@ -1403,7 +1315,7 @@ namespace PMedia
                 if (FileFound == false)
                     return;
 
-                if (IsRunning() == true)
+                if (IsRunning())
                 {
                     SendFile(Args[0]);
                     this.Close();
@@ -1413,7 +1325,7 @@ namespace PMedia
                 {
                     StartThread(() =>
                     {
-                        while (IsLoading == true)
+                        while (IsLoading)
                         {
                             Thread.Sleep(200);
                         }
@@ -1442,7 +1354,7 @@ namespace PMedia
                     COPYDATASTRUCT cd = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
                     string file = cd.lpData;
 
-                    if (File.Exists(file) == true)
+                    if (File.Exists(file))
                     OpenFile(file);
                 }
             }
@@ -1551,7 +1463,7 @@ namespace PMedia
         {
             if (Extensions.IsVideo(FilePath))
             {
-                StopMediaPlayer();
+                //StopMediaPlayer();
 
                 StartThread(() =>
                 {
@@ -1744,15 +1656,10 @@ namespace PMedia
             };
             videoView.MediaPlayer = mediaPlayer;
 
-            // context menu hack for uniform style
-            ContextMedia = new ContextMenuMedia();
-            poperContextMedia = new PoperContainer(ContextMedia);
+            // context menu
+            PlayerContextMenu = new ContextMenuStrip();
+            PlayerContextMenu.Items.Add("Play/Pause", null, delegate { BtnPlay_Click(null, null); });
 
-            // fix for media controls
-            poperContextMedia.OnClose += delegate
-            {
-                MenuOpen = false;
-            };
 
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
@@ -1761,37 +1668,25 @@ namespace PMedia
                 AllowDrop = true
             };
 
-            // fullscreen toggle on double click
+            overlayPanel.ContextMenuStrip = PlayerContextMenu;
             overlayPanel.MouseDoubleClick += delegate { BtnFullscreen_Click(null, null); };
             overlayPanel.MouseWheel += OverlayPanel_MouseWheel;
             overlayPanel.DragOver += OverlayPanel_DragOver;
             overlayPanel.DragDrop += OverlayPanel_DragDrop;
 
-            // hide context menu on btn press and media controls when fullscreen because controls don't hide when context menu is visible
-            ContextMedia.OnMouseClickBtn += delegate
-            {
-                poperContextMedia.HideContext();
-
-                if (this.WindowStyle == WindowStyle.None)
-                {
-                    TopOpen = false;
-                    BottomOpen = false;
-                }
-            };
-
             // btns handles on existing handles for simplicity
-            ContextMedia.OnMediaInfoBtn += delegate { MenuFileMediaInfo_Click(null, null); };
-            ContextMedia.OnVideoListBtn += delegate { MenuPlaylistVideoList_Click(null, null); };
-            ContextMedia.OnNextBtn += delegate { Next(); };
-            ContextMedia.OnPreviousBtn += delegate { Previous(); };
-            ContextMedia.OnPlayBtn += delegate { Play(true); };
-            ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
-            ContextMedia.OnBackwardBtn += delegate { JumpBackward(); };
-            ContextMedia.OnForwardBtn += delegate { JumpForward(); };
-            ContextMedia.OnVolumeUpBtn += delegate { Volume += 5; };
-            ContextMedia.OnVolumeDownBtn += delegate { Volume -= 5; };
-            ContextMedia.OnMuteBtn += delegate { Mute = !Mute; };
-            ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
+            //ContextMedia.OnMediaInfoBtn += delegate { MenuFileMediaInfo_Click(null, null); };
+            //ContextMedia.OnVideoListBtn += delegate { MenuPlaylistVideoList_Click(null, null); };
+            //ContextMedia.OnNextBtn += delegate { Next(); };
+            //ContextMedia.OnPreviousBtn += delegate { Previous(); };
+            //ContextMedia.OnPlayBtn += delegate { Play(true); };
+            //ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
+            //ContextMedia.OnBackwardBtn += delegate { JumpBackward(); };
+            //ContextMedia.OnForwardBtn += delegate { JumpForward(); };
+            //ContextMedia.OnVolumeUpBtn += delegate { Volume += 5; };
+            //ContextMedia.OnVolumeDownBtn += delegate { Volume -= 5; };
+            //ContextMedia.OnMuteBtn += delegate { Mute = !Mute; };
+            //ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
 
             // add everything to win host
             System.Windows.Forms.Panel videoPanel = new System.Windows.Forms.Panel
@@ -1803,22 +1698,6 @@ namespace PMedia
             videoPanel.Controls.Add(videoView);
 
             WinHost.Child = videoPanel;
-
-            // Show context
-            overlayPanel.MouseClick += (object sender, System.Windows.Forms.MouseEventArgs e) =>
-            {
-                if (e.Button == MouseButtons.Right)
-                {
-                    MenuOpen = true;
-                    if (this.WindowStyle == WindowStyle.None)
-                    {
-                        TopOpen = false;
-                        BottomOpen = false;
-                    }
-
-                    poperContextMedia.ShowContext(overlayPanel, e.Location);
-                }
-            };
         }
 
         private void ProcessDrop(string[] Files)
@@ -1830,14 +1709,14 @@ namespace PMedia
 
             foreach (string Path in Files)
             {
-                if (File.Exists(Path) == false)
+                if (!File.Exists(Path))
                     continue;
 
-                if (Extensions.IsSubtitle(Path) == true)
+                if (Extensions.IsSubtitle(Path))
                 {
                     LoadSubtitle(Path);
                 }
-                else if (Extensions.IsVideo(Path) == true)
+                else if (Extensions.IsVideo(Path))
                 {
                     if (videoLoaded == false)
                         OpenFile(Path);
@@ -1854,8 +1733,8 @@ namespace PMedia
                 SetMenuItemEnable(MainOverlay.MenuPlaylistNext, tvShow.HasNextEpisode());
                 SetMenuItemEnable(MainOverlay.MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
 
-                ContextMedia.NextActive = tvShow.HasNextEpisode();
-                ContextMedia.PreviousActive = tvShow.HasPreviousEpisode();
+                //ContextMedia.NextActive = tvShow.HasNextEpisode();
+                //ContextMedia.PreviousActive = tvShow.HasPreviousEpisode();
 
                 this.Dispatcher.Invoke(delegate { videoListWindow.SetTvShow(tvShow); });
             });
@@ -1863,15 +1742,10 @@ namespace PMedia
 
         private void SetOverlay(string newOverlay)
         {
-            StartThread(() =>
-            {
-                //if (mediaPlayer == null || mediaPlayer.IsSeekable == false)
-                //    return;
+            if (IsLoading)
+                return;
 
-                //mediaPlayer.SetMarqueeString(VideoMarqueeOption.Text, newOverlay);
-
-                MainOverlay.SetOverlayText(newOverlay);
-            });
+            MainOverlay.SetOverlayText(newOverlay);
         }
 
         private void Pause()
@@ -1895,7 +1769,7 @@ namespace PMedia
                 }
                 else
                 {
-                    if (OpenRecent == true && recents.GetList().Count > 0)
+                    if (OpenRecent && recents.GetList().Count > 0)
                     {
                         OpenFile(recents.GetList().Last());
                     }
@@ -1906,13 +1780,24 @@ namespace PMedia
             { }
         }
 
-        private void StopMediaPlayer()
+        private void StopMediaPlayer() // Bug: can freeze the app
         {
-            ThreadPool.QueueUserWorkItem(_ => {
-                this.mediaPlayer.Stop();
+            //ThreadPool.QueueUserWorkItem(_ => {
+            //    this.mediaPlayer.Stop();
 
-                if (this.mediaPlayer.Media != null)
-                    this.mediaPlayer.Media.Dispose();
+            //    if (this.mediaPlayer.Media != null)
+            //        this.mediaPlayer.Media.Dispose();
+            //});
+
+            StartThread(() => 
+            {
+                if (mediaPlayer.State == VLCState.Paused)
+                    mediaPlayer.Play();
+
+                this.mediaPlayer.Stop(); 
+                if (this.mediaPlayer.Media != null) this.mediaPlayer.Media.Dispose();
+
+                SetOverlay("Stopped");
             });
         }
 
@@ -1933,6 +1818,7 @@ namespace PMedia
             if (mediaPlayer.IsSeekable)
             {
                 jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
+                //StartThread(() => { mediaPlayer.Time += Jump * 1000; });
             }
         }
 
@@ -1941,6 +1827,7 @@ namespace PMedia
             if (mediaPlayer.IsSeekable)
             {
                 jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
+                //StartThread(() => { mediaPlayer.Time -= Jump * 1000; });
             }
         }
 
@@ -2076,7 +1963,7 @@ namespace PMedia
                 SetSliderMaximum(MainOverlay.SliderMedia, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
                 // Re-set media settings
-                if (Mute == true)
+                if (Mute)
                 {
                     mediaPlayer.Mute = true;
                 }
@@ -2366,7 +2253,7 @@ namespace PMedia
         private void MainWindow_ContentRendered(object sender, EventArgs e)
         {
             // Can't set new image until old one is rendered, because fuck WPF
-            if(Mute == true)
+            if(Mute)
                 SetImage(MainOverlay.btnMuteImage, Images.btnMute);
         }
 
@@ -2400,18 +2287,19 @@ namespace PMedia
                 rect.Left += 7;
 
                 MouseTimer.Start();
+
+                TopOpen = false;
             }
             else
             {
                 MouseTimer.Stop();
+
+                TopOpen = true;
             }
         }
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            if (gameMode == true)
-                return;
-
             if (e.Key == Key.Space)
             {
                 e.Handled = true;
@@ -2420,7 +2308,7 @@ namespace PMedia
                 {
                     mediaPlayer.Play();
                 }
-                else if (mediaPlayer.CanPause == true)
+                else if (mediaPlayer.CanPause)
                 {
                     Pause();
                 }
@@ -2632,7 +2520,11 @@ namespace PMedia
 
             if (sender is Slider slider)
             {
+                IsLoading = true; // bug: shows overlay on first load. temporary until something good
+
                 slider.Value = AutoPlayTime;
+
+                IsLoading = false;
             }
         }
 
@@ -2651,7 +2543,7 @@ namespace PMedia
                                 InputDialog newAspectRatio = new InputDialog()
                                 {
                                     WindowTitle = "New Aspect Ratio",
-                                    MainInstruction = "Input format is {0}:{1}",
+                                    MainInstruction = "Input format is {0}:{1}, current aspect ratio is " + AspectRatio,
                                     MaxLength = 10
                                 };
 
@@ -2758,6 +2650,15 @@ namespace PMedia
         private void MenuSettingsAcceleration_Click(object sender, RoutedEventArgs e)
         {
             Acceleration = MainOverlay.MenuSettingsAcceleration.IsChecked;
+
+            if (CMBox.Show("Info", "Hardware Acceleration has been changed, for the best results a player restart is needed, restart now?", MessageCustomHandler.Style.Question, Buttons.YesNo).MainResult == result.Yes)
+            {
+                System.Windows.Forms.Application.Restart();
+            }
+            else
+            {
+                ReOpenFile();
+            }
         }
 
         private void MenuSettingsGameMode_Click(object sender, RoutedEventArgs e)
@@ -2916,7 +2817,7 @@ namespace PMedia
                     mediaPlayer.Play();
                 }
             }
-            else if(mediaPlayer.CanPause == true)
+            else if(mediaPlayer.CanPause)
             {
                 Pause();
             }
@@ -2958,18 +2859,9 @@ namespace PMedia
 
                 SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
 
-                TopOpen = false;
                 BottomOpen = false;
 
                 screen = GetCurrentScreen();
-
-                //Grid CurrentGrid = BottomMenu;
-
-                //MainGrid.Children.Remove(CurrentGrid);
-
-                //GridInside.Children.Add(CurrentGrid);
-
-                //CurrentGrid.Visibility = Visibility.Hidden;
             }
             else if (this.WindowState == WindowState.Maximized)
             {
@@ -2983,16 +2875,7 @@ namespace PMedia
 
                     SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
 
-                    TopOpen = false;
                     BottomOpen = false;
-
-                    //Grid CurrentGrid = BottomMenu;
-
-                    //MainGrid.Children.Remove(CurrentGrid);
-
-                    //GridInside.Children.Add(CurrentGrid);
-
-                    //CurrentGrid.Visibility = Visibility.Hidden;
                 }
                 else
                 {
@@ -3001,17 +2884,7 @@ namespace PMedia
 
                     SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOn);
 
-                    TopOpen = true;
                     BottomOpen = true;
-
-                    //Grid CurrentGrid = BottomMenu;
-
-                    //GridInside.Children.Remove(CurrentGrid);
-
-                    //MainGrid.Children.Add(CurrentGrid);
-
-                    //CurrentGrid.Visibility = Visibility.Visible;
-
                 }
             }
         }

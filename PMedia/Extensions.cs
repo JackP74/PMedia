@@ -44,4 +44,14 @@ namespace PMedia
             return FileType.Unkown;
         }
     }
+
+    public static class InputExtensions
+    {
+        public static int LimitToRange(this int value, int Minimum, int Maximum)
+        {
+            if (value < Minimum) { return Minimum; }
+            if (value > Maximum) { return Maximum; }
+            return value;
+        }
+    }
 }

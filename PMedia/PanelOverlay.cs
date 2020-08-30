@@ -17,6 +17,9 @@ namespace LibVLCSharp.WPF
         UIElement? _content;
         readonly Point _zeroPoint = new Point(0, 0);
 
+        public event MouseWheelEventHandler MouseScrollDone;
+        public event KeyEventHandler KeyDownDone;
+
         public event DragStartedEventHandler SliderDragStarted;
         public event DragCompletedEventHandler SliderDragCompleted;
         public event MouseEventHandler SliderMouseEnter;
@@ -246,6 +249,16 @@ namespace LibVLCSharp.WPF
                 LabelOverlay.Text = newText;
                 OverlayTimer.Start();
             }
+        }
+
+        private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            MouseScrollDone?.Invoke(sender, e);
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            KeyDownDone?.Invoke(sender, e);
         }
     }
 }
