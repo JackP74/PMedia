@@ -567,10 +567,6 @@
 
         </Menu>
 
-        <!--<Label x:Name="LabelOverlay" Content="12345678" FontSize="30" Foreground="White" Grid.Row="1" Margin="10,0,0,0" Background="Gray">
-            
-        </Label>-->
-
         <local:OutlinedTextBlock x:Name="LabelOverlay"
                              Stroke="Black" 
                              Grid.Row="1"

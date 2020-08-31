@@ -117,6 +117,9 @@
     <Compile Include="PlayerContextMenuItems.cs" />
     <Compile Include="Recents.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="TestWind.xaml.cs">
+      <DependentUpon>TestWind.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TransparentPanel.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -175,6 +178,10 @@
     <Page Include="Resources\Simple Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="TestWind.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="VideoListWindow.xaml">
       <SubType>Designer</SubType>

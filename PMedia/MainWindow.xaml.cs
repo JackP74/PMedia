@@ -455,7 +455,8 @@ namespace PMedia
             }
             get
             {
-                return settings.Acceleration;
+                //return settings.Acceleration;
+                return false; // known bug, causes freeze on stop
             }
         }
 
@@ -819,7 +820,7 @@ namespace PMedia
                 catch { }
             };
 
-            JumpTimer.Start();
+            //JumpTimer.Start();
         }
 
         private void CreateSaveTimer()
@@ -838,7 +839,7 @@ namespace PMedia
                     videoPosition.SavePosition(Convert.ToInt32(mediaPlayer.Time / 1000));
             };
 
-            SaveTimer.Start();
+            //SaveTimer.Start();
         }
 
         private void CreateMouseTimer()
@@ -852,6 +853,9 @@ namespace PMedia
 
             MouseTimer.Tick += delegate
             {
+                MouseTimer.Stop();
+                return;
+
                 if (gameMode)
                     return;
 
@@ -1192,6 +1196,7 @@ namespace PMedia
             if (Environment.Is64BitProcess) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
             Core.Initialize(vlcPath);
+            //Core.Initialize();
             CreateMediaPlayer();
 
             Volume = settings.Volume;
@@ -1660,7 +1665,6 @@ namespace PMedia
             PlayerContextMenu = new ContextMenuStrip();
             PlayerContextMenu.Items.Add("Play/Pause", null, delegate { BtnPlay_Click(null, null); });
 
-
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
             {
@@ -1673,20 +1677,6 @@ namespace PMedia
             overlayPanel.MouseWheel += OverlayPanel_MouseWheel;
             overlayPanel.DragOver += OverlayPanel_DragOver;
             overlayPanel.DragDrop += OverlayPanel_DragDrop;
-
-            // btns handles on existing handles for simplicity
-            //ContextMedia.OnMediaInfoBtn += delegate { MenuFileMediaInfo_Click(null, null); };
-            //ContextMedia.OnVideoListBtn += delegate { MenuPlaylistVideoList_Click(null, null); };
-            //ContextMedia.OnNextBtn += delegate { Next(); };
-            //ContextMedia.OnPreviousBtn += delegate { Previous(); };
-            //ContextMedia.OnPlayBtn += delegate { Play(true); };
-            //ContextMedia.OnStopBtn += delegate { StopMediaPlayer(); };
-            //ContextMedia.OnBackwardBtn += delegate { JumpBackward(); };
-            //ContextMedia.OnForwardBtn += delegate { JumpForward(); };
-            //ContextMedia.OnVolumeUpBtn += delegate { Volume += 5; };
-            //ContextMedia.OnVolumeDownBtn += delegate { Volume -= 5; };
-            //ContextMedia.OnMuteBtn += delegate { Mute = !Mute; };
-            //ContextMedia.OnFullscreenBtn += delegate { BtnFullscreen_Click(null, null); };
 
             // add everything to win host
             System.Windows.Forms.Panel videoPanel = new System.Windows.Forms.Panel
@@ -1789,16 +1779,26 @@ namespace PMedia
             //        this.mediaPlayer.Media.Dispose();
             //});
 
-            StartThread(() => 
+
+            //if (this.mediaPlayer.Media != null) this.mediaPlayer.Media.Dispose();
+
+            this.Dispatcher.Invoke(() =>
             {
-                if (mediaPlayer.State == VLCState.Paused)
-                    mediaPlayer.Play();
-
-                this.mediaPlayer.Stop(); 
-                if (this.mediaPlayer.Media != null) this.mediaPlayer.Media.Dispose();
-
-                SetOverlay("Stopped");
+                this.mediaPlayer.Stop();
+                //SetOverlay("Stopped");
             });
+            
+
+            //StartThread(() =>
+            //{
+            //    if (mediaPlayer.State == VLCState.Paused)
+            //        mediaPlayer.Play();
+
+            //    this.mediaPlayer.Stop();
+            //    if (this.mediaPlayer.Media != null) this.mediaPlayer.Media.Dispose();
+
+            //    SetOverlay("Stopped");
+            //});
         }
 
         private void Next()
@@ -2803,14 +2803,15 @@ namespace PMedia
             {
                 if (mediaPlayer.Media == null) 
                 {
-                    if (recents.GetList().Count > 0)
-                    {
-                        OpenFile(recents.GetList().Last());
-                    }
-                    else
-                    {
-                        NewFile();
-                    }
+                    //if (recents.GetList().Count > 0)
+                    //{
+                    //    OpenFile(recents.GetList().Last());
+                    //}
+                    //else
+                    //{
+                    //    NewFile();
+                    //}
+                    mediaPlayer.Play(new Media(libVLC, new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")));
                 } 
                 else
                 {
