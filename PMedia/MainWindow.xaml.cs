@@ -81,7 +81,6 @@ namespace PMedia
         private VideoListWindow videoListWindow;
         private readonly VideoPosition videoPosition;
         private ContextMenuStrip PlayerContextMenu;
-        private PlayerContextMenuItems ContextItems;
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
@@ -820,7 +819,7 @@ namespace PMedia
                 catch { }
             };
 
-            //JumpTimer.Start();
+            JumpTimer.Start();
         }
 
         private void CreateSaveTimer()
@@ -839,7 +838,7 @@ namespace PMedia
                     videoPosition.SavePosition(Convert.ToInt32(mediaPlayer.Time / 1000));
             };
 
-            //SaveTimer.Start();
+            SaveTimer.Start();
         }
 
         private void CreateMouseTimer()
@@ -853,9 +852,6 @@ namespace PMedia
 
             MouseTimer.Tick += delegate
             {
-                MouseTimer.Stop();
-                return;
-
                 if (gameMode)
                     return;
 
@@ -1664,6 +1660,7 @@ namespace PMedia
             // context menu
             PlayerContextMenu = new ContextMenuStrip();
             PlayerContextMenu.Items.Add("Play/Pause", null, delegate { BtnPlay_Click(null, null); });
+            PlayerContextMenu.Items.Add("Stop", null, delegate { StopMediaPlayer(); });
 
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
@@ -1770,35 +1767,32 @@ namespace PMedia
             { }
         }
 
-        private void StopMediaPlayer() // Bug: can freeze the app
+        private void StopMediaPlayer() // Bug: can freeze the app, maybe workaround?
         {
-            //ThreadPool.QueueUserWorkItem(_ => {
-            //    this.mediaPlayer.Stop();
-
-            //    if (this.mediaPlayer.Media != null)
-            //        this.mediaPlayer.Media.Dispose();
-            //});
-
-
-            //if (this.mediaPlayer.Media != null) this.mediaPlayer.Media.Dispose();
-
             this.Dispatcher.Invoke(() =>
             {
-                this.mediaPlayer.Stop();
-                //SetOverlay("Stopped");
+                MainOverlay.IsEnabled = false;
+                PlayerContextMenu.Enabled = false;
+
+                if (mediaPlayer.State == VLCState.Paused)
+                    mediaPlayer.Play();
             });
-            
 
-            //StartThread(() =>
-            //{
-            //    if (mediaPlayer.State == VLCState.Paused)
-            //        mediaPlayer.Play();
+            StartThread(() =>
+            {
+                Thread.Sleep(200);
 
-            //    this.mediaPlayer.Stop();
-            //    if (this.mediaPlayer.Media != null) this.mediaPlayer.Media.Dispose();
+                this.mediaPlayer.Stop();
+                this.mediaPlayer.Media = null;
 
-            //    SetOverlay("Stopped");
-            //});
+                SetOverlay("Stopped");
+
+                this.Dispatcher.Invoke(() =>
+                {
+                    MainOverlay.IsEnabled = true;
+                    PlayerContextMenu.Enabled = true;
+                });
+            });
         }
 
         private void Next()
@@ -2289,12 +2283,17 @@ namespace PMedia
                 MouseTimer.Start();
 
                 TopOpen = false;
+
+                int SideMargins = Convert.ToInt32(this.Width / 10).RoundOff();
+                MainOverlay.BottomMenu.Margin = new Thickness(SideMargins, 0, SideMargins, 0);
             }
             else
             {
                 MouseTimer.Stop();
 
                 TopOpen = true;
+
+                MainOverlay.BottomMenu.Margin = new Thickness(0, 0, 0, 0);
             }
         }
 
@@ -2803,15 +2802,15 @@ namespace PMedia
             {
                 if (mediaPlayer.Media == null) 
                 {
-                    //if (recents.GetList().Count > 0)
-                    //{
-                    //    OpenFile(recents.GetList().Last());
-                    //}
-                    //else
-                    //{
-                    //    NewFile();
-                    //}
-                    mediaPlayer.Play(new Media(libVLC, new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")));
+                    if (recents.GetList().Count > 0)
+                    {
+                        OpenFile(recents.GetList().First());
+                    }
+                    else
+                    {
+                        NewFile();
+                    }
+                    //mediaPlayer.Play(new Media(libVLC, new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")));
                 } 
                 else
                 {

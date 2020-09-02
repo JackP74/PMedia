@@ -191,6 +191,8 @@ namespace PMedia
                 // New video info
                 currentEpisode = ParseFile(FilePath);
 
+                CMBox.Show(currentEpisode.FilePath + Environment.NewLine + currentEpisode.Name + Environment.NewLine + currentEpisode.SearchDir);
+
                 if (currentEpisode.IsTvShow) // Is TvShow
                 {
                     episodeList.Add(currentEpisode);
@@ -297,6 +299,7 @@ namespace PMedia
 
             foreach (var pattern in Patterns)
             {
+
                 if (pattern.GetRegex(out Regex matcher))
                 {
                     Match match = matcher.Match(NameToCheck);

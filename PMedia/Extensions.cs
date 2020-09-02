@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -52,6 +53,11 @@ namespace PMedia
             if (value < Minimum) { return Minimum; }
             if (value > Maximum) { return Maximum; }
             return value;
+        }
+
+        public static int RoundOff(this int i)
+        {
+            return ((int)Math.Round(i / 10.0)) * 10;
         }
     }
 }
