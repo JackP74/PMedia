@@ -499,6 +499,7 @@
                         <ControlTemplate TargetType="{x:Type MenuItem}">
                             <Slider Name="SliderAutoplay" 
                                     IsSnapToTickEnabled="True"
+                                    FontFamily="Arial"
                                     Minimum="1" 
                                     Maximum="120" 
                                     TickFrequency="1" 
@@ -575,7 +576,8 @@
                              Fill="White"
                              StrokePosition="Outside"
                              Margin="20,0,0,0"
-                             StrokeThickness="1" Text="">
+                             StrokeThickness="1" Text=""
+                                 FontWeight="Bold">
         </local:OutlinedTextBlock>
 
         <Grid x:Name="BottomMenu" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="40">

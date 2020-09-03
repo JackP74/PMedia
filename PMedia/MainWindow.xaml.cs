@@ -32,7 +32,7 @@ using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 #endregion
 
-// TO DO: OPTIMIZE & FIX STOP FREEZE BUG
+// TO DO: OPTIMIZE
 namespace PMedia
 {
     public partial class MainWindow : INotifyPropertyChanged
@@ -92,6 +92,10 @@ namespace PMedia
         private Screen screen;
         private readonly Recents recents;
         private KeyboardHook keyboardHook = null;
+
+        private ToolStripMenuItem SettingsMenuVideoTrack;
+        private ToolStripMenuItem SettingsMenuAudioTrack;
+        private ToolStripMenuItem SettingsMenuSubtitleTrack;
         #endregion
 
         #region "Proprieties"
@@ -1658,9 +1662,7 @@ namespace PMedia
             videoView.MediaPlayer = mediaPlayer;
 
             // context menu
-            PlayerContextMenu = new ContextMenuStrip();
-            PlayerContextMenu.Items.Add("Play/Pause", null, delegate { BtnPlay_Click(null, null); });
-            PlayerContextMenu.Items.Add("Stop", null, delegate { StopMediaPlayer(); });
+            PlayerContextMenu = CreatePlayerMenu();
 
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
@@ -1685,6 +1687,102 @@ namespace PMedia
             videoPanel.Controls.Add(videoView);
 
             WinHost.Child = videoPanel;
+        }
+
+        private ContextMenuStrip CreatePlayerMenu()
+        {
+            PlayerContextMenu = new ContextMenuStrip()
+            {
+                Renderer = new PlayerMenuRenderer(),
+                ForeColor = System.Drawing.Color.FromArgb(78, 173, 254)
+            };
+
+            PlayerContextMenu.Items.Add("Media Info", Properties.Resources.btnMediaInfo, delegate { MenuFileMediaInfo_Click(null, null); });
+            PlayerContextMenu.Items.Add("Screenshot", Properties.Resources.btnScreenShot, delegate { MenuFileScreenShot_Click(null, null); });
+            PlayerContextMenu.Items.Add("Open...", Properties.Resources.btnOpen, delegate { NewFile(); });
+            PlayerContextMenu.Items.Add(new ToolStripSeparator()); //////////////
+            PlayerContextMenu.Items.Add("Play/Pause", Properties.Resources.btnPlay, delegate { BtnPlay_Click(null, null); });
+            PlayerContextMenu.Items.Add("Stop", Properties.Resources.btnStop, delegate { StopMediaPlayer(); });
+            PlayerContextMenu.Items.Add("Forward", Properties.Resources.btnForward, delegate { JumpForward(); });
+            PlayerContextMenu.Items.Add("Backward", Properties.Resources.btnBackward, delegate { JumpBackward(); });
+            PlayerContextMenu.Items.Add(new ToolStripSeparator()); //////////////
+            PlayerContextMenu.Items.Add("Volume Up", Properties.Resources.BtnVolume3, delegate { Volume += 5; });
+            PlayerContextMenu.Items.Add("Volume Down", Properties.Resources.BtnVolume1, delegate { Volume -= 5; });
+            PlayerContextMenu.Items.Add("Mute", Properties.Resources.btnMute, delegate { Mute = !Mute; });
+            PlayerContextMenu.Items.Add(new ToolStripSeparator()); //////////////
+
+            ToolStripMenuItem SettingsMenuVideoAR = new ToolStripMenuItem("Aspect Ratio", Properties.Resources.btnSet)
+            { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            SettingsMenuVideoAR.DropDownItems.Add("4:3", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("5:4", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("16:9", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("16:10", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("18:9", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("21:9", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add(new ToolStripSeparator());
+            SettingsMenuVideoAR.DropDownItems.Add("Custom", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("Reset", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+
+            foreach (ToolStripItem item in SettingsMenuVideoAR.DropDownItems) { item.ForeColor = SettingsMenuVideoAR.ForeColor; }
+
+            SettingsMenuVideoTrack = new ToolStripMenuItem("Sub Track", Properties.Resources.btnSelectTrack)
+            { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            ToolStripMenuItem SettingsMenuVideo = new ToolStripMenuItem("Video", Properties.Resources.btnVideo) { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+            SettingsMenuVideo.DropDownItems.AddRange(new[] { SettingsMenuVideoAR, SettingsMenuVideoTrack });
+
+            ToolStripMenuItem SettingsMenuAudioMode = new ToolStripMenuItem("Mode", Properties.Resources.btnSet)
+            { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            SettingsMenuAudioMode.DropDownItems.Add("Stereo", null, (s, e) => { MenuSettingsAudioMode_Click(s, null); });
+            SettingsMenuAudioMode.DropDownItems.Add("Surround", null, (s, e) => { MenuSettingsAudioMode_Click(s, null); });
+
+            foreach (ToolStripItem item in SettingsMenuAudioMode.DropDownItems) { item.ForeColor = SettingsMenuVideoAR.ForeColor; }
+
+            SettingsMenuAudioTrack = new ToolStripMenuItem("Sub Track", Properties.Resources.btnSelectTrack)
+            { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            ToolStripMenuItem SettingsMenuAudio = new ToolStripMenuItem("Audio", Properties.Resources.btnAudio) { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+            SettingsMenuAudio.DropDownItems.AddRange(new ToolStripMenuItem[] { SettingsMenuAudioMode, SettingsMenuAudioTrack });
+
+            SettingsMenuSubtitleTrack = new ToolStripMenuItem("Sub Track", Properties.Resources.btnSelectTrack)
+            { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            ToolStripMenuItem SettingsMenuSubtitle = new ToolStripMenuItem("Subtitle", Properties.Resources.btnSubtitle) { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            SettingsMenuSubtitle.DropDownItems.Add("Add Subtitle", Properties.Resources.btnAdd, delegate { MenuSettingsSubtitleAdd_Click(null, null); });
+            SettingsMenuSubtitle.DropDownItems.Add(SettingsMenuSubtitleTrack);
+
+            foreach (ToolStripItem item in SettingsMenuSubtitle.DropDownItems) { item.ForeColor = SettingsMenuVideoAR.ForeColor; }
+
+            ToolStripMenuItem SettingsMenu = new ToolStripMenuItem("Settings", Properties.Resources.btnSettings);
+            SettingsMenu.DropDownItems.AddRange(new[] { SettingsMenuVideo, SettingsMenuAudio, SettingsMenuSubtitle });
+
+            PlayerContextMenu.Items.Add(SettingsMenu);
+
+            PlayerContextMenu.Items.Add(new ToolStripSeparator()); //////////////
+
+            ToolStripMenuItem SettingsPlaylist = new ToolStripMenuItem("Playlist", Properties.Resources.btnPlaylist)
+            { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
+
+            SettingsPlaylist.DropDownItems.Add("Next", Properties.Resources.btnNext, delegate { Next(); });
+            SettingsPlaylist.DropDownItems.Add("Previous", Properties.Resources.btnPrevious, delegate { Previous(); });
+            SettingsPlaylist.DropDownItems.Add("Video List", Properties.Resources.btnVideoList, delegate { MenuPlaylistVideoList_Click(null, null); });
+
+            SettingsPlaylist.DropDownOpening += delegate
+            {
+                SettingsPlaylist.DropDownItems[0].Enabled = tvShow.HasNextEpisode();
+                SettingsPlaylist.DropDownItems[1].Enabled = tvShow.HasPreviousEpisode();
+            };
+
+            foreach (ToolStripItem item in SettingsPlaylist.DropDownItems) { item.ForeColor = SettingsMenuVideoAR.ForeColor; }
+
+            PlayerContextMenu.Items.Add(SettingsPlaylist);
+            PlayerContextMenu.Items.Add(new ToolStripSeparator()); //////////////
+            PlayerContextMenu.Items.Add("Quit", Properties.Resources.btnQuit, delegate { this.Close(); });
+
+            return PlayerContextMenu;
         }
 
         private void ProcessDrop(string[] Files)
@@ -1719,9 +1817,6 @@ namespace PMedia
 
                 SetMenuItemEnable(MainOverlay.MenuPlaylistNext, tvShow.HasNextEpisode());
                 SetMenuItemEnable(MainOverlay.MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
-
-                //ContextMedia.NextActive = tvShow.HasNextEpisode();
-                //ContextMedia.PreviousActive = tvShow.HasPreviousEpisode();
 
                 this.Dispatcher.Invoke(delegate { videoListWindow.SetTvShow(tvShow); });
             });
@@ -1991,6 +2086,13 @@ namespace PMedia
                     this.MainOverlay.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
                     this.MainOverlay.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
 
+                    SettingsMenuVideoTrack.DropDownItems.Clear();
+                    SettingsMenuAudioTrack.DropDownItems.Clear();
+                    SettingsMenuSubtitleTrack.DropDownItems.Clear();
+
+                    SettingsMenuVideoTrack.DropDownItems.Add("Disable Video", null, (s, e) => { MenuTrackDisable_Click(s, null); });
+                    SettingsMenuAudioTrack.DropDownItems.Add("Disable Audio", null, (s, e) => { MenuTrackDisable_Click(s, null); });
+
                     videoPosition.SetNewFile(currentFile.Name, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
                     long currentPosition = videoPosition.GetPosition();
@@ -2055,6 +2157,8 @@ namespace PMedia
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MainOverlay.MenuSettingsVideoTracks.Items.Add(newTrack);
+
+                                        SettingsMenuVideoTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetVideoTrack(TrackID); SetOverlay("New video track"); });
                                     });
 
                                     break;
@@ -2076,6 +2180,8 @@ namespace PMedia
 
                                         newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                                         this.MainOverlay.MenuSettingsAudioTracks.Items.Add(newTrack);
+
+                                        SettingsMenuAudioTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetAudioTrack(TrackID); SetOverlay("New audio track"); });
                                     });
 
                                     if (AutoAudioSelect && AudioSelected == false)
@@ -2133,6 +2239,15 @@ namespace PMedia
 
                             newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
                             this.MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+
+                            SettingsMenuSubtitleTrack.DropDownItems.Add(SubName, null, (s, e) => 
+                            {
+                                int newSPU = IdFromTrackName(SubName);
+
+                                mediaPlayer.SetSpu(newSPU);
+
+                                SetOverlay("New subtitle track");
+                            });
                         });
 
                         Thread.Sleep(500);
@@ -2148,6 +2263,15 @@ namespace PMedia
                         }
                     }
                 } catch { }
+
+                Thread.Sleep(100);
+
+                this.Dispatcher.Invoke(() =>
+                {
+                    foreach (ToolStripItem item in SettingsMenuVideoTrack.DropDownItems) { item.ForeColor = SettingsMenuVideoTrack.ForeColor; }
+                    foreach (ToolStripItem item in SettingsMenuAudioTrack.DropDownItems) { item.ForeColor = SettingsMenuAudioTrack.ForeColor; }
+                    foreach (ToolStripItem item in SettingsMenuSubtitleTrack.DropDownItems) { item.ForeColor = SettingsMenuSubtitleTrack.ForeColor; }
+                });
             });
         }
 
@@ -2529,85 +2653,97 @@ namespace PMedia
 
         private void MenuSettingsVideoAspectRatio_Click(object sender, RoutedEventArgs e)
         {
+            string CustomSelection = string.Empty;
+
             if (sender is MenuItem cBtn)
             {
                 if (cBtn.Header is TextBlock cTxt)
                 {
-                    string CustomSelection = cTxt.Text;
-
-                    switch (CustomSelection)
-                    {
-                        case "Custom":
-                            {
-                                InputDialog newAspectRatio = new InputDialog()
-                                {
-                                    WindowTitle = "New Aspect Ratio",
-                                    MainInstruction = "Input format is {0}:{1}, current aspect ratio is " + AspectRatio,
-                                    MaxLength = 10
-                                };
-
-                                if (newAspectRatio.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                                    break;
-
-                                string newInput = newAspectRatio.Input;
-
-                                if (newInput.Contains(":") == false)
-                                    break;
-
-                                if (newInput.Count(x => x == ':') != 1)
-                                    break;
-
-                                if (IsNumeric(newInput.Split(":".ToCharArray())[0]) && IsNumeric(newInput.Split(":".ToCharArray())[1]))
-                                    AspectRatio = newInput;
-
-                                break;
-                            }
-
-                        case "Reset":
-                            {
-                                AspectRatio = string.Empty;
-                                break;
-                            }
-
-                        default:
-                            {
-                                if (CustomSelection.Contains(":") == false)
-                                    break;
-
-                                AspectRatio = CustomSelection;
-                                break;
-                            }
-                    }
+                    CustomSelection = cTxt.Text;
                 }
+            }
+            else if (sender is ToolStripItem cTsi)
+            {
+                CustomSelection = cTsi.Text;
+            }
+
+            switch (CustomSelection)
+            {
+                case "Custom":
+                    {
+                        InputDialog newAspectRatio = new InputDialog()
+                        {
+                            WindowTitle = "New Aspect Ratio",
+                            MainInstruction = "Input format is {0}:{1}, current aspect ratio is " + AspectRatio,
+                            MaxLength = 10
+                        };
+
+                        if (newAspectRatio.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                            break;
+
+                        string newInput = newAspectRatio.Input;
+
+                        if (newInput.Contains(":") == false)
+                            break;
+
+                        if (newInput.Count(x => x == ':') != 1)
+                            break;
+
+                        if (IsNumeric(newInput.Split(":".ToCharArray())[0]) && IsNumeric(newInput.Split(":".ToCharArray())[1]))
+                            AspectRatio = newInput;
+
+                        break;
+                    }
+
+                case "Reset":
+                    {
+                        AspectRatio = string.Empty;
+                        break;
+                    }
+
+                default:
+                    {
+                        if (CustomSelection.Contains(":") == false)
+                            break;
+
+                        AspectRatio = CustomSelection;
+                        break;
+                    }
             }
         }
 
         private void MenuSettingsAudioMode_Click(object sender, RoutedEventArgs e)
         {
+            string CustomSelection = string.Empty;
+
             if (sender is MenuItem cBtn)
             {
                 if (cBtn.Header is TextBlock cTxt)
                 {
-                    string CustomSelection = cTxt.Text;
-
-                    switch (CustomSelection)
-                    {
-                        case "Stereo":
-                            {
-                                AudioMode = AudioType.Stereo;
-                                break;
-                            }
-
-                        case "Surround":
-                            {
-                                AudioMode = AudioType.Surround;
-                                break;
-                            }
-
-                        default:
-                            break;
-                    }
+                    CustomSelection = cTxt.Text;
                 }
+            }
+            else if (sender is ToolStripItem cTsi)
+            {
+                CustomSelection = cTsi.Text;
+            }
+
+            switch (CustomSelection)
+            {
+                case "Stereo":
+                    {
+                        AudioMode = AudioType.Stereo;
+                        break;
+                    }
+
+                case "Surround":
+                    {
+                        AudioMode = AudioType.Surround;
+                        break;
+                    }
+
+                default:
+                    break;
             }
         }
 
@@ -2765,6 +2901,29 @@ namespace PMedia
                         }
 
                     case "SubtitleD":
+                        {
+                            mediaPlayer.SetSpu(-1);
+                            break;
+                        }
+                }
+            }
+            else if (sender is ToolStripItem dTis)
+            {
+                switch(dTis.Text)
+                {
+                    case "Disable Video":
+                        {
+                            mediaPlayer.SetVideoTrack(-1);
+                            break;
+                        }
+
+                    case "Disable Audio":
+                        {
+                            mediaPlayer.SetAudioTrack(-1);
+                            break;
+                        }
+
+                    case "Disable Subtitle":
                         {
                             mediaPlayer.SetSpu(-1);
                             break;

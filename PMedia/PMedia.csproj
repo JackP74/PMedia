@@ -114,7 +114,7 @@
     <Compile Include="MediaInfoWindow.xaml.cs">
       <DependentUpon>MediaInfoWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PlayerContextMenuItems.cs" />
+    <Compile Include="PlayerMenuRenderer.cs" />
     <Compile Include="Recents.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="TransparentPanel.cs">

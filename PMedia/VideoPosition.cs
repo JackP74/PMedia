@@ -81,6 +81,9 @@ namespace PMedia
         {
             try
             {
+                if (this.name == null)
+                    return;
+
                 if (this.name.Length == 0)
                     return;
 

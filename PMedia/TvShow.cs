@@ -191,8 +191,6 @@ namespace PMedia
                 // New video info
                 currentEpisode = ParseFile(FilePath);
 
-                CMBox.Show(currentEpisode.FilePath + Environment.NewLine + currentEpisode.Name + Environment.NewLine + currentEpisode.SearchDir);
-
                 if (currentEpisode.IsTvShow) // Is TvShow
                 {
                     episodeList.Add(currentEpisode);
@@ -205,7 +203,9 @@ namespace PMedia
                         {
                             // Only check dirs that start with the same name to limit search count
                             if (GetDirName(dir).StartsWith(currentEpisode.Name))
+                            {
                                 dirList.Add(dir);
+                            }
                         }
                     }
 
@@ -381,6 +381,8 @@ namespace PMedia
                     ShowName = ShowName.Replace(".", " ");
                     ShowName = ShowName.Replace("'", string.Empty);
                     ShowName = ShowName.Replace("-", string.Empty);
+                    ShowName = Regex.Replace(ShowName, @"\([^)]*\)", "");
+                    ShowName = Regex.Replace(ShowName, @"\s{2,}", " ");
                     ShowName = textInfo.ToTitleCase(ShowName);
 
                     if (ShowName.StartsWith("[") && ShowName.Count(x => x == ']') == 1)
@@ -463,7 +465,7 @@ namespace PMedia
             if (extensions == null)
                 throw new ArgumentNullException("extensions missing");
 
-            IEnumerable<FileInfo> files = dir.EnumerateFiles();
+            IEnumerable<FileInfo> files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories);
             return files.Where(f => extensions.Contains(f.Extension)).Select(x => x.FullName);
         }
 
