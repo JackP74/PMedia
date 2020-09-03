@@ -1049,8 +1049,6 @@ namespace PMedia
 
         private bool ShutDownSignal(ShutDownType shutDownMode, int Arg)
         {
-            Pause();
-
             if (shutDownMode == ShutDownType.After)
             {
                 ShutDownNow();
@@ -1183,7 +1181,7 @@ namespace PMedia
             
             InitializeComponent();
 
-            MainOverlay = new PlayerOverlay(WinHost);
+            MainOverlay = new PlayerOverlay(WinHost, this);
             AddHandlers();
 
             DataContext = this;
@@ -2026,6 +2024,8 @@ namespace PMedia
 
             StartThread(() =>
             {
+                ShutDownSignal(shutDownCmd.shutDownType, shutDownCmd.Arg);
+
                 try
                 {
                     int InSleep = 0;
@@ -2355,13 +2355,6 @@ namespace PMedia
             // Recents
             recents.Load();
             RefreshRecentsMenu();
-
-            // Marquee - for info on actions
-            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.X, 15);
-            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Y, 15);
-            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Timeout, 4000);
-            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Refresh, 150);
-            mediaPlayer.SetMarqueeInt(VideoMarqueeOption.Enable, 1);
 
             // Others
             KeyboardHook.OnKeyPress += KeyboardHook_OnKeyPress;
@@ -2812,6 +2805,8 @@ namespace PMedia
                 {
                     ShutDown(ShutDownType.Cancel, 0);
                     UnCheckShutDown();
+
+                    SetOverlay("Shutdown cancelled");
                     return;
                 }
 
@@ -2820,6 +2815,8 @@ namespace PMedia
                 if (menuItem == MainOverlay.MenuSettingsShutDownAfterThis)
                 {
                     ShutDown(ShutDownType.After, 0);
+
+                    SetOverlay("Shutdown after this episode");
                 }
                 else if (menuItem == MainOverlay.MenuSettingsShutDownAfterN)
                 {
@@ -2835,6 +2832,8 @@ namespace PMedia
                         if (IsNumeric(argInput.Input))
                         {
                             ShutDown(ShutDownType.AfterN, Convert.ToInt32(argInput.Input));
+
+                            SetOverlay($"Shutdown after {argInput.Input} episodes");
                         }
                         else
                         {
@@ -2856,6 +2855,8 @@ namespace PMedia
                         if (IsNumeric(argInput.Input))
                         {
                             ShutDown(ShutDownType.In, Convert.ToInt32(argInput.Input));
+
+                            SetOverlay($"Shutdown in {argInput.Input} seconds");
                         }
                         else
                         {
@@ -2866,6 +2867,8 @@ namespace PMedia
                 else if (menuItem == MainOverlay.MenuSettingsShutDownEndPlaylist)
                 {
                     ShutDown(ShutDownType.End, 0);
+
+                    SetOverlay("Shutdown at the end of playlist");
                 }
 
                 SetMenuItemChecked(menuItem, true);

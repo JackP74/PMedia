@@ -7,6 +7,8 @@ using System.Windows.Controls.Primitives;
 using LibVLCSharp.Shared;
 using MessageCustomHandler;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace LibVLCSharp.WPF
 {
@@ -49,12 +51,11 @@ namespace LibVLCSharp.WPF
             }
         }
 
-        internal PlayerOverlay(FrameworkElement background)
+        internal PlayerOverlay(FrameworkElement background, Window parent)
         {
             InitializeComponent();
 
             this.ContentRendered += PlayerOverlay_ContentRendered;
-
             DataContext = background.DataContext;
 
             _bckgnd = background;

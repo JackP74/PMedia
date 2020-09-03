@@ -458,7 +458,7 @@
 
                     <MenuItem x:Name="MenuSettingsShutDownAfterTime" IsCheckable="True" BorderThickness="1,0,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                         <MenuItem.Header>
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">In ... minutes</TextBlock>
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">In ... seconds</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
 
@@ -499,7 +499,6 @@
                         <ControlTemplate TargetType="{x:Type MenuItem}">
                             <Slider Name="SliderAutoplay" 
                                     IsSnapToTickEnabled="True"
-                                    FontFamily="Arial"
                                     Minimum="1" 
                                     Maximum="120" 
                                     TickFrequency="1" 
@@ -568,16 +567,20 @@
 
         </Menu>
 
-        <local:OutlinedTextBlock x:Name="LabelOverlay"
-                             Stroke="Black" 
-                             Grid.Row="1"
-                             ClipToBounds="False"
-                             FontSize="30" 
-                             Fill="White"
-                             StrokePosition="Outside"
-                             Margin="20,0,0,0"
-                             StrokeThickness="1" Text=""
-                                 FontWeight="Bold">
+        <local:OutlinedTextBlock 
+            x:Name="LabelOverlay"
+            Stroke="Black" 
+            Grid.Row="1"
+            ClipToBounds="False"
+            FontSize="30" 
+            Fill="White"
+            StrokePosition="Outside"
+            Margin="20,0,0,0"
+            StrokeThickness="1" Text=""
+            FontWeight="Bold"
+            FontFamily="./fonts/#Grandstander Bold" 
+            Opacity=".8">
+            <!-- possible memory leak - font family -->
         </local:OutlinedTextBlock>
 
         <Grid x:Name="BottomMenu" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="40">

@@ -290,13 +290,8 @@ namespace PMedia
                 return;
             }
 
-            _FormattedText = new FormattedText(
-              Text ?? "",
-              CultureInfo.CurrentUICulture,
-              FlowDirection,
-              new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
-              FontSize,
-              Brushes.Black);
+            _FormattedText = new FormattedText(Text ?? "", CultureInfo.CurrentUICulture, FlowDirection,
+                new Typeface(FontFamily, FontStyle, FontWeight, FontStretch), FontSize, Brushes.Black, VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
             UpdateFormattedText();
         }
