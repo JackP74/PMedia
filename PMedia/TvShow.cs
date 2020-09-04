@@ -33,7 +33,7 @@ namespace PMedia
         public readonly EpisodeInfo EmptyEpisode;
 
         // Variables
-        public readonly List<EpisodeInfo> episodeList;
+        public List<EpisodeInfo> episodeList;
 
         private EpisodeInfo nextEpisode;
         private EpisodeInfo currentEpisode;
@@ -224,14 +224,17 @@ namespace PMedia
                         {
                             EpisodeInfo currentInfo = ParseFile(file);
 
-                            if (currentInfo.IsTvShow && currentInfo.Name == currentEpisode.Name) // Check if TvShow and names match
+                            if (currentInfo.IsTvShow && currentInfo.Name == currentEpisode.Name && !episodeList.Contains(currentInfo)) // Check if TvShow and names match
                             {
                                 episodeList.Add(currentInfo);
                             }
                         }
                     }
 
-                    episodeList.Sort((a, b) => a.Episode.CompareTo(b.Episode)); // Sort list
+                    episodeList = episodeList.Distinct().ToList();
+                    episodeList = episodeList.GroupBy(ep => ep.Episode).Select(ep => ep.First()).ToList();
+
+                    episodeList.Sort((a, b) => a.Episode.CompareTo(b.Episode));
 
                     // Next/Previous episodes
                     int currentIdx = episodeList.IndexOf(currentEpisode);

@@ -30,6 +30,7 @@ using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using System.Windows.Shapes;
 #endregion
 
 // TO DO: OPTIMIZE
@@ -59,9 +60,6 @@ namespace PMedia
         private readonly Random random = new Random(Guid.NewGuid().GetHashCode());
         private readonly Settings settings;
 
-        private Rect rect = new Rect(); // used in X-Y location
-        private System.Windows.Forms.Timer MouseTimer;
-
         private readonly string AppName;
         public event PropertyChangedEventHandler PropertyChanged;
         private string playBtnTxt = "Play";
@@ -75,21 +73,27 @@ namespace PMedia
         private bool onTop = false;
         private bool gameMode = false;
         private ShutDownCommand shutDownCmd;
+        private bool bottomOpen = true;
+        private bool topOpen = true;
 
         private MediaPlayer mediaPlayer;
         private LibVLC libVLC;
         private VideoListWindow videoListWindow;
         private readonly VideoPosition videoPosition;
         private ContextMenuStrip PlayerContextMenu;
+        private int MouseMoveTmr = 0;
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
         private Thread threadShutDown;
 
         private WindowState lastState = WindowState.Normal;
-        private const int BottomSize = 40;
+        private readonly int BottomSize = 60;
+        private Rect rect = new Rect(); // used in X-Y location
+        private System.Windows.Forms.Timer MouseTimer;
 
-        private Screen screen;
+        private Screen UsedScreen;
+        private System.Drawing.Rectangle BottomRect;
         private readonly Recents recents;
         private KeyboardHook keyboardHook = null;
 
@@ -396,11 +400,6 @@ namespace PMedia
 
                 SetOverlay($"AudioMode {value}");
             }
-
-            get
-            {
-                return audioMode;
-            }
         }
 
         private bool AutoAudioSelect 
@@ -458,8 +457,8 @@ namespace PMedia
             }
             get
             {
-                //return settings.Acceleration;
-                return false; // known bug, causes freeze on stop
+                return settings.Acceleration;
+                //return false; // known bug, causes freeze on stop
             }
         }
 
@@ -497,19 +496,16 @@ namespace PMedia
         {
             set
             {
-                if (value)
+                if (value && !topOpen)
                 {
                     MainOverlay.TopMenu.Visibility = Visibility.Visible;
                 }
-                else
+                else if (!value && topOpen)
                 {
                     MainOverlay.TopMenu.Visibility = Visibility.Hidden;
                 }
-            }
 
-            get
-            {
-                return MainOverlay.TopMenu.Visibility == Visibility.Visible;
+                topOpen = value;
             }
         }
 
@@ -517,19 +513,16 @@ namespace PMedia
         {
             set
             {
-                if (value)
+                if (value && !bottomOpen)
                 {
                     MainOverlay.BottomMenu.Visibility = Visibility.Visible;
                 }
-                else
+                else if (!value && bottomOpen)
                 {
                     MainOverlay.BottomMenu.Visibility = Visibility.Hidden;
                 }
-            }
 
-            get
-            {
-                return MainOverlay.BottomMenu.Visibility == Visibility.Visible;
+                bottomOpen = value;
             }
         }
         #endregion
@@ -765,9 +758,7 @@ namespace PMedia
                     if (jumpCommands.Count <= 0)
                         return;
 
-                    bool isSeekable = mediaPlayer.IsSeekable;
-
-                    if (isSeekable)
+                    if (mediaPlayer.IsSeekable)
                     {
                         long finalJump = (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Forward).ToList().Sum(x => x.jump);
                         finalJump -= (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Backward).ToList().Sum(x => x.jump);
@@ -852,8 +843,6 @@ namespace PMedia
                 Interval = 150
             };
 
-            int MouseOffset = 20;
-
             MouseTimer.Tick += delegate
             {
                 if (gameMode)
@@ -861,19 +850,17 @@ namespace PMedia
 
                 if (GetCursorPos(out POINT p))
                 {
-                    bool XL = p.X >= screen.Bounds.X && p.X <= (screen.Bounds.Width + screen.Bounds.X - 1);
+                    BottomOpen = BottomRect.Contains(p);
+                }
 
-                    if (p.Y >= (screen.Bounds.Height - BottomSize - MouseOffset) && XL)
-                    {
-                        if (!BottomOpen)
-                            BottomOpen = true;
-                    }
-                    else
-                    {
-                        if (BottomOpen)
-                            BottomOpen = false;
-                    }
-
+                if (MouseMoveTmr <= 0 && MouseMoveTmr != -111)
+                {
+                    Mouse.OverrideCursor = System.Windows.Input.Cursors.None;
+                    MouseMoveTmr = -111;
+                }
+                else if (MouseMoveTmr != -111)
+                {
+                    MouseMoveTmr--;
                 }
             };
         }
@@ -1466,13 +1453,11 @@ namespace PMedia
         {
             if (Extensions.IsVideo(FilePath))
             {
-                //StopMediaPlayer();
-
                 StartThread(() =>
                 {
                     Media media = new Media(libVLC, FilePath, FromType.FromPath);
 
-                    if (settings.Acceleration == false)
+                    if (!Acceleration)
                         media.AddOption(@":avcodec-hw=none");
 
                     mediaPlayer.Play(media);
@@ -1674,6 +1659,7 @@ namespace PMedia
             overlayPanel.MouseWheel += OverlayPanel_MouseWheel;
             overlayPanel.DragOver += OverlayPanel_DragOver;
             overlayPanel.DragDrop += OverlayPanel_DragDrop;
+            overlayPanel.MouseMove += OverlayPanel_MouseMove;
 
             // add everything to win host
             System.Windows.Forms.Panel videoPanel = new System.Windows.Forms.Panel
@@ -1685,6 +1671,14 @@ namespace PMedia
             videoPanel.Controls.Add(videoView);
 
             WinHost.Child = videoPanel;
+        }
+
+        private void OverlayPanel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (MouseMoveTmr == -111)
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+
+            MouseMoveTmr = 15;
         }
 
         private ContextMenuStrip CreatePlayerMenu()
@@ -1860,7 +1854,7 @@ namespace PMedia
             { }
         }
 
-        private void StopMediaPlayer() // Bug: can freeze the app, maybe workaround?
+        private void StopMediaPlayer() // Bug: can freeze the app - workaround
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -2403,6 +2397,8 @@ namespace PMedia
 
                 int SideMargins = Convert.ToInt32(this.Width / 10).RoundOff();
                 MainOverlay.BottomMenu.Margin = new Thickness(SideMargins, 0, SideMargins, 0);
+
+                BottomOpen = false;
             }
             else
             {
@@ -2411,6 +2407,8 @@ namespace PMedia
                 TopOpen = true;
 
                 MainOverlay.BottomMenu.Margin = new Thickness(0, 0, 0, 0);
+
+                BottomOpen = true;
             }
         }
 
@@ -2779,14 +2777,7 @@ namespace PMedia
         {
             Acceleration = MainOverlay.MenuSettingsAcceleration.IsChecked;
 
-            if (CMBox.Show("Info", "Hardware Acceleration has been changed, for the best results a player restart is needed, restart now?", MessageCustomHandler.Style.Question, Buttons.YesNo).MainResult == result.Yes)
-            {
-                System.Windows.Forms.Application.Restart();
-            }
-            else
-            {
-                ReOpenFile();
-            }
+            ReOpenFile();
         }
 
         private void MenuSettingsGameMode_Click(object sender, RoutedEventArgs e)
@@ -2966,13 +2957,12 @@ namespace PMedia
                 {
                     if (recents.GetList().Count > 0)
                     {
-                        OpenFile(recents.GetList().First());
+                        OpenFile(recents.GetList().Last());
                     }
                     else
                     {
                         NewFile();
                     }
-                    //mediaPlayer.Play(new Media(libVLC, new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")));
                 } 
                 else
                 {
@@ -3023,7 +3013,8 @@ namespace PMedia
 
                 BottomOpen = false;
 
-                screen = GetCurrentScreen();
+                UsedScreen = GetCurrentScreen();
+                BottomRect = new System.Drawing.Rectangle(UsedScreen.Bounds.X, UsedScreen.Bounds.Height - BottomSize, UsedScreen.Bounds.Width, BottomSize);
             }
             else if (this.WindowState == WindowState.Maximized)
             {
@@ -3038,6 +3029,9 @@ namespace PMedia
                     SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
 
                     BottomOpen = false;
+
+                    UsedScreen = GetCurrentScreen();
+                    BottomRect = new System.Drawing.Rectangle(UsedScreen.Bounds.X, UsedScreen.Bounds.Height - BottomSize, UsedScreen.Bounds.Width, BottomSize);
                 }
                 else
                 {
@@ -3045,6 +3039,12 @@ namespace PMedia
                     this.WindowStyle = WindowStyle.SingleBorderWindow;
 
                     SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOn);
+
+                    MouseTimer.Stop();
+
+                    TopOpen = true;
+
+                    MainOverlay.BottomMenu.Margin = new Thickness(0, 0, 0, 0);
 
                     BottomOpen = true;
                 }
