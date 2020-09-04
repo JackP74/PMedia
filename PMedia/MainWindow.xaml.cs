@@ -766,42 +766,25 @@ namespace PMedia
 
                         jumpCommands.Clear();
 
-                        long totalLenght = mediaPlayer.Media.Duration;
-                        long currentLenght = mediaPlayer.Time;
-
-                        long finalTime = 0;
-
-                        int maxPlusValue = 500;
-                        if (AutoPlay)
-                            maxPlusValue = AutoPlayTime;
-
-                        if (finalJump > 0 && (totalLenght - currentLenght) < (finalJump + maxPlusValue))
-                        {
-                            if (AutoPlay)
-                            {
-                                Next();
-                                return;
-                            }
-                            else
-                            {
-                                finalTime = totalLenght - maxPlusValue;
-                            }
-                        }
-                        else if (finalJump < 0 && currentLenght < finalJump)
-                        {
-                            finalTime = 0;
-                        }
-                        else
-                        {
-                            finalTime = currentLenght + finalJump;
-                        }
-
                         if (finalJump == 0)
                             return;
 
+                        long totalLenght = mediaPlayer.Media.Duration;
+                        long currentLenght = mediaPlayer.Time;
+
                         StartThread(() =>
                         {
-                            mediaPlayer.Time = finalTime;
+                            long finalTime = currentLenght + finalJump;
+                            finalTime = finalTime.LimitToRange(500, totalLenght - 500);
+
+                            if (AutoPlay && finalTime >= totalLenght - (AutoPlayTime * 1000))
+                            {
+                                Next();
+                            }
+                            else
+                            {
+                                mediaPlayer.Time = finalTime;
+                            }
                         });
                         
                         SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time).ToString(@"hh\:mm\:ss"));
@@ -1169,6 +1152,7 @@ namespace PMedia
             InitializeComponent();
 
             MainOverlay = new PlayerOverlay(WinHost, this);
+            MainOverlay.MouseMove += (s, e) => { OverlayPanel_MouseMove(s, null); };
             AddHandlers();
 
             DataContext = this;
@@ -1181,7 +1165,6 @@ namespace PMedia
             if (Environment.Is64BitProcess) { vlcPath += @"\libvlc\win-x64"; } else { vlcPath += @"\libvlc\win-x86"; }
 
             Core.Initialize(vlcPath);
-            //Core.Initialize();
             CreateMediaPlayer();
 
             Volume = settings.Volume;
@@ -1458,7 +1441,9 @@ namespace PMedia
                     Media media = new Media(libVLC, FilePath, FromType.FromPath);
 
                     if (!Acceleration)
+                    {
                         media.AddOption(@":avcodec-hw=none");
+                    }
 
                     mediaPlayer.Play(media);
                 });
@@ -1899,7 +1884,6 @@ namespace PMedia
             if (mediaPlayer.IsSeekable)
             {
                 jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Forward, Jump));
-                //StartThread(() => { mediaPlayer.Time += Jump * 1000; });
             }
         }
 
@@ -1908,7 +1892,6 @@ namespace PMedia
             if (mediaPlayer.IsSeekable)
             {
                 jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
-                //StartThread(() => { mediaPlayer.Time -= Jump * 1000; });
             }
         }
 
@@ -2131,7 +2114,9 @@ namespace PMedia
                         }
 
                         if (string.IsNullOrWhiteSpace(TrackName))
+                        {
                             TrackName = "Track";
+                        }
 
                         switch (mediaTrack.TrackType)
                         {
@@ -2213,7 +2198,9 @@ namespace PMedia
                         int SubID = mediaPlayer.SpuDescription[i].Id;
 
                         if (string.IsNullOrWhiteSpace(SubName))
+                        {
                             SubName = $"Track";
+                        }
 
                         SubName += $" [{SubID}]";
 
@@ -2427,12 +2414,14 @@ namespace PMedia
                     Pause();
                 }
             }
-            if (e.Key == Key.Up)
+            else if (e.Key == Key.Up)
             {
+                e.Handled = true;
                 Volume += 5;
             }
-            if (e.Key == Key.Down)
+            else if (e.Key == Key.Down)
             {
+                e.Handled = true;
                 Volume -= 5;
             }
             else if (e.Key == Key.Left)
@@ -2567,9 +2556,12 @@ namespace PMedia
                 string ScreenShotLocation = AppDomain.CurrentDomain.BaseDirectory + @"\Screenshots";
 
                 if (Directory.Exists(ScreenShotLocation) == false)
+                {
                     Directory.CreateDirectory(ScreenShotLocation);
-
-                string CurrentScreenShotLocation = ScreenShotLocation + @"\ScreenShot-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-" + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + "-" + DateTime.Now.Millisecond.ToString() + "-" + GetRandom(100000, 999999).ToString() + ".png";
+                }
+                
+                string CurrentScreenShotLocation = ScreenShotLocation + @"\ScreenShot-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss-ff") +
+                    "-" + GetRandom(100000, 999999).ToString() + ".png";
 
                 mediaPlayer.TakeSnapshot(0, CurrentScreenShotLocation, 0, 0);
             });
@@ -2944,7 +2936,9 @@ namespace PMedia
 
         private void MenuAbout_Click(object sender, RoutedEventArgs e)
         {
-            AboutWindow aboutWindow = new AboutWindow();
+            string finalVersion = new LibVLC().Version;
+
+            AboutWindow aboutWindow = new AboutWindow(finalVersion);
             aboutWindow.ShowDialog();
         }
 

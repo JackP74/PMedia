@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMedia"
         mc:Ignorable="d"
-        Title="About" Height="140" Width="230" Icon="App.ico" Background="#333333" WindowStartupLocation="CenterScreen"
+        Title="About" Height="180" Width="230" Icon="App.ico" Background="#333333" WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <Grid>
         <Image HorizontalAlignment="Left" Height="30" Margin="20,20,0,0" VerticalAlignment="Top" Width="30" Source="/PMedia;component/App.ico"/>
         <Label Content="PMedia v0.0.2.0 alpha" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Width="162" Foreground="WhiteSmoke"/>
-        <Label Content="date 9/04/2020" Margin="20,67,20,0" VerticalAlignment="Top" Foreground="WhiteSmoke"/>
-
+        <Label x:Name="LabelVersion" Content="VLC Lib Version ?" Margin="20,0,20,58" Foreground="WhiteSmoke" Height="31" VerticalAlignment="Bottom"/>
+        <Label Content="date 9/04/2020" Margin="20,0,20,20" Foreground="WhiteSmoke" Height="33" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

@@ -55,6 +55,13 @@ namespace PMedia
             return value;
         }
 
+        public static long LimitToRange(this long value, long Minimum, long Maximum)
+        {
+            if (value < Minimum) { return Minimum; }
+            if (value > Maximum) { return Maximum; }
+            return value;
+        }
+
         public static int RoundOff(this int i)
         {
             return ((int)Math.Round(i / 10.0)) * 10;
