@@ -42,7 +42,7 @@ namespace PMedia
 
                 try
                 {
-                    this.AutoToolTip.Content = TimeSpan.FromSeconds(Convert.ToInt64(Content)).ToString();
+                    this.AutoToolTip.Content = TimeSpan.FromSeconds(Convert.ToDouble(Content)).ToString();
                 } 
                 catch (Exception ex)
                 {

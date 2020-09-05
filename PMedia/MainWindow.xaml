@@ -18,6 +18,22 @@
         </ResourceDictionary>
     </Window.Resources>
 
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo Description="PMedia alpha" ProgressValue="{Binding TaskProgress}" ProgressState="Normal">
+            
+            <TaskbarItemInfo.ThumbButtonInfos>
+                <ThumbButtonInfo x:Name="TskBtnPrevious" Description="Previous" ImageSource="/PMedia;component/Resources/btnPrevious.png"/>
+                <ThumbButtonInfo x:Name="TskBtnPlay" Description="{Binding PlayBtnTxt}" ImageSource="/PMedia;component/Resources/btnPlay.png"/>
+                <ThumbButtonInfo x:Name="TskBtnBack" Description="Backward" ImageSource="/PMedia;component/Resources/BtnBackward.png"/>
+                <ThumbButtonInfo x:Name="TskBtnStop" Description="Stop" ImageSource="/PMedia;component/Resources/btnStop.png"/>
+                <ThumbButtonInfo x:Name="TskBtnForward" Description="Forward" ImageSource="/PMedia;component/Resources/BtnForward.png"/>
+                <ThumbButtonInfo x:Name="TskBtnOpen" Description="Open File" ImageSource="/PMedia;component/Resources/btnOpen.png"/>
+                <ThumbButtonInfo x:Name="TskBtnNext" Description="Next" ImageSource="/PMedia;component/Resources/btnNext.png"/>
+            </TaskbarItemInfo.ThumbButtonInfos>
+
+        </TaskbarItemInfo>
+    </Window.TaskbarItemInfo>
+
     <Grid x:Name="MainGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#333333">
         
         <Grid.RowDefinitions>

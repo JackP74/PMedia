@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows.Interop;
+using System.Threading.Tasks;
 
 using Ookii.Dialogs.WinForms;
 using MessageCustomHandler;
@@ -26,11 +27,9 @@ using LibVLCSharp.WPF;
 using MenuItem = System.Windows.Controls.MenuItem;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using Label = System.Windows.Controls.Label;
-using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using System.Windows.Shapes;
 #endregion
 
 // TO DO: OPTIMIZE
@@ -75,6 +74,7 @@ namespace PMedia
         private ShutDownCommand shutDownCmd;
         private bool bottomOpen = true;
         private bool topOpen = true;
+        private double taskProgress = 0d;
 
         private MediaPlayer mediaPlayer;
         private LibVLC libVLC;
@@ -100,6 +100,8 @@ namespace PMedia
         private ToolStripMenuItem SettingsMenuVideoTrack;
         private ToolStripMenuItem SettingsMenuAudioTrack;
         private ToolStripMenuItem SettingsMenuSubtitleTrack;
+
+        private delegate void SafeBtnImgs(bool playImgs);
         #endregion
 
         #region "Proprieties"
@@ -117,6 +119,20 @@ namespace PMedia
             }
         }
 
+        public double TaskProgress
+        {
+            set
+            {
+                taskProgress = value.LimitToRange(0, 1);
+                OnPropertyChanged("TaskProgress");
+            }
+
+            get
+            {
+                return taskProgress;
+            }
+        }
+
         public string PlayBtnTxt
         {
             set
@@ -125,36 +141,13 @@ namespace PMedia
 
                 if (value.ToLower().Trim() == "play")
                 {
-                    if (MainOverlay.btnPlay.Dispatcher.CheckAccess())
-                    {
-                        MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPlay);
-                        MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
-                    }
-                    else
-                    {
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPlay);
-                            MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
-                        });
-                    }
+                    SetPlayBtnImage(true);
+                    SetPlayTskImage(true);
                 }
                 else
                 {
-                    if (MainOverlay.btnPlay.Dispatcher.CheckAccess())
-                    {
-                        MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPause);
-                        MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
-                    }
-                    else
-                    {
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPause);
-                            MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
-                        });
-                    }
-                       
+                    SetPlayBtnImage(false);
+                    SetPlayTskImage(false);
                 }
 
                 OnPropertyChanged("PlayBtnTxt");
@@ -760,10 +753,7 @@ namespace PMedia
 
                     if (mediaPlayer.IsSeekable)
                     {
-                        long finalJump = (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Forward).ToList().Sum(x => x.jump);
-                        finalJump -= (long)jumpCommands.Where(x => x.direction == JumpCommand.Direction.Backward).ToList().Sum(x => x.jump);
-                        finalJump *= 1000;
-
+                        long finalJump = (long)jumpCommands.Sum(x => x.jump) * 1000;
                         jumpCommands.Clear();
 
                         if (finalJump == 0)
@@ -831,19 +821,19 @@ namespace PMedia
                 if (gameMode)
                     return;
 
-                if (GetCursorPos(out POINT p))
-                {
-                    BottomOpen = BottomRect.Contains(p);
-                }
-
-                if (MouseMoveTmr <= 0 && MouseMoveTmr != -111)
+                if (MouseMoveTmr <= 0 && MouseMoveTmr != 111)
                 {
                     Mouse.OverrideCursor = System.Windows.Input.Cursors.None;
-                    MouseMoveTmr = -111;
+                    MouseMoveTmr = 111;
                 }
-                else if (MouseMoveTmr != -111)
+                else if (MouseMoveTmr != 111)
                 {
                     MouseMoveTmr--;
+
+                    if (GetCursorPos(out POINT p))
+                    {
+                        BottomOpen = BottomRect.Contains(p);
+                    }
                 }
             };
         }
@@ -992,13 +982,8 @@ namespace PMedia
 
         private void ShutDownNow()
         {
-            try
-            {
-                StopMediaPlayer();
-                Thread.Sleep(100);
-            }
-            catch
-            { }
+            Pause();
+            Thread.Sleep(100);
 
             try
             {
@@ -1151,7 +1136,7 @@ namespace PMedia
             
             InitializeComponent();
 
-            MainOverlay = new PlayerOverlay(WinHost, this);
+            MainOverlay = new PlayerOverlay(WinHost);
             MainOverlay.MouseMove += (s, e) => { OverlayPanel_MouseMove(s, null); };
             AddHandlers();
 
@@ -1183,7 +1168,7 @@ namespace PMedia
             this.Loaded += MainWindow_Loaded;
             this.ContentRendered += MainWindow_ContentRendered;
             this.StateChanged += MainWindow_StateChanged;
-            this.KeyDown += new KeyEventHandler(MainWindow_KeyDown);
+            this.KeyDown += MainWindow_KeyDown;
 
             tvShow = new TvShow();
 
@@ -1274,6 +1259,15 @@ namespace PMedia
             MainOverlay.MenuPlaylistVideoList.Click += MenuPlaylistVideoList_Click;
 
             MainOverlay.MenuAbout.Click += MenuAbout_Click;
+
+            //Taskbar items
+            TskBtnPlay.Click += (s, e) => BtnPlay_Click(s, null);
+            TskBtnStop.Click += (s, e) => BtnStop_Click(s, null);
+            TskBtnBack.Click += (s, e) => BtnBackward_Click(s, null);
+            TskBtnForward.Click += (s, e) => BtnForward_Click(s, null);
+            TskBtnOpen.Click += (s, e) => BtnOpenFile_Click(s, null);
+            TskBtnPrevious.Click += (s, e) => Next();
+            TskBtnNext.Click += (s, e) => Previous();
         }
 
         private void ProcessArgs(string[] Args)
@@ -1316,7 +1310,7 @@ namespace PMedia
             if (msg >= ExternalCommands.PM_PLAY && msg <= ExternalCommands.PM_AUTOPLAY)
             {
                 int Command = msg;
-                int Arg = (Int32)wParam;
+                int Arg = (int)wParam;
 
                 ProcessExternalCommand(Command, Arg);
             }
@@ -1387,12 +1381,54 @@ namespace PMedia
         
         private Screen GetCurrentScreen()
         {
-            return Screen.FromHandle(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+            return Screen.FromHandle(new WindowInteropHelper(this).Handle);
         }
 
         private string WithMaxLength(string Value, int maxLength)
         {
             return Value?.Substring(0, Math.Min(Value.Length, maxLength));
+        }
+
+        private void SetPlayBtnImage(bool playImgs)
+        {
+            if (!MainOverlay.Dispatcher.CheckAccess())
+            {
+                var d = new SafeBtnImgs(SetPlayBtnImage);
+                MainOverlay.Dispatcher.Invoke(d, new object[] { playImgs });
+            }
+            else
+            {
+                if (playImgs)
+                {
+                    MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPlay);
+                    MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
+                }
+                else
+                {
+                    MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPause);
+                    MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
+                }
+            }
+        }
+
+        private void SetPlayTskImage(bool playImgs)
+        {
+            if (!MainOverlay.Dispatcher.CheckAccess())
+            {
+                var d = new SafeBtnImgs(SetPlayTskImage);
+                TskBtnPlay.Dispatcher.Invoke(d, new object[] { playImgs });
+            }
+            else
+            {
+                if (playImgs)
+                {
+                    TskBtnPlay.ImageSource = ImageResource(Images.btnPlay);
+                }
+                else
+                {
+                    TskBtnPlay.ImageSource = ImageResource(Images.btnPause);
+                }
+            }
         }
         #endregion
 
@@ -1458,8 +1494,6 @@ namespace PMedia
 
                 if (currentFile.Exists == false)
                     return;
-
-                StopMediaPlayer();
 
                 OpenFile(currentFile.FullName);
             }
@@ -1833,7 +1867,6 @@ namespace PMedia
                         OpenFile(recents.GetList().Last());
                     }
                 }
-                    
             }
             catch
             { }
@@ -1845,18 +1878,14 @@ namespace PMedia
             {
                 MainOverlay.IsEnabled = false;
                 PlayerContextMenu.Enabled = false;
-
-                if (mediaPlayer.State == VLCState.Paused)
-                    mediaPlayer.Play();
             });
 
-            StartThread(() =>
+            StartThread(async () =>
             {
-                Thread.Sleep(200);
-
-                this.mediaPlayer.Stop();
-                this.mediaPlayer.Media = null;
-
+                await Task.Run(() =>
+                    mediaPlayer.Stop()
+                );
+                
                 SetOverlay("Stopped");
 
                 this.Dispatcher.Invoke(() =>
@@ -1864,6 +1893,7 @@ namespace PMedia
                     MainOverlay.IsEnabled = true;
                     PlayerContextMenu.Enabled = true;
                 });
+
             });
         }
 
@@ -1891,7 +1921,7 @@ namespace PMedia
         {
             if (mediaPlayer.IsSeekable)
             {
-                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump));
+                jumpCommands.Add(new JumpCommand(JumpCommand.Direction.Backward, Jump * -1));
             }
         }
 
@@ -2274,6 +2304,8 @@ namespace PMedia
                         Next();
                     }
                 }
+
+                TaskProgress = (double)e.Time / (double)mediaPlayer.Media.Duration;
             });
         }
 
@@ -2298,17 +2330,14 @@ namespace PMedia
             SetSliderMaximum(MainOverlay.SliderMedia, 1);
             SetSliderValue(MainOverlay.SliderMedia, 0);
 
-            if (mediaPlayer.Media != null)
-                mediaPlayer.Media.Dispose();
-
-            mediaPlayer.Media = null;
-
             this.Dispatcher.Invoke(() =>
             {
                 this.MainOverlay.MenuSettingsVideoTracks.Items.Clear();
                 this.MainOverlay.MenuSettingsAudioTracks.Items.Clear();
                 this.MainOverlay.MenuSettingsSubtitleTracks.Items.Clear();
             });
+
+            TaskProgress = 0d;
         }
         #endregion
 

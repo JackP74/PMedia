@@ -1,11 +1,10 @@
 ﻿<Window x:Class="LibVLCSharp.WPF.PlayerOverlay"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="clr-namespace:PMedia"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:local="clr-namespace:PMedia"
         x:ClassModifier="internal"
-             mc:Ignorable="d" 
-             Title="LibVLCSharp.WPF" Height="300" Width="408" WindowStyle="None" Background="Transparent" 
+        mc:Ignorable="d" Title="LibVLCSharp.WPF" Height="300" Width="408" WindowStyle="None" Background="Transparent" 
         ResizeMode="NoResize" AllowsTransparency="True" ShowInTaskbar="False" MouseWheel="Window_MouseWheel" KeyDown="Window_KeyDown">
 
     <Window.Resources>
@@ -575,8 +574,9 @@
             FontSize="30" 
             Fill="White"
             StrokePosition="Outside"
-            Margin="20,0,0,0"
-            StrokeThickness="1" Text=""
+            Margin="20,10,0,0"
+            StrokeThickness="2" 
+            Text=""
             FontWeight="Bold"
             FontFamily="./fonts/#Grandstander Bold" 
             Opacity=".8">

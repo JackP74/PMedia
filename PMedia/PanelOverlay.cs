@@ -6,17 +6,14 @@ using System.Windows.Controls.Primitives;
 
 using LibVLCSharp.Shared;
 using MessageCustomHandler;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
-using System.Windows.Interop;
 
 namespace LibVLCSharp.WPF
 {
     internal partial class PlayerOverlay : Window
     {
-        Window? _wndhost;
+        Window _wndhost;
         readonly FrameworkElement _bckgnd;
-        UIElement? _content;
+        UIElement _content;
         readonly Point _zeroPoint = new Point(0, 0);
 
         public event MouseWheelEventHandler MouseScrollDone;
@@ -33,11 +30,11 @@ namespace LibVLCSharp.WPF
         public event RoutedEventHandler AutoPlayLoaded;
 
         private string lastOverlayText = string.Empty;
-        private System.Windows.Forms.Timer OverlayTimer;
+        private readonly System.Windows.Forms.Timer OverlayTimer;
         private int overlayTimeout = 15;
         private delegate void SafeNewOverlay(string NewOverlay);
 
-        internal new UIElement? Content
+        internal new UIElement Content
         {
             get => _content;
             set
@@ -51,7 +48,7 @@ namespace LibVLCSharp.WPF
             }
         }
 
-        internal PlayerOverlay(FrameworkElement background, Window parent)
+        internal PlayerOverlay(FrameworkElement background)
         {
             InitializeComponent();
 
@@ -70,6 +67,20 @@ namespace LibVLCSharp.WPF
             };
 
             OverlayTimer.Tick += OverlayTimer_Tick;
+        }
+
+        public void SetOverlayText(string newText)
+        {
+            if (!LabelOverlay.Dispatcher.CheckAccess())
+            {
+                var d = new SafeNewOverlay(SetOverlayText);
+                LabelOverlay.Dispatcher.Invoke(d, new object[] { newText });
+            }
+            else
+            {
+                LabelOverlay.Text = newText;
+                OverlayTimer.Start();
+            }
         }
 
         private void OverlayTimer_Tick(object sender, EventArgs e)
@@ -159,7 +170,7 @@ namespace LibVLCSharp.WPF
             }
         }
 
-        void Wndhost_LocationChanged(object? sender, EventArgs e)
+        void Wndhost_LocationChanged(object sender, EventArgs e)
         {
             var locationFromScreen = _bckgnd.PointToScreen(_zeroPoint);
             var source = PresentationSource.FromVisual(_wndhost);
@@ -236,20 +247,6 @@ namespace LibVLCSharp.WPF
         private void SliderAutoplay_Loaded(object sender, RoutedEventArgs e)
         {
             AutoPlayLoaded?.Invoke(sender, e);
-        }
-
-        public void SetOverlayText(string newText)
-        {
-            if (!LabelOverlay.Dispatcher.CheckAccess())
-            {
-                var d = new SafeNewOverlay(SetOverlayText);
-                LabelOverlay.Dispatcher.Invoke(d, new object[] { newText });
-            }
-            else
-            {
-                LabelOverlay.Text = newText;
-                OverlayTimer.Start();
-            }
         }
 
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
