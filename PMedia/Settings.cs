@@ -23,6 +23,7 @@ namespace PMedia
             public bool AutoAudio;
             public bool AutoSubtitle;
             public bool HardwareAcceleration;
+            public bool SubtitleDisable;
         }
 
         public int Jump
@@ -151,6 +152,20 @@ namespace PMedia
             }
         }
 
+        public bool SubtitleDisable
+        {
+            set
+            {
+                mainSettings.SubtitleDisable = value;
+                NeedsSaving = true;
+            }
+
+            get
+            {
+                return mainSettings.SubtitleDisable;
+            }
+        }
+
         public Settings()
         {
             mainSettings = new MainSettings()
@@ -163,7 +178,8 @@ namespace PMedia
                 Rate = 1,
                 AutoAudio = true,
                 AutoSubtitle = true,
-                HardwareAcceleration = true
+                HardwareAcceleration = true,
+                SubtitleDisable = false
             };
 
             SoapFormat = new SoapFormatter();
@@ -204,6 +220,7 @@ namespace PMedia
                 AutoAudio = true;
                 AutoSubtitle = true;
                 Acceleration = true;
+                SubtitleDisable = false;
 
                 Save();
             }

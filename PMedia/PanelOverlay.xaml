@@ -400,6 +400,15 @@
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Auto Select</TextBlock>
                         </MenuItem.Header>
                     </MenuItem>
+
+                    <MenuItem x:Name="MenuSettingsSubtitleDisable" IsCheckable="True" BorderThickness="1,0,1,1" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
+                        <MenuItem.Icon>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnSwitch.png" Height="16" Width="16"/>
+                        </MenuItem.Icon>
+                        <MenuItem.Header>
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Disable</TextBlock>
+                        </MenuItem.Header>
+                    </MenuItem>
                 </MenuItem>
 
                 <MenuItem x:Name="MenuSettingsSeparator01" BorderThickness="1,0,1,0" Background="#1d1d1d" Margin="0,0,0,0" Height="2" Style="{DynamicResource SimpleMenuItem}"/>

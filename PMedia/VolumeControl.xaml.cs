@@ -29,8 +29,8 @@ namespace PMedia
                 }
 
                 LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb((byte)255, (byte)123, (byte)223, (byte)246), 0));
-                linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb((byte)255, (byte)120, (byte)187, (byte)239), 1));
+                linearGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb((byte)255, (byte)123, (byte)223, (byte)246), 0));
+                linearGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb((byte)255, (byte)120, (byte)187, (byte)239), 1));
 
                 VolumeSlider.Background = linearGradientBrush;
                 VolumeSlider.BorderBrush = linearGradientBrush;

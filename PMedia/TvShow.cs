@@ -533,7 +533,7 @@ namespace PMedia
 
         public override string ToString()
         {
-            return $"Is Tv Show: {IsTvShow.ToString()}; Name: {Name}; Episode: {Episode}; Search Dir: {SearchDir}; File Path {FilePath};";
+            return $"Is Tv Show: {IsTvShow}; Name: {Name}; Episode: {Episode}; Search Dir: {SearchDir}; File Path {FilePath};";
         }
 
         public override bool Equals(object obj)

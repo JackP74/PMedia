@@ -32,7 +32,7 @@ using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 #endregion
 
-// TO DO: OPTIMIZE
+// TO DO: OPTIMIZE, FIX STOP
 namespace PMedia
 {
     public partial class MainWindow : INotifyPropertyChanged
@@ -75,6 +75,7 @@ namespace PMedia
         private bool bottomOpen = true;
         private bool topOpen = true;
         private double taskProgress = 0d;
+        private bool forceMouse = false;
 
         private MediaPlayer mediaPlayer;
         private LibVLC libVLC;
@@ -518,6 +519,33 @@ namespace PMedia
                 bottomOpen = value;
             }
         }
+
+        private bool SubtitleDisabled
+        {
+            set
+            {
+                settings.SubtitleDisable = value;
+                SetMenuItemChecked(MainOverlay.MenuSettingsSubtitleDisable, value);
+
+                string finalText = "Subtitles " + (value ? "disabled" : "enabled");
+                SetOverlay(finalText);
+
+                if (value)
+                {
+                    mediaPlayer.SetSpu(-1);
+                }
+                else
+                {
+                    if (mediaPlayer.SpuCount > 0)
+                        mediaPlayer.SetSpu(0);
+                }
+            }
+
+            get
+            {
+                return settings.SubtitleDisable;
+            }
+        }
         #endregion
 
         #region "Enums & Structs"
@@ -828,7 +856,8 @@ namespace PMedia
                 }
                 else if (MouseMoveTmr != 111)
                 {
-                    MouseMoveTmr--;
+                    if (!forceMouse)
+                        MouseMoveTmr--;
 
                     if (GetCursorPos(out POINT p))
                     {
@@ -1161,6 +1190,7 @@ namespace PMedia
             AutoAudioSelect = settings.AutoAudio;
             AutoSubtitleSelect = settings.AutoSubtitle;
             Acceleration = settings.Acceleration;
+            SubtitleDisabled = settings.SubtitleDisable;
 
             jumpCommands = new List<JumpCommand>();
             SetLabelsColors();
@@ -1237,6 +1267,8 @@ namespace PMedia
             MainOverlay.MenuSettingsSubtitleAdd.Click += MenuSettingsSubtitleAdd_Click;
             MainOverlay.MenuSettingsSubtitleAutoSelect.Checked += MenuSettingsSubtitleAutoSelect_Checked;
             MainOverlay.MenuSettingsSubtitleAutoSelect.Unchecked += MenuSettingsSubtitleAutoSelect_Checked;
+            MainOverlay.MenuSettingsSubtitleDisable.Checked += MenuSettingsSubtitleDisable_Checked;
+            MainOverlay.MenuSettingsSubtitleDisable.Unchecked += MenuSettingsSubtitleDisable_Unchecked;
 
             MainOverlay.MenuSettingsOnTop.Click += MenuSettingsOnTop_Click;
             MainOverlay.MenuSettingsAcceleration.Click += MenuSettingsAcceleration_Click;
@@ -1268,6 +1300,16 @@ namespace PMedia
             TskBtnOpen.Click += (s, e) => BtnOpenFile_Click(s, null);
             TskBtnPrevious.Click += (s, e) => Next();
             TskBtnNext.Click += (s, e) => Previous();
+        }
+
+        private void MenuSettingsSubtitleDisable_Unchecked(object sender, RoutedEventArgs e)
+        {
+            SubtitleDisabled = MainOverlay.MenuSettingsSubtitleDisable.IsChecked;
+        }
+
+        private void MenuSettingsSubtitleDisable_Checked(object sender, RoutedEventArgs e)
+        {
+            SubtitleDisabled = MainOverlay.MenuSettingsSubtitleDisable.IsChecked;
         }
 
         private void ProcessArgs(string[] Args)
@@ -1437,7 +1479,11 @@ namespace PMedia
         {
             try
             {
-                return Convert.ToInt32(Name.Split("[".ToCharArray()).Last().Split("]".ToCharArray()).First());
+                string rawId = Regex.Match(Name, @"(\[(?<id>[^]]\d{0,4})\])").Groups["id"].Value;
+
+                int newId = string.IsNullOrWhiteSpace(rawId) ? -1 : rawId.ToInt32();
+
+                return newId;
             }
             catch (Exception ex)
             {
@@ -1666,6 +1712,9 @@ namespace PMedia
             // context menu
             PlayerContextMenu = CreatePlayerMenu();
 
+            PlayerContextMenu.Closed += (s, e) => { forceMouse = false; };
+            PlayerContextMenu.Opened += (s, e) => { forceMouse = true; };
+
             // overlay panel for context menu and double click fullscreen
             TransparentPanel overlayPanel = new TransparentPanel()
             {
@@ -1690,14 +1739,6 @@ namespace PMedia
             videoPanel.Controls.Add(videoView);
 
             WinHost.Child = videoPanel;
-        }
-
-        private void OverlayPanel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            if (MouseMoveTmr == -111)
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
-
-            MouseMoveTmr = 15;
         }
 
         private ContextMenuStrip CreatePlayerMenu()
@@ -1732,8 +1773,8 @@ namespace PMedia
             SettingsMenuVideoAR.DropDownItems.Add("18:9", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
             SettingsMenuVideoAR.DropDownItems.Add("21:9", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
             SettingsMenuVideoAR.DropDownItems.Add(new ToolStripSeparator());
-            SettingsMenuVideoAR.DropDownItems.Add("Custom", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
-            SettingsMenuVideoAR.DropDownItems.Add("Reset", null, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("Custom", Properties.Resources.btnEdit, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
+            SettingsMenuVideoAR.DropDownItems.Add("Reset", Properties.Resources.btnTrash, (s, e) => { MenuSettingsVideoAspectRatio_Click(s, null); });
 
             foreach (ToolStripItem item in SettingsMenuVideoAR.DropDownItems) { item.ForeColor = SettingsMenuVideoAR.ForeColor; }
 
@@ -1771,8 +1812,6 @@ namespace PMedia
             SettingsMenu.DropDownItems.AddRange(new[] { SettingsMenuVideo, SettingsMenuAudio, SettingsMenuSubtitle });
 
             PlayerContextMenu.Items.Add(SettingsMenu);
-
-            PlayerContextMenu.Items.Add(new ToolStripSeparator()); //////////////
 
             ToolStripMenuItem SettingsPlaylist = new ToolStripMenuItem("Playlist", Properties.Resources.btnPlaylist)
             { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
@@ -1872,7 +1911,7 @@ namespace PMedia
             { }
         }
 
-        private void StopMediaPlayer() // Bug: can freeze the app - workaround
+        private void StopMediaPlayer()
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -1883,8 +1922,12 @@ namespace PMedia
             StartThread(async () =>
             {
                 await Task.Run(() =>
-                    mediaPlayer.Stop()
-                );
+                {
+                    mediaPlayer.Stop();
+
+                    mediaPlayer.Media.Dispose();
+                    mediaPlayer.Media = null;
+                });
                 
                 SetOverlay("Stopped");
 
@@ -2264,13 +2307,17 @@ namespace PMedia
                         Thread.Sleep(500);
 
                         // Subtitle auto select
-                        if (AutoSubtitleSelect && SubtitleSelected == false)
+                        if (AutoSubtitleSelect && !SubtitleSelected && !SubtitleDisabled)
                         {
                             if (HasRegexMatch(SubName, @"^.*\b(eng|english)\b.*$"))
                             {
                                 mediaPlayer.SetSpu(mediaPlayer.SpuDescription[i].Id);
                                 SubtitleSelected = true;
                             }
+                        }
+                        else if (SubtitleDisabled)
+                        {
+                            mediaPlayer.SetSpu(-1);
                         }
                     }
                 } catch { }
@@ -2339,6 +2386,15 @@ namespace PMedia
 
             TaskProgress = 0d;
         }
+
+        private void OverlayPanel_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            if (MouseMoveTmr == 111)
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Arrow;
+
+            MouseMoveTmr = 30;
+        }
+
         #endregion
 
         #region "Handles"
@@ -2361,6 +2417,9 @@ namespace PMedia
             {
                 Owner = this
             };
+
+            //videoListWindow.Closed += (s, e) => { forceMouse = false; };
+            videoListWindow.IsVisibleChanged += (s, e) => { forceMouse = (bool)e.NewValue; };
 
             // Recents
             recents.Load();
@@ -2430,66 +2489,111 @@ namespace PMedia
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Space)
+            switch (e.Key)
             {
-                e.Handled = true;
+                case Key.Space:
+                    {
+                        e.Handled = true;
 
-                if (mediaPlayer.State == VLCState.Paused)
-                {
-                    mediaPlayer.Play();
-                }
-                else if (mediaPlayer.CanPause)
-                {
-                    Pause();
-                }
-            }
-            else if (e.Key == Key.Up)
-            {
-                e.Handled = true;
-                Volume += 5;
-            }
-            else if (e.Key == Key.Down)
-            {
-                e.Handled = true;
-                Volume -= 5;
-            }
-            else if (e.Key == Key.Left)
-            {
-                e.Handled = true;
-                JumpBackward();
-            }
-            else if (e.Key == Key.Right)
-            {
-                e.Handled = true;
-                JumpForward();
-            }
-            else if (e.Key == Key.F)
-            {
-                BtnFullscreen_Click(null, null);
-            }
-            else if (e.Key == Key.P)
-            {
-                MenuFileScreenShot_Click(null, null);
-            }
-            else if (e.Key == Key.End)
-            {
-                StopMediaPlayer();
-            }
-            else if (e.Key == Key.O)
-            {
-                OnTop = !OnTop;
-            }
-            else if (e.Key == Key.G)
-            {
-                GameMode = !GameMode;
-            }
-            else if (e.Key == Key.N)
-            {
-                Previous();
-            }
-            else if (e.Key == Key.M)
-            {
-                Next();
+                        if (mediaPlayer.State == VLCState.Paused)
+                        {
+                            Play(false);
+                        }
+                        else if (mediaPlayer.CanPause)
+                        {
+                            Pause();
+                        }
+
+                        break;
+                    }
+
+                case Key.Up:
+                    {
+                        e.Handled = true;
+                        Volume += 5;
+
+                        break;
+                    }
+
+                case Key.Down:
+                    {
+                        e.Handled = true;
+                        Volume -= 5;
+
+                        break;
+                    }
+
+                case Key.Left:
+                    {
+                        e.Handled = true;
+                        JumpBackward();
+
+                        break;
+                    }
+
+                case Key.Right:
+                    {
+                        e.Handled = true;
+                        JumpForward();
+
+                        break;
+                    }
+
+                case Key.F:
+                    {
+                        BtnFullscreen_Click(null, null);
+
+                        break;
+                    }
+
+                case Key.P:
+                    {
+                        MenuFileScreenShot_Click(null, null);
+
+                        break;
+                    }
+
+                case Key.End:
+                    {
+                        StopMediaPlayer();
+
+                        break;
+                    }
+
+                case Key.O:
+                    {
+                        OnTop = !OnTop;
+
+                        break;
+                    }
+
+                case Key.G:
+                    {
+                        GameMode = !GameMode;
+
+                        break;
+                    }
+
+                case Key.N:
+                    {
+                        Previous();
+
+                        break;
+                    }
+
+                case Key.M:
+                    {
+                        Next();
+
+                        break;
+                    }
+
+                case Key.S:
+                    {
+                        SubtitleDisabled = !SubtitleDisabled;
+
+                        break;
+                    }
             }
         }
 
@@ -2575,6 +2679,7 @@ namespace PMedia
         private void MenuFileMediaInfo_Click(object sender, RoutedEventArgs e)
         {
             MediaInfoWindow frmInfo = new MediaInfoWindow(mediaPlayer.Media);
+            frmInfo.IsVisibleChanged += (s, e) => { forceMouse = (bool)e.NewValue; };
             frmInfo.ShowDialog();
         }
 
@@ -2843,7 +2948,7 @@ namespace PMedia
                     {
                         if (IsNumeric(argInput.Input))
                         {
-                            ShutDown(ShutDownType.AfterN, Convert.ToInt32(argInput.Input));
+                            ShutDown(ShutDownType.AfterN, argInput.Input.ToInt32());
 
                             SetOverlay($"Shutdown after {argInput.Input} episodes");
                         }
@@ -2866,7 +2971,7 @@ namespace PMedia
                     {
                         if (IsNumeric(argInput.Input))
                         {
-                            ShutDown(ShutDownType.In, Convert.ToInt32(argInput.Input));
+                            ShutDown(ShutDownType.In, argInput.Input.ToInt32());
 
                             SetOverlay($"Shutdown in {argInput.Input} seconds");
                         }

@@ -54,7 +54,7 @@ namespace PMedia
                 if (duration > 180)
                     position = File.ReadAllText(filePath, Encoding.ASCII);
 
-                int finalPosition = Convert.ToInt32(position);
+                int finalPosition = position.ToInt32();
 
                 if ((duration - finalPosition) < 180)
                 {

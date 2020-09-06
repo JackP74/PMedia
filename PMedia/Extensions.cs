@@ -73,5 +73,15 @@ namespace PMedia
         {
             return ((int)Math.Round(i / 10.0)) * 10;
         }
+
+        public static int ToInt32(this string value)
+        {
+            if (int.TryParse(value, out _))
+            {
+                return Convert.ToInt32(value);
+            }
+
+            return -1;
+        }
     }
 }
