@@ -38,6 +38,8 @@ namespace PMedia
         private EpisodeInfo nextEpisode;
         private EpisodeInfo currentEpisode;
         private EpisodeInfo previousEpisode;
+
+        public bool neverSet = true;
         #endregion
 
         #region "Internal Classes"
@@ -269,6 +271,8 @@ namespace PMedia
                 if (currentIdx < episodeList.Count() - 1)
                     nextEpisode = episodeList[currentIdx + 1];
             }
+
+            neverSet = false;
         }
 
         public EpisodeInfo ParseFile(string FilePath)

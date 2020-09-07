@@ -202,10 +202,8 @@ namespace PMedia
 
             try
             {
-                using (Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-                {
-                    mainSettings = (MainSettings)SoapFormat.Deserialize(fStream);
-                }
+                using Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                mainSettings = (MainSettings)SoapFormat.Deserialize(fStream);
             }
             catch (Exception e)
             {

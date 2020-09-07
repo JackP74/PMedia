@@ -30,6 +30,8 @@ using Label = System.Windows.Controls.Label;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Slider = System.Windows.Controls.Slider;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+
+using static PMedia.ShutDownCommand;
 #endregion
 
 // TO DO: OPTIMIZE, FIX STOP
@@ -86,13 +88,13 @@ namespace PMedia
 
         private readonly List<JumpCommand> jumpCommands;
         private static bool isSliderControl = false;
-        private Thread threadShutDown;
 
         private WindowState lastState = WindowState.Normal;
         private readonly int BottomSize = 60;
         private Rect rect = new Rect(); // used in X-Y location
         private System.Windows.Forms.Timer MouseTimer;
-
+        private System.Windows.Forms.Timer ShutdownTimer;
+        
         private Screen UsedScreen;
         private System.Drawing.Rectangle BottomRect;
         private readonly Recents recents;
@@ -556,16 +558,6 @@ namespace PMedia
             None = 2
         }
 
-        private enum ShutDownType
-        {
-            Cancel = 0,
-            After = 1,
-            AfterN = 2,
-            In = 3,
-            End = 4,
-            None = 5
-        }
-
         internal struct Rect
         {
             public int Left { get; set; }
@@ -729,19 +721,6 @@ namespace PMedia
             }
         }
 
-        private class ShutDownCommand
-        {
-            public ShutDownType shutDownType;
-            public int Arg;
-
-            public ShutDownCommand(ShutDownType shutDownType, int Arg)
-            {
-                this.shutDownType = shutDownType;
-                this.Arg = Arg;
-            }
-
-        }
-
         internal static class ExternalCommands
         {
             public const int PM_PLAY = 0xFFF0;
@@ -866,14 +845,22 @@ namespace PMedia
                 }
             };
         }
+
+        private void CreateShutdownTimer()
+        {
+            ShutdownTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 1000
+            };
+        }
         #endregion
 
         #region "Set"
         private void SetLabelsColors()
         {
             LinearGradientBrush linearGradientBrush = new LinearGradientBrush();
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(255, (byte)97, (byte)156, (byte)202), 0));
-            linearGradientBrush.GradientStops.Add(new GradientStop(System.Windows.Media.Color.FromArgb(255, (byte)91, (byte)135, (byte)184), 1));
+            linearGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(255, (byte)97, (byte)156, (byte)202), 0));
+            linearGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(255, (byte)91, (byte)135, (byte)184), 1));
 
             MainOverlay.labelLenght.Foreground = linearGradientBrush;
             MainOverlay.labelPosition.Foreground = linearGradientBrush;
@@ -1022,13 +1009,13 @@ namespace PMedia
                     UseShellExecute = false
                 };
 
-                Process.Start(processStartInfo);
+                //Process.Start(processStartInfo);
+                CMBox.Show("Shutdown");
             }
             catch (Exception ex)
             {
                 CMBox.Show("Error", "Couldn't shutdown", MessageCustomHandler.Style.Error, Buttons.OK, ex.ToString());
             }
-
         }
 
         private bool ShutDownSignal(ShutDownType shutDownMode, int Arg)
@@ -1047,14 +1034,14 @@ namespace PMedia
                 }
                 else
                 {
-                    shutDownCmd.Arg = Arg - 1;
+                    shutDownCmd.Arg--;
                 }
 
                 return false;
             }
             else if (shutDownMode == ShutDownType.End)
             {
-                if (tvShow.episodeList.Last() == tvShow.GetCurrentEpisode())
+                if (!tvShow.neverSet && tvShow.episodeList.Last() == tvShow.GetCurrentEpisode())
                 {
                     ShutDownNow();
                     return true;
@@ -1070,81 +1057,56 @@ namespace PMedia
 
         private void ShutDown(ShutDownType shutdownMode, int Arg = 0)
         {
-            if (shutdownMode == ShutDownType.Cancel)
+            if (shutdownMode == ShutDownType.In)
             {
-                if (threadShutDown != null)
+                ShutdownTimer.Stop();
+
+                shutDownCmd = new ShutDownCommand(shutdownMode, Arg);
+
+                if (Arg <= 2)
                 {
-                    try
-                    {
-                        threadShutDown.Abort();
-                        Thread.Sleep(500);
-                        threadShutDown = null;
-                    }
-                    catch
-                    {
-                        threadShutDown = null;
-                    }
+                    ShutDownNow();
                 }
                 else
                 {
-                    threadShutDown = null;
-                }
+                    ShutdownTimer.Tick += delegate
+                    {
+                        Arg--;
 
-                shutDownCmd = new ShutDownCommand(ShutDownType.None, 0);
-            }
-            else if (shutdownMode == ShutDownType.In)
-            {
-                if (threadShutDown != null)
-                {
-                    try
-                    {
-                        threadShutDown.Abort();
-                        Thread.Sleep(500);
-                        threadShutDown = null;
-                    }
-                    catch
-                    {
-                        threadShutDown = null;
-                    }
-                }
-
-                if (threadShutDown == null && shutdownMode == ShutDownType.In)
-                {
-                    threadShutDown = new Thread(() =>
-                    {
+                        if (Arg <= 0)
                         {
-                            if (Arg <= 2)
-                            {
-                                ShutDownNow();
-                            }
-                            else
-                            {
-                                DateTime endDate = DateTime.Now.Add(TimeSpan.FromSeconds(Arg));
+                            ShutdownTimer.Stop();
 
-                                while (true)
-                                {
-                                    Thread.Sleep(2000);
-
-                                    if (endDate.Subtract(DateTime.Now).TotalSeconds <= 0)
-                                    {
-                                        ShutDownNow();
-                                        break;
-                                    }
-                                }
-                            }
+                            ShutDownNow();
                         }
-                    })
-                    {
-                        IsBackground = true
                     };
-                    threadShutDown.SetApartmentState(ApartmentState.STA);
-                    threadShutDown.Start();
-                }
 
-                shutDownCmd = new ShutDownCommand(shutdownMode, Arg);
+                    ShutdownTimer.Start();
+                }
             }
             else
             {
+                ShutdownTimer.Stop();
+
+                if (shutdownMode == ShutDownType.AfterN)
+                {
+                    if (!tvShow.neverSet && Arg > tvShow.episodeList.Count() - (tvShow.episodeList.IndexOf(tvShow.GetCurrentEpisode()) + 1))
+                    {
+                        var result = CMBox.Show("Warning", "Too few episodes left for this kind of shutdown", 
+                            MessageCustomHandler.Style.Warning, Buttons.Custom, new string[] { "Cancel", "Auto-Adjust", "Keep" }, string.Empty);
+
+                        if (result.CustomResult == "Cancel")
+                        {
+                            shutdownMode = ShutDownType.Cancel;
+                            Arg = 0;
+                        }
+                        else if (result.CustomResult == "Auto-Adjust")
+                        {
+                            Arg = tvShow.episodeList.Count() - (tvShow.episodeList.IndexOf(tvShow.GetCurrentEpisode()) + 2);
+                        }
+                    }
+                }
+
                 shutDownCmd = new ShutDownCommand(shutdownMode, Arg);
             }
         }
@@ -1268,7 +1230,7 @@ namespace PMedia
             MainOverlay.MenuSettingsSubtitleAutoSelect.Checked += MenuSettingsSubtitleAutoSelect_Checked;
             MainOverlay.MenuSettingsSubtitleAutoSelect.Unchecked += MenuSettingsSubtitleAutoSelect_Checked;
             MainOverlay.MenuSettingsSubtitleDisable.Checked += MenuSettingsSubtitleDisable_Checked;
-            MainOverlay.MenuSettingsSubtitleDisable.Unchecked += MenuSettingsSubtitleDisable_Unchecked;
+            MainOverlay.MenuSettingsSubtitleDisable.Unchecked += MenuSettingsSubtitleDisable_Checked;
 
             MainOverlay.MenuSettingsOnTop.Click += MenuSettingsOnTop_Click;
             MainOverlay.MenuSettingsAcceleration.Click += MenuSettingsAcceleration_Click;
@@ -1300,16 +1262,6 @@ namespace PMedia
             TskBtnOpen.Click += (s, e) => BtnOpenFile_Click(s, null);
             TskBtnPrevious.Click += (s, e) => Next();
             TskBtnNext.Click += (s, e) => Previous();
-        }
-
-        private void MenuSettingsSubtitleDisable_Unchecked(object sender, RoutedEventArgs e)
-        {
-            SubtitleDisabled = MainOverlay.MenuSettingsSubtitleDisable.IsChecked;
-        }
-
-        private void MenuSettingsSubtitleDisable_Checked(object sender, RoutedEventArgs e)
-        {
-            SubtitleDisabled = MainOverlay.MenuSettingsSubtitleDisable.IsChecked;
         }
 
         private void ProcessArgs(string[] Args)
@@ -1865,6 +1817,9 @@ namespace PMedia
             {
                 tvShow.Load(FileName);
 
+                if (ShutDownSignal(shutDownCmd.shutDownType, shutDownCmd.Arg))
+                    return;
+
                 SetMenuItemEnable(MainOverlay.MenuPlaylistNext, tvShow.HasNextEpisode());
                 SetMenuItemEnable(MainOverlay.MenuPlaylistPrevious, tvShow.HasPreviousEpisode());
 
@@ -2074,8 +2029,6 @@ namespace PMedia
 
             StartThread(() =>
             {
-                ShutDownSignal(shutDownCmd.shutDownType, shutDownCmd.Arg);
-
                 try
                 {
                     int InSleep = 0;
@@ -2394,7 +2347,6 @@ namespace PMedia
 
             MouseMoveTmr = 30;
         }
-
         #endregion
 
         #region "Handles"
@@ -2411,6 +2363,7 @@ namespace PMedia
             CreateJumpTimer();
             CreateSaveTimer();
             CreateMouseTimer();
+            CreateShutdownTimer();
 
             // Video list
             videoListWindow = new VideoListWindow(tvShow)
@@ -2894,6 +2847,11 @@ namespace PMedia
             }
         }
 
+        private void MenuSettingsSubtitleDisable_Checked(object sender, RoutedEventArgs e)
+        {
+            SubtitleDisabled = MainOverlay.MenuSettingsSubtitleDisable.IsChecked;
+        }
+
         private void MenuSettingsOnTop_Click(object sender, RoutedEventArgs e)
         {
             OnTop = MainOverlay.MenuSettingsOnTop.IsChecked;
@@ -2950,7 +2908,7 @@ namespace PMedia
                         {
                             ShutDown(ShutDownType.AfterN, argInput.Input.ToInt32());
 
-                            SetOverlay($"Shutdown after {argInput.Input} episodes");
+                            SetOverlay($"Shutdown after {shutDownCmd.Arg} episodes");
                         }
                         else
                         {

@@ -46,7 +46,7 @@ namespace PMedia
 
         public void Load()
         {
-            if (File.Exists(this.path) == false)
+            if (!File.Exists(this.path))
                 return;
 
             try

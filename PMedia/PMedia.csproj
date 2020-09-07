@@ -117,6 +117,7 @@
     <Compile Include="PlayerMenuRenderer.cs" />
     <Compile Include="Recents.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="ShutDownCommand.cs" />
     <Compile Include="TransparentPanel.cs">
       <SubType>Component</SubType>
     </Compile>
