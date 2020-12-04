@@ -388,6 +388,12 @@ namespace PMedia
             {
                 audioMode = value;
 
+                if (audioMode == AudioType.MonoL)
+                    mediaPlayer.SetChannel(AudioOutputChannel.Left);
+
+                if (audioMode == AudioType.MonoR)
+                    mediaPlayer.SetChannel(AudioOutputChannel.Right);
+
                 if (audioMode == AudioType.None || audioMode == AudioType.Surround)
                     mediaPlayer.SetChannel(AudioOutputChannel.Dolbys);
 
@@ -553,9 +559,11 @@ namespace PMedia
         #region "Enums & Structs"
         private enum AudioType
         {
-            Stereo = 0,
-            Surround = 1,
-            None = 2
+            None = 0,
+            MonoL = 1,
+            MonoR = 2,
+            Stereo = 3,
+            Surround = 4
         }
 
         internal struct Rect
@@ -1221,6 +1229,8 @@ namespace PMedia
             MainOverlay.MenuSettingVideoAspectRatioCustom.Click += MenuSettingsVideoAspectRatio_Click;
             MainOverlay.MenuSettingVideoAspectRatioReset.Click += MenuSettingsVideoAspectRatio_Click;
 
+            MainOverlay.MenuSettingsAudioModeMonoLeft.Click += MenuSettingsAudioMode_Click;
+            MainOverlay.MenuSettingsAudioModeMonoRight.Click += MenuSettingsAudioMode_Click;
             MainOverlay.MenuSettingsAudioModeStereo.Click += MenuSettingsAudioMode_Click;
             MainOverlay.MenuSettingsAudioModeSurrond.Click += MenuSettingsAudioMode_Click;
             MainOverlay.MenuSettingsAudioAutoSelect.Checked += MenuSettingsAudioAutoSelect_Checked;
@@ -1739,6 +1749,8 @@ namespace PMedia
             ToolStripMenuItem SettingsMenuAudioMode = new ToolStripMenuItem("Mode", Properties.Resources.btnSet)
             { ForeColor = System.Drawing.Color.FromArgb(78, 173, 254) };
 
+            SettingsMenuAudioMode.DropDownItems.Add("Mono Left", null, (s, e) => { MenuSettingsAudioMode_Click(s, null); });
+            SettingsMenuAudioMode.DropDownItems.Add("Mono Right", null, (s, e) => { MenuSettingsAudioMode_Click(s, null); });
             SettingsMenuAudioMode.DropDownItems.Add("Stereo", null, (s, e) => { MenuSettingsAudioMode_Click(s, null); });
             SettingsMenuAudioMode.DropDownItems.Add("Surround", null, (s, e) => { MenuSettingsAudioMode_Click(s, null); });
 
@@ -2034,8 +2046,11 @@ namespace PMedia
                     int InSleep = 0;
 
                     // Need to wait for the tracks to load
-                    while (mediaPlayer.Media.Tracks.Count() <= 0 && mediaPlayer.Media.Duration <= 0 && InSleep <= 15)
+                    while (true)
                     {
+                        if (mediaPlayer.Media.Tracks.Count() > 0 && mediaPlayer.Media.Duration > 0 || InSleep > 15)
+                            break;
+
                         Thread.Sleep(200);
                         InSleep += 1;
                     }
@@ -2348,7 +2363,7 @@ namespace PMedia
             MouseMoveTmr = 30;
         }
         #endregion
-
+         
         #region "Handles"
         // Initial Loading
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -2800,6 +2815,18 @@ namespace PMedia
 
             switch (CustomSelection)
             {
+                case "Mono Left":
+                    {
+                        AudioMode = AudioType.MonoL;
+                        break;
+                    }
+
+                case "Mono Right":
+                    {
+                        AudioMode = AudioType.MonoR;
+                        break;
+                    }
+
                 case "Stereo":
                     {
                         AudioMode = AudioType.Stereo;
