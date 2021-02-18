@@ -2046,9 +2046,9 @@ namespace PMedia
                     int InSleep = 0;
 
                     // Need to wait for the tracks to load
-                    while (true)
+                    while (InSleep < 25)
                     {
-                        if (mediaPlayer.Media.Tracks.Count() > 0 && mediaPlayer.Media.Duration > 0 || InSleep > 15)
+                        if (mediaPlayer.Media.Tracks.Count() > 0 && mediaPlayer.Media.Duration > 0)
                             break;
 
                         Thread.Sleep(200);
@@ -2071,22 +2071,22 @@ namespace PMedia
 
                 // Re-set media settings
                 if (Mute)
-                {
                     mediaPlayer.Mute = true;
-                }
                 else
-                {
                     mediaPlayer.Volume = Volume;
-                }
 
-                mediaPlayer.SetRate((float)Speed);
+                mediaPlayer.SetRate(Speed);
 
                 // Things that need to run on the main thread
                 this.Dispatcher.Invoke(() =>
                 {
-                    this.MainOverlay.MenuSettingsVideoTracks.Items.Clear();
-                    this.MainOverlay.MenuSettingsAudioTracks.Items.Clear();
-                    this.MainOverlay.MenuSettingsSubtitleTracks.Items.Clear();
+                    MainOverlay.MenuSettingsVideoTracks.Items.Clear();
+                    MainOverlay.MenuSettingsAudioTracks.Items.Clear();
+                    MainOverlay.MenuSettingsSubtitleTracks.Items.Clear();
+
+                    SettingsMenuVideoTrack.DropDownItems.Clear();
+                    SettingsMenuAudioTrack.DropDownItems.Clear();
+                    SettingsMenuSubtitleTrack.DropDownItems.Clear();
 
                     MenuItem menuDisableVideo = new MenuItem { Header = "Disable", Style = MainOverlay.MenuSettingsVideoTracks.Style, Name = "VideoD" };
                     menuDisableVideo.Click += MenuTrackDisable_Click;
@@ -2094,19 +2094,8 @@ namespace PMedia
                     MenuItem menuDisableAudio = new MenuItem { Header = "Disable",  Style = MainOverlay.MenuSettingsVideoTracks.Style, Name = "AudioD" };
                     menuDisableAudio.Click += MenuTrackDisable_Click;
 
-                    MenuItem menuDisableSubtitle = new MenuItem { Header = "Disable", Style = MainOverlay.MenuSettingsVideoTracks.Style, Name = "SubtitleD"};
-                    menuDisableSubtitle.Click += MenuTrackDisable_Click;
-
-                    menuDisableVideo.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                    menuDisableAudio.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                    menuDisableSubtitle.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-
                     this.MainOverlay.MenuSettingsVideoTracks.Items.Add(menuDisableVideo);
                     this.MainOverlay.MenuSettingsAudioTracks.Items.Add(menuDisableAudio);
-
-                    SettingsMenuVideoTrack.DropDownItems.Clear();
-                    SettingsMenuAudioTrack.DropDownItems.Clear();
-                    SettingsMenuSubtitleTrack.DropDownItems.Clear();
 
                     SettingsMenuVideoTrack.DropDownItems.Add("Disable Video", null, (s, e) => { MenuTrackDisable_Click(s, null); });
                     SettingsMenuAudioTrack.DropDownItems.Add("Disable Audio", null, (s, e) => { MenuTrackDisable_Click(s, null); });
@@ -2128,175 +2117,102 @@ namespace PMedia
                     RefreshRecentsMenu();
                 });
 
-                // Load tracks
-                foreach(MediaTrack mediaTrack in e.Media.Tracks)
+                foreach (MediaTrack mediaTrack in e.Media.Tracks)
                 {
                     try
                     {
-                        // Track name - doesn't matter what type it is
-                        string TrackName = string.Empty;
-                        int TrackID = mediaTrack.Id;
-
-                        if (mediaTrack.Description != null && string.IsNullOrWhiteSpace(mediaTrack.Description) == false && mediaTrack.Description != "und")
-                        {
-                            TrackName = mediaTrack.Description;
-
-                            if (mediaTrack.Language != null && string.IsNullOrWhiteSpace(mediaTrack.Language) == false && mediaTrack.Language != "und")
-                            {
-                                TrackName += @" - " + mediaTrack.Language;
-                            }
-                        }
-                        else
-                        {
-                            if (mediaTrack.Language != null && string.IsNullOrWhiteSpace(mediaTrack.Language) == false && mediaTrack.Language != "und")
-                            {
-                                TrackName = mediaTrack.Language;
-                            }
-                        }
-
-                        if (string.IsNullOrWhiteSpace(TrackName))
-                        {
-                            TrackName = "Track";
-                        }
+                        // Track name - description first, if not empty or und
+                        string TrackName = (!string.IsNullOrEmpty(mediaTrack.Description) && mediaTrack.Description != "und") ? mediaTrack.Description : "Track";
+                        TrackName += (!string.IsNullOrEmpty(mediaTrack.Language) && mediaTrack.Language != "und") ? $" - {mediaTrack.Language}" : string.Empty;
+                        TrackName += $" [{mediaTrack.Id}]";
 
                         switch (mediaTrack.TrackType)
                         {
-                            // Video track
                             case TrackType.Video:
                                 {
                                     this.Dispatcher.Invoke(() =>
                                     {
                                         MenuItem newTrack = new MenuItem { Header = TrackName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
+                                        newTrack.Click += (s, e) => { mediaPlayer.SetVideoTrack(mediaTrack.Id); SetOverlay("New video track"); };
+                                        MainOverlay.MenuSettingsVideoTracks.Items.Add(newTrack);
 
-                                        newTrack.Click += delegate
-                                        {
-                                            mediaPlayer.SetVideoTrack(TrackID);
-
-                                            SetOverlay("New video track");
-                                        };
-
-                                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                                        this.MainOverlay.MenuSettingsVideoTracks.Items.Add(newTrack);
-
-                                        SettingsMenuVideoTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetVideoTrack(TrackID); SetOverlay("New video track"); });
+                                        SettingsMenuVideoTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetVideoTrack(mediaTrack.Id); SetOverlay("New video track"); });
                                     });
-
+                                    
                                     break;
                                 }
 
-                            // Audio track
                             case TrackType.Audio:
                                 {
                                     this.Dispatcher.Invoke(() =>
                                     {
                                         MenuItem newTrack = new MenuItem { Header = TrackName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
+                                        newTrack.Click += (s, e) => { mediaPlayer.SetAudioTrack(mediaTrack.Id); SetOverlay("New audio track"); };
+                                        MainOverlay.MenuSettingsAudioTracks.Items.Add(newTrack);
 
-                                        newTrack.Click += delegate
-                                        {
-                                            mediaPlayer.SetAudioTrack(TrackID);
-
-                                            SetOverlay("New audio track");
-                                        };
-
-                                        newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                                        this.MainOverlay.MenuSettingsAudioTracks.Items.Add(newTrack);
-
-                                        SettingsMenuAudioTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetAudioTrack(TrackID); SetOverlay("New audio track"); });
+                                        SettingsMenuAudioTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetAudioTrack(mediaTrack.Id); SetOverlay("New audio track"); });
                                     });
 
-                                    if (AutoAudioSelect && AudioSelected == false)
+                                    if (AutoAudioSelect && !AudioSelected && HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
                                     {
-                                        if (HasRegexMatch(TrackName, @"^.*\b(eng|english)\b.*$"))
-                                        {
-                                            mediaPlayer.SetAudioTrack(TrackID);
-                                            AudioSelected = true;
-                                        }
+                                        mediaPlayer.SetAudioTrack(mediaTrack.Id);
+                                        AudioSelected = true;
                                     }
 
                                     break;
                                 }
 
-                            // Subtitle track
-                            case TrackType.Text:
-                                {
-                                    // Nothing needed
-                                    break;
-                                }
-
                             default:
-                                break;
+                                continue;
                         }
-
-                    } catch { }
+                    }
+                    catch
+                    { }
                 }
 
-                try
+                if (mediaPlayer.SpuCount > 0)
                 {
-                    // Subtitle track - TO DO: See Track Id Selection
                     for (int i = 0; i < mediaPlayer.SpuCount; i++)
                     {
-                        string SubName = mediaPlayer.SpuDescription[i].Name;
-                        int SubID = mediaPlayer.SpuDescription[i].Id;
-
-                        if (string.IsNullOrWhiteSpace(SubName))
+                        try
                         {
-                            SubName = $"Track";
-                        }
+                            string SubName = !string.IsNullOrEmpty(mediaPlayer.SpuDescription[i].Name) ? mediaPlayer.SpuDescription[i].Name : "Track";
+                            SubName += $" [{mediaPlayer.SpuDescription[i].Id}]";
 
-                        SubName += $" [{SubID}]";
-
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            MenuItem newTrack = new MenuItem { Header = SubName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
-
-                            newTrack.Click += (sender, e) =>
+                            this.Dispatcher.Invoke(() =>
                             {
-                                MenuItem menuItem = (MenuItem)sender;
-                                int newSPU = IdFromTrackName(menuItem.Header.ToString());
+                                MenuItem newTrack = new MenuItem { Header = SubName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
+                                newTrack.Click += (s, e) => { MenuItem menuItem = (MenuItem)s; mediaPlayer.SetSpu(IdFromTrackName(menuItem.Header.ToString())); SetOverlay("New subtitle track"); };
+                                MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
 
-                                mediaPlayer.SetSpu(newSPU);
-
-                                SetOverlay("New subtitle track");
-                            };
-
-                            newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-                            this.MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
-
-                            SettingsMenuSubtitleTrack.DropDownItems.Add(SubName, null, (s, e) => 
-                            {
-                                int newSPU = IdFromTrackName(SubName);
-
-                                mediaPlayer.SetSpu(newSPU);
-
-                                SetOverlay("New subtitle track");
+                                SettingsMenuSubtitleTrack.DropDownItems.Add(SubName, null, (s, e) => { mediaPlayer.SetSpu(IdFromTrackName(SubName)); SetOverlay("New subtitle track"); });
                             });
-                        });
 
-                        Thread.Sleep(500);
-
-                        // Subtitle auto select
-                        if (AutoSubtitleSelect && !SubtitleSelected && !SubtitleDisabled)
-                        {
-                            if (HasRegexMatch(SubName, @"^.*\b(eng|english)\b.*$"))
+                            if (AutoSubtitleSelect && !SubtitleSelected && !SubtitleDisabled && HasRegexMatch(SubName, @"^.*\b(eng|english)\b.*$"))
                             {
                                 mediaPlayer.SetSpu(mediaPlayer.SpuDescription[i].Id);
                                 SubtitleSelected = true;
                             }
+                            else if (SubtitleDisabled)
+                            {
+                                mediaPlayer.SetSpu(-1);
+                                SubtitleSelected = true;
+                            }
                         }
-                        else if (SubtitleDisabled)
-                        {
-                            mediaPlayer.SetSpu(-1);
-                        }
+                        catch
+                        { }
                     }
-                } catch { }
-
-                Thread.Sleep(100);
+                }
 
                 this.Dispatcher.Invoke(() =>
                 {
                     foreach (ToolStripItem item in SettingsMenuVideoTrack.DropDownItems) { item.ForeColor = SettingsMenuVideoTrack.ForeColor; }
                     foreach (ToolStripItem item in SettingsMenuAudioTrack.DropDownItems) { item.ForeColor = SettingsMenuAudioTrack.ForeColor; }
                     foreach (ToolStripItem item in SettingsMenuSubtitleTrack.DropDownItems) { item.ForeColor = SettingsMenuSubtitleTrack.ForeColor; }
+
+                    foreach (MenuItem item in MainOverlay.MenuSettingsVideoTracks.Items) { item.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254)); }
+                    foreach (MenuItem item in MainOverlay.MenuSettingsAudioTracks.Items) { item.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254)); }
+                    foreach (MenuItem item in MainOverlay.MenuSettingsSubtitleTracks.Items) { item.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254)); }
                 });
             });
         }
@@ -2396,6 +2312,8 @@ namespace PMedia
             // Others
             KeyboardHook.OnKeyPress += KeyboardHook_OnKeyPress;
             IsLoading = false;
+
+            
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -3004,12 +2922,6 @@ namespace PMedia
                             mediaPlayer.SetAudioTrack(-1);
                             break;
                         }
-
-                    case "SubtitleD":
-                        {
-                            mediaPlayer.SetSpu(-1);
-                            break;
-                        }
                 }
             }
             else if (sender is ToolStripItem dTis)
@@ -3025,12 +2937,6 @@ namespace PMedia
                     case "Disable Audio":
                         {
                             mediaPlayer.SetAudioTrack(-1);
-                            break;
-                        }
-
-                    case "Disable Subtitle":
-                        {
-                            mediaPlayer.SetSpu(-1);
                             break;
                         }
                 }
