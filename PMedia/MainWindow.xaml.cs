@@ -55,8 +55,8 @@ namespace PMedia
         #region "Variables"
         private PlayerOverlay MainOverlay { get; set; }
 
-        private readonly string videoPositionDir = AppDomain.CurrentDomain.BaseDirectory + @"\Data";
-        private readonly string recentsPath = AppDomain.CurrentDomain.BaseDirectory + @"\recents.ini";
+        private readonly string videoPositionDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
+        private readonly string recentsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "recents.ini");
 
         private readonly Random random = new Random(Guid.NewGuid().GetHashCode());
         private readonly Settings settings;
@@ -141,17 +141,7 @@ namespace PMedia
             set
             {
                 playBtnTxt = value;
-
-                if (value.ToLower().Trim() == "play")
-                {
-                    SetPlayBtnImage(true);
-                    SetPlayTskImage(true);
-                }
-                else
-                {
-                    SetPlayBtnImage(false);
-                    SetPlayTskImage(false);
-                }
+                SetPlayBtnImage(value.ToLower().Trim() == "play");
 
                 OnPropertyChanged("PlayBtnTxt");
             }
@@ -212,7 +202,7 @@ namespace PMedia
 
                 if (value)
                 {
-                    SetImage(MainOverlay.btnMuteImage, Images.btnMute);
+                    SetImage(MainOverlay.btnMuteImage, Player.Images.btnMute);
 
                     if (mediaPlayer != null && mediaPlayer.Media != null)
                     {
@@ -232,15 +222,15 @@ namespace PMedia
 
                     if(cVolume >= 67)
                     {
-                        SetImage(MainOverlay.btnMuteImage, Images.btnVolume3);
+                        SetImage(MainOverlay.btnMuteImage, Player.Images.btnVolume3);
                     }
                     else if(cVolume >= 34)
                     {
-                        SetImage(MainOverlay.btnMuteImage, Images.btnVolume2);
+                        SetImage(MainOverlay.btnMuteImage, Player.Images.btnVolume2);
                     }
                     else
                     {
-                        SetImage(MainOverlay.btnMuteImage, Images.btnVolume1);
+                        SetImage(MainOverlay.btnMuteImage, Player.Images.btnVolume1);
                     }
 
                 }
@@ -270,17 +260,17 @@ namespace PMedia
                 int cVolume = Volume;
                 string cPic = MainOverlay.btnMuteImage.Source.ToString();
 
-                if (cVolume >= 67 && !cPic.EndsWith(Images.btnVolume3))
+                if (cVolume >= 67 && !cPic.EndsWith(Player.Images.btnVolume3))
                 {
-                    SetImage(MainOverlay.btnMuteImage, Images.btnVolume3);
+                    SetImage(MainOverlay.btnMuteImage, Player.Images.btnVolume3);
                 }
-                else if (cVolume < 67 && cVolume >= 34 && !cPic.EndsWith(Images.btnVolume2))
+                else if (cVolume < 67 && cVolume >= 34 && !cPic.EndsWith(Player.Images.btnVolume2))
                 {
-                    SetImage(MainOverlay.btnMuteImage, Images.btnVolume2);
+                    SetImage(MainOverlay.btnMuteImage, Player.Images.btnVolume2);
                 }
-                else if (cVolume < 34 && !cPic.EndsWith(Images.btnVolume1))
+                else if (cVolume < 34 && !cPic.EndsWith(Player.Images.btnVolume1))
                 {
-                    SetImage(MainOverlay.btnMuteImage, Images.btnVolume1);
+                    SetImage(MainOverlay.btnMuteImage, Player.Images.btnVolume1);
                 }
 
                 if (Mute && !IsLoading) // IsLoading used so mute is loaded from settings
@@ -404,7 +394,7 @@ namespace PMedia
             }
         }
 
-        private bool AutoAudioSelect 
+        private bool AutoAudioSelect
         { 
             set
             {
@@ -667,86 +657,7 @@ namespace PMedia
             public string lpData;
         }
         #endregion
-
-        #region "Internal Classes"
-        internal static class Images
-        {
-            public static readonly string btnAbout = "Resources/btnAbout.png";
-            public static readonly string btnAcceleration = "Resources/btnAcceleration.png";
-            public static readonly string btnAdd = "Resources/btnAdd.png";
-            public static readonly string btnAudio = "Resources/btnAudio.png";
-            public static readonly string btnBackward = "Resources/btnBackward.png";
-            public static readonly string btnEdit = "Resources/btnEdit.png";
-            public static readonly string btnFile = "Resources/btnFile.png";
-            public static readonly string btnForward = "Resources/btnForward.png";
-            public static readonly string btnFullScreenOff = "Resources/btnFullScreenOff.png";
-            public static readonly string btnFullScreenOn = "Resources/btnFullScreenOn.png";
-            public static readonly string btnGameModeOff = "Resources/btnGameModeOff.png";
-            public static readonly string btnGameModeOn = "Resources/btnGameModeOn.png";
-            public static readonly string btnMediaInfo = "Resources/btnMediaInfo.png";
-            public static readonly string btnMute = "Resources/btnMute.png";
-            public static readonly string btnNext = "Resources/btnNext.png";
-            public static readonly string btnOnTop = "Resources/btnOnTop.png";
-            public static readonly string btnOpen = "Resources/btnOpen.png";
-            public static readonly string btnPause = "Resources/btnPause.png";
-            public static readonly string btnPlay = "Resources/btnPlay.png";
-            public static readonly string btnPlayback = "Resources/btnPlayback.png";
-            public static readonly string btnPlaylist = "Resources/btnPlaylist.png";
-            public static readonly string btnPrevious = "Resources/btnPrevious.png";
-            public static readonly string btnQuit = "Resources/btnQuit.png";
-            public static readonly string btnRecent = "Resources/btnRecent.png";
-            public static readonly string btnScreenShot = "Resources/btnScreenShot.png";
-            public static readonly string btnSelectTrack = "Resources/btnSelectTrack.png";
-            public static readonly string btnSet = "Resources/btnSet.png";
-            public static readonly string btnSettings = "Resources/btnSettings.png";
-            public static readonly string btnShutDown = "Resources/btnShutDown.png";
-            public static readonly string btnStop = "Resources/btnStop.png";
-            public static readonly string btnSubtitle = "Resources/btnSubtitle.png";
-            public static readonly string btnSwitch = "Resources/btnSwitch.png";
-            public static readonly string btnTrash = "Resources/btnTrash.png";
-            public static readonly string btnVideo = "Resources/btnVideo.png";
-            public static readonly string btnVideoList = "Resources/btnVideoList.png";
-            public static readonly string btnVolume1 = "Resources/BtnVolume1.png";
-            public static readonly string btnVolume2 = "Resources/BtnVolume2.png";
-            public static readonly string btnVolume3 = "Resources/BtnVolume3.png";
-        }
-
-        internal class JumpCommand
-        {
-            public Direction direction;
-            public int jump;
-
-            public enum Direction
-            {
-                Backward = 0,
-                Forward = 1
-            }
-
-            public JumpCommand(Direction direction, int jump)
-            {
-                this.direction = direction;
-                this.jump = jump;
-            }
-        }
-
-        internal static class ExternalCommands
-        {
-            public const int PM_PLAY = 0xFFF0;
-            public const int PM_PAUSE = 0xFFF1;
-            public const int PM_STOP = 0xFFF2;
-            public const int PM_FORWARD = 0xFFF3;
-            public const int PM_BACKWARD = 0xFFF4;
-            public const int PM_NEXT = 0xFFF5;
-            public const int PM_PREVIOUS = 0xFFF6;
-            public const int PM_VOLUMEUP = 0xFFF7;
-            public const int PM_VOLUMEDOWN = 0xFFF8;
-            public const int PM_MUTE = 0xFFF9;
-            public const int PM_AUTOPLAY = 0xFFFA;
-            public const int PM_FILE = 0xFFFB;
-            public const int WM_COPYDATA = 0x004A;
-        }
-        #endregion
-
+        
         #region "Functions"
         #region "Timers"
         private void CreateJumpTimer()
@@ -792,7 +703,7 @@ namespace PMedia
                             }
                         });
                         
-                        SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time).ToString(@"hh\:mm\:ss"));
+                        SetOverlay(TimeSpan.FromMilliseconds(mediaPlayer.Time + finalJump).ToString(@"hh\:mm\:ss"));
                     }
                     else
                     {
@@ -1311,14 +1222,14 @@ namespace PMedia
 
         private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg >= ExternalCommands.PM_PLAY && msg <= ExternalCommands.PM_AUTOPLAY)
+            if (msg >= Player.ExternalCommands.PM_PLAY && msg <= Player.ExternalCommands.PM_AUTOPLAY)
             {
                 int Command = msg;
                 int Arg = (int)wParam;
 
                 ProcessExternalCommand(Command, Arg);
             }
-            else if (msg == ExternalCommands.WM_COPYDATA)
+            else if (msg == Player.ExternalCommands.WM_COPYDATA)
             {
                 if (wParam == IntPtr.Zero)
                 {
@@ -1326,7 +1237,7 @@ namespace PMedia
                     string file = cd.lpData;
 
                     if (File.Exists(file))
-                    OpenFile(file);
+                        ProcessDrop(new[] { file });
                 }
             }
 
@@ -1402,36 +1313,11 @@ namespace PMedia
             }
             else
             {
-                if (playImgs)
-                {
-                    MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPlay);
-                    MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPlay);
-                }
-                else
-                {
-                    MainOverlay.btnPlayImage.Source = ImageResource(Images.btnPause);
-                    MainOverlay.MenuPlaybackPlayImage.Source = ImageResource(Images.btnPause);
-                }
-            }
-        }
+                ImageSource NewImg = ImageResource(playImgs ? Player.Images.btnPlay : Player.Images.btnPause);
 
-        private void SetPlayTskImage(bool playImgs)
-        {
-            if (!MainOverlay.Dispatcher.CheckAccess())
-            {
-                var d = new SafeBtnImgs(SetPlayTskImage);
-                TskBtnPlay.Dispatcher.Invoke(d, new object[] { playImgs });
-            }
-            else
-            {
-                if (playImgs)
-                {
-                    TskBtnPlay.ImageSource = ImageResource(Images.btnPlay);
-                }
-                else
-                {
-                    TskBtnPlay.ImageSource = ImageResource(Images.btnPause);
-                }
+                MainOverlay.btnPlayImage.Source = NewImg;
+                MainOverlay.MenuPlaybackPlayImage.Source = NewImg;
+                TskBtnPlay.ImageSource = NewImg;
             }
         }
         #endregion
@@ -1485,9 +1371,7 @@ namespace PMedia
                     Media media = new Media(libVLC, FilePath, FromType.FromPath);
 
                     if (!Acceleration)
-                    {
                         media.AddOption(@":avcodec-hw=none");
-                    }
 
                     mediaPlayer.Play(media);
                 });
@@ -1517,30 +1401,22 @@ namespace PMedia
             Thread.Sleep(1000);
 
             // Track name
-            string TrackName = string.Empty;
+            string TrackName = mediaPlayer.SpuDescription[mediaPlayer.SpuCount - 1].Name;
             int TrackID = mediaPlayer.Spu;
 
-            TrackName = mediaPlayer.SpuDescription[mediaPlayer.SpuCount - 1].Name;
-
-            if (string.IsNullOrWhiteSpace(TrackName))
-                TrackName = "Track";
-
+            TrackName = string.IsNullOrEmpty(TrackName) ? "Track" : TrackName;
             TrackName += $" [{TrackID}]";
 
             // Add track to menu
             MenuItem newTrack = new MenuItem { Header = TrackName, Style = MainOverlay.MenuSettingsVideoTracks.Style };
 
-            newTrack.Click += (sender, e) =>
-            {
-                MenuItem menuItem = (MenuItem)sender;
-                int newSPU = IdFromTrackName(menuItem.Header.ToString());
-
-                mediaPlayer.SetSpu(newSPU);
-            };
+            newTrack.Click += (sender, e) => { MenuItem menuItem = (MenuItem)sender; mediaPlayer.SetSpu(IdFromTrackName(menuItem.Header.ToString())); SetOverlay("New subtitle track"); };
 
             newTrack.Foreground = new SolidColorBrush(Color.FromRgb(78, 173, 254));
-            this.MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
+            MainOverlay.MenuSettingsSubtitleTracks.Items.Add(newTrack);
 
+            SettingsMenuSubtitleTrack.DropDownItems.Add(TrackName, null, (s, e) => { mediaPlayer.SetSpu(IdFromTrackName(TrackName)); SetOverlay("New subtitle track"); });
+            SettingsMenuSubtitleTrack.DropDownItems[SettingsMenuSubtitleTrack.DropDownItems.Count - 1].ForeColor = SettingsMenuSubtitleTrack.ForeColor;
         }
 
         private void SendFile(string file)
@@ -1556,7 +1432,7 @@ namespace PMedia
                     };
                     cd.cbData = cd.lpData.Length + 1;
 
-                    SendMessage(p.MainWindowHandle, ExternalCommands.WM_COPYDATA, IntPtr.Zero, ref cd);
+                    SendMessage(p.MainWindowHandle, Player.ExternalCommands.WM_COPYDATA, IntPtr.Zero, ref cd);
                 }
             }
         }
@@ -1567,71 +1443,49 @@ namespace PMedia
             {
                 switch (Command)
                 {
-                    case ExternalCommands.PM_PLAY:
-                        {
-                            Play(true);
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_PLAY:
+                        Play(true);
+                        break;
 
-                    case ExternalCommands.PM_PAUSE:
-                        {
-                            Pause();
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_PAUSE:
+                        Pause();
+                        break;
 
-                    case ExternalCommands.PM_STOP:
-                        {
-                            StopMediaPlayer();
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_STOP:
+                        StopMediaPlayer();
+                        break;
 
-                    case ExternalCommands.PM_FORWARD:
-                        {
-                            JumpForward();
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_FORWARD:
+                        JumpForward();
+                        break;
 
-                    case ExternalCommands.PM_BACKWARD:
-                        {
-                            JumpBackward();
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_BACKWARD:
+                        JumpBackward();
+                        break;
 
-                    case ExternalCommands.PM_NEXT:
-                        {
-                            Next();
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_NEXT:
+                        Next();
+                        break;
 
-                    case ExternalCommands.PM_PREVIOUS:
-                        {
-                            Previous();
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_PREVIOUS:
+                        Previous();
+                        break;
 
-                    case ExternalCommands.PM_VOLUMEUP:
-                        {
-                            Volume += Arg;
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_VOLUMEUP:
+                        Volume += Arg;
+                        break;
 
-                    case ExternalCommands.PM_VOLUMEDOWN:
-                        {
-                            Volume -= Arg;
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_VOLUMEDOWN:
+                        Volume -= Arg;
+                        break;
 
-                    case ExternalCommands.PM_MUTE:
-                        {
-                            Mute = !Mute;
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_MUTE:
+                        Mute = !Mute;
+                        break;
 
-                    case ExternalCommands.PM_AUTOPLAY:
-                        {
-                            AutoPlay = !AutoPlay;
-                            break;
-                        }
+                    case Player.ExternalCommands.PM_AUTOPLAY:
+                        AutoPlay = !AutoPlay;
+                        break;
                 }
 
                 return 0;
@@ -1815,10 +1669,10 @@ namespace PMedia
                 {
                     LoadSubtitle(Path);
                 }
-                else if (Extensions.IsVideo(Path))
+                else if (Extensions.IsVideo(Path) && !videoLoaded)
                 {
-                    if (videoLoaded == false)
-                        OpenFile(Path);
+                    OpenFile(Path);
+                    videoLoaded = true;
                 }
             }
         }
@@ -1938,14 +1792,11 @@ namespace PMedia
         private BitmapImage ImageResource(string pathInApplication, Assembly assembly = null)
         {
             if (assembly == null)
-            {
                 assembly = Assembly.GetCallingAssembly();
-            }
 
             if (pathInApplication[0] == '/')
-            {
                 pathInApplication = pathInApplication.Substring(1);
-            }
+
             return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
         }
 
@@ -1998,7 +1849,7 @@ namespace PMedia
                         Style = MainOverlay.MenuPlaylistRecent.Style,
                         Name = "ClearR",
                         Foreground = brush,
-                        Icon = new Image { Source = ImageResource(Images.btnTrash) }
+                        Icon = new Image { Source = ImageResource(Player.Images.btnTrash) }
                     };
                     menuClearRecents.Click += (sender, e) =>
                     {
@@ -2279,7 +2130,7 @@ namespace PMedia
             MouseMoveTmr = 30;
         }
         #endregion
-         
+        
         #region "Handles"
         // Initial Loading
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -2297,10 +2148,7 @@ namespace PMedia
             CreateShutdownTimer();
 
             // Video list
-            videoListWindow = new VideoListWindow(tvShow)
-            {
-                Owner = this
-            };
+            videoListWindow = new VideoListWindow(tvShow) { Owner = this };
 
             //videoListWindow.Closed += (s, e) => { forceMouse = false; };
             videoListWindow.IsVisibleChanged += (s, e) => { forceMouse = (bool)e.NewValue; };
@@ -2312,15 +2160,13 @@ namespace PMedia
             // Others
             KeyboardHook.OnKeyPress += KeyboardHook_OnKeyPress;
             IsLoading = false;
-
-            
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
         {
             // Can't set new image until old one is rendered, because fuck WPF
             if(Mute)
-                SetImage(MainOverlay.btnMuteImage, Images.btnMute);
+                SetImage(MainOverlay.btnMuteImage, Player.Images.btnMute);
         }
 
         private void MainWindow_SourceInitialized(object sender, EventArgs e)
@@ -2354,21 +2200,18 @@ namespace PMedia
 
                 MouseTimer.Start();
 
-                TopOpen = false;
-
                 int SideMargins = Convert.ToInt32(this.Width / 10).RoundOff();
                 MainOverlay.BottomMenu.Margin = new Thickness(SideMargins, 0, SideMargins, 0);
 
+                TopOpen = false;
                 BottomOpen = false;
             }
             else
             {
                 MouseTimer.Stop();
-
-                TopOpen = true;
-
                 MainOverlay.BottomMenu.Margin = new Thickness(0, 0, 0, 0);
 
+                TopOpen = true;
                 BottomOpen = true;
             }
         }
@@ -2520,7 +2363,6 @@ namespace PMedia
         private void MainWindow_Drop(object sender, System.Windows.DragEventArgs e)
         {
             string[] Files = (string[])e.Data.GetData(System.Windows.Forms.DataFormats.FileDrop);
-
             ProcessDrop(Files);
         }
 
@@ -2557,7 +2399,6 @@ namespace PMedia
         private void OverlayPanel_DragDrop(object sender, System.Windows.Forms.DragEventArgs e)
         {
             string[] Files = (string[])e.Data.GetData(System.Windows.Forms.DataFormats.FileDrop);
-
             ProcessDrop(Files);
         }
 
@@ -2974,24 +2815,16 @@ namespace PMedia
             {
                 if (mediaPlayer.Media == null) 
                 {
-                    if (recents.GetList().Count > 0)
-                    {
+                    if (recents.GetList().Count > 0 && File.Exists(recents.GetList().Last()))
                         OpenFile(recents.GetList().Last());
-                    }
                     else
-                    {
                         NewFile();
-                    }
-                } 
-                else
-                {
-                    mediaPlayer.Play();
                 }
+                else
+                    mediaPlayer.Play();
             }
             else if(mediaPlayer.CanPause)
-            {
                 Pause();
-            }
         }
 
         private void BtnStop_Click(object sender, RoutedEventArgs e)
@@ -3028,7 +2861,7 @@ namespace PMedia
                 this.WindowStyle = WindowStyle.None;
                 this.WindowState = WindowState.Maximized;
 
-                SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
+                SetImage(MainOverlay.btnFullscreenImage, Player.Images.btnFullScreenOff);
 
                 BottomOpen = false;
 
@@ -3045,7 +2878,7 @@ namespace PMedia
                     this.WindowStyle = WindowStyle.None;
                     this.WindowState = WindowState.Maximized;
 
-                    SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOff);
+                    SetImage(MainOverlay.btnFullscreenImage, Player.Images.btnFullScreenOff);
 
                     BottomOpen = false;
 
@@ -3057,14 +2890,12 @@ namespace PMedia
                     this.WindowState = lastState;
                     this.WindowStyle = WindowStyle.SingleBorderWindow;
 
-                    SetImage(MainOverlay.btnFullscreenImage, Images.btnFullScreenOn);
+                    SetImage(MainOverlay.btnFullscreenImage, Player.Images.btnFullScreenOn);
 
                     MouseTimer.Stop();
-
-                    TopOpen = true;
-
                     MainOverlay.BottomMenu.Margin = new Thickness(0, 0, 0, 0);
 
+                    TopOpen = true;
                     BottomOpen = true;
                 }
             }

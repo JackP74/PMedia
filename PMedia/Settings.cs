@@ -8,7 +8,7 @@ namespace PMedia
     {
         private MainSettings mainSettings;
         private readonly SoapFormatter SoapFormat;
-        private readonly string filePath = AppDomain.CurrentDomain.BaseDirectory + @"\settings.ini";
+        private readonly string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.ini");
 
         public bool NeedsSaving = false;
 

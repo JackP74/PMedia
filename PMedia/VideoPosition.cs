@@ -31,7 +31,7 @@ namespace PMedia
 
         public void SetNewFile(string FilePath, int Duration)
         {
-            this.name = FilePath + @"-" + Duration.ToString();
+            this.name = $"{FilePath}-{Duration}";
             this.duration = Duration;
         }
 
@@ -45,7 +45,7 @@ namespace PMedia
         {
             try
             {
-                string filePath = this.path + @"\" + this.name + ".ini";
+                string filePath = Path.Combine(this.path, this.name + ".ini");
 
                 if (File.Exists(filePath) == false)
                     return 0;
@@ -87,7 +87,7 @@ namespace PMedia
                 if (this.name.Length == 0)
                     return;
 
-                string filePath = this.path + "/" + this.name + ".ini";
+                string filePath = Path.Combine(this.path, this.name + ".ini");
 
                 File.WriteAllText(filePath, Position.ToString(), Encoding.ASCII);
             }
