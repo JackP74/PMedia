@@ -1,4 +1,4 @@
-# PMedia alpha v0.0.2.6
+# PMedia alpha v0.0.2.7
 ![PMedia](/images/PMedia.jpg)
 
 ## Features

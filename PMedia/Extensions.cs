@@ -44,6 +44,11 @@ namespace PMedia
 
             return FileType.Unkown;
         }
+
+        public static string WithMaxLength(this string Value, int maxLength)
+        {
+            return Value?.Substring(0, Math.Min(Value.Length, maxLength));
+        }
     }
 
     internal static class Player

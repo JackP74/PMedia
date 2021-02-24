@@ -36,7 +36,7 @@ namespace PMedia
                 VolumeSlider.BorderBrush = linearGradientBrush;
                 VolumeSlider.ValueChanged += (s, e) => 
                 {
-                    labelVolume.Content = Convert.ToInt32(e.NewValue).ToString() + @"%";
+                    labelVolume.Content = $"{Convert.ToInt32(e.NewValue)}%";
                 };
 
                 labelVolume.Foreground = linearGradientBrush;
@@ -53,7 +53,6 @@ namespace PMedia
                 };
 
                 (sender as Thumb).RaiseEvent(args);
-
             }
         }
     }

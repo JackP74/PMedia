@@ -67,9 +67,7 @@ namespace PMedia
                 return;
 
             if (recents.fileList.Count >= recentCount)
-            {
                 recents.fileList.RemoveAt(0);
-            }
 
             recents.fileList.Add(filePath);
 

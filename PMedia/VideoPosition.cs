@@ -46,9 +46,9 @@ namespace PMedia
             try
             {
                 string filePath = Path.Combine(this.path, this.name + ".ini");
-
-                if (File.Exists(filePath) == false)
+                if (!File.Exists(filePath))
                     return 0;
+
                 string position = "0";
 
                 if (duration > 180)
@@ -81,14 +81,10 @@ namespace PMedia
         {
             try
             {
-                if (this.name == null)
-                    return;
-
-                if (this.name.Length == 0)
+                if (this.name == null || this.name.Length == 0)
                     return;
 
                 string filePath = Path.Combine(this.path, this.name + ".ini");
-
                 File.WriteAllText(filePath, Position.ToString(), Encoding.ASCII);
             }
             catch (Exception ex)
