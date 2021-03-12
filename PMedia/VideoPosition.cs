@@ -11,13 +11,16 @@ namespace PMedia
         private string name;
         private int duration;
 
+        public bool ErrorSaving = false;
+
         public VideoPosition(string Path)
         {
-            if (Directory.Exists(Path) == false)
+            if (!Directory.Exists(Path))
             {
                 try
                 {
                     Directory.CreateDirectory(Path);
+                    
                 }
                 catch (Exception ex)
                 {
@@ -90,6 +93,7 @@ namespace PMedia
             catch (Exception ex)
             {
                 CMBox.Show("Error", "Couldn't save video position, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
+                ErrorSaving = true;
                 return;
             }
         }

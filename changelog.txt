@@ -1,0 +1,4 @@
+v0.0.2.8 alpha
+-fixed loading file as tv show with no name in file name
+-fixed setting video position directory
+-fixed infinite loop of error messages trying to save video position

@@ -277,10 +277,9 @@ namespace PMedia
 
         public EpisodeInfo ParseFile(string FilePath)
         {
-            if (File.Exists(FilePath) == false)
-                return EmptyEpisode;
+            if (!File.Exists(FilePath)) return EmptyEpisode; // File doesn't exist
 
-            string NameToCheck = new FileInfo(FilePath).Name.ToLower();
+            string NameToCheck = new FileInfo(FilePath).FullName.ToLower();
             DirectoryInfo DirToCheck = new FileInfo(FilePath).Directory;
 
             if (NameToCheck.Contains("sample"))

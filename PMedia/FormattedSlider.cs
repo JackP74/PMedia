@@ -36,9 +36,7 @@ namespace PMedia
         {
             if (!string.IsNullOrEmpty(this.AutoToolTipFormat))
             {
-                string Content = this.AutoToolTip.Content.ToString();
-
-                Content = Content.Replace(",", "");
+                string Content = this.AutoToolTip.Content.ToString().Replace(",", "");
 
                 try
                 {

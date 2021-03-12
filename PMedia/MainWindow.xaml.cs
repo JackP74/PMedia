@@ -672,7 +672,8 @@ namespace PMedia
                     settings.Save();
 
                 if (mediaPlayer.IsPlaying || mediaPlayer.State == VLCState.Paused)
-                    videoPosition.SavePosition(Convert.ToInt32(mediaPlayer.Time / 1000));
+                    if (!videoPosition.ErrorSaving) // don't keep trying to save
+                        videoPosition.SavePosition(Convert.ToInt32(mediaPlayer.Time / 1000));
             };
 
             SaveTimer.Start();
@@ -1851,9 +1852,8 @@ namespace PMedia
                     videoPosition.SetNewFile(currentFile.Name, Convert.ToInt32(mediaPlayer.Media.Duration / 1000));
 
                     long currentPosition = videoPosition.GetPosition();
-
                     if(currentPosition != 0)
-                    StartThread(() => { Thread.Sleep(1000); mediaPlayer.Time = currentPosition; });
+                        StartThread(() => { Thread.Sleep(1000); mediaPlayer.Time = currentPosition; });
 
                     recents.AddRecent(currentFile.FullName);
                     RefreshRecentsMenu();
