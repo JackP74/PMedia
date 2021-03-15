@@ -1,3 +1,11 @@
+v0.0.2.9 alpha
+-fixed tracks left in context menu after stop
+-changed formatters from soap to xml
+-enabled replacements in file names discovery
+-added loading/saving checks
+-added playlists
+-optimizations
+
 v0.0.2.8 alpha
 -fixed loading file as tv show with no name in file name
 -fixed setting video position directory

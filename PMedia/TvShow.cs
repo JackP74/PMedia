@@ -1,5 +1,4 @@
 ﻿#region "Imports"
-using MessageCustomHandler;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,7 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Text.RegularExpressions;
-using System.Windows;
+
+using MessageCustomHandler;
 #endregion
 
 namespace PMedia
@@ -55,7 +55,7 @@ namespace PMedia
 
             public override string ToString()
             {
-                return string.Format("{0}: Enabled: {1}, Pattern: {2}, Option: {3}", GetType().Name, Enabled, Pattern, RegexOptions);
+                return string.Format($"{GetType().Name}: Enabled: {Enabled}, Pattern: {Pattern}, Option: {RegexOptions}");
             }
         }
 
@@ -151,11 +151,14 @@ namespace PMedia
             // Init default replacements
             Replacements = new List<Replacement>
             {
-                new Replacement { Enabled = false, Pattern = "720p", ReplaceBy = "", IsRegex = false },
-                new Replacement { Enabled = false, Pattern = "1080i", ReplaceBy = "", IsRegex = false },
-                new Replacement { Enabled = false, Pattern = "1080p", ReplaceBy = "", IsRegex = false },
-                new Replacement { Enabled = false, Pattern = "x264", ReplaceBy = "", IsRegex = false },
-                new Replacement { Enabled = false, Pattern = @"(?<!(?:S\d+.?E\\d+\-E\d+.*|S\d+.?E\d+.*|\s\d+x\d+.*))P[ar]*t\s?(\d+)(\s?of\s\d{1,2})?", ReplaceBy = "S01E${1}", IsRegex = true },
+                new Replacement { Enabled = true, Pattern = "360p", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = "480p", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = "720p", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = "1080i", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = "1080p", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = "x264", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = "x265", ReplaceBy = "", IsRegex = false },
+                new Replacement { Enabled = true, Pattern = @"(?<!(?:S\d+.?E\\d+\-E\d+.*|S\d+.?E\d+.*|\s\d+x\d+.*))P[ar]*t\s?(\d+)(\s?of\s\d{1,2})?", ReplaceBy = "S01E${1}", IsRegex = true },
             };
 
             // Init variables
@@ -193,7 +196,7 @@ namespace PMedia
                 // New video info
                 currentEpisode = ParseFile(FilePath);
 
-                if (currentEpisode.IsTvShow) // Is TvShow
+                if (currentEpisode.IsTvShow && currentEpisode.Search) // Is TvShow
                 {
                     episodeList.Add(currentEpisode);
 
@@ -275,6 +278,30 @@ namespace PMedia
             neverSet = false;
         }
 
+        public bool LoadPlaylist(Playlist newPlaylist)
+        {
+            if (newPlaylist.currentList.files.Count() == 0)
+            {
+                CMBox.Show("Warning", "Empty playlist", Style.Warning, Buttons.OK);
+                return false;
+            }
+            else
+            {
+                episodeList.Clear();
+                nextEpisode = new EpisodeInfo();
+                currentEpisode = new EpisodeInfo();
+                previousEpisode = new EpisodeInfo();
+
+                episodeList.AddRange(newPlaylist.currentList.files);
+                currentEpisode = episodeList[0];
+
+                if (episodeList.Count() > 1)
+                    nextEpisode = episodeList[1];
+
+                return true;
+            }
+        }
+
         public EpisodeInfo ParseFile(string FilePath)
         {
             if (!File.Exists(FilePath)) return EmptyEpisode; // File doesn't exist
@@ -310,7 +337,7 @@ namespace PMedia
                 {
                     Match match = matcher.Match(NameToCheck);
 
-                    if (match.Success == false)
+                    if (!match.Success)
                         continue;
 
                     // Show Name
@@ -428,7 +455,7 @@ namespace PMedia
 
         public string GetDirName(string DirPath)
         {
-            if (Directory.Exists(DirPath) == false)
+            if (!Directory.Exists(DirPath))
                 return string.Empty;
 
             string DirName = new DirectoryInfo(DirPath).Name.ToLower();
@@ -477,18 +504,12 @@ namespace PMedia
 
         public EpisodeInfo NextEpisode()
         {
-            if (nextEpisode == null)
-                return EmptyEpisode;
-
-            return nextEpisode;
+            return nextEpisode ?? EmptyEpisode;
         }
 
         public EpisodeInfo PreviousEpisode()
         {
-            if (previousEpisode == null)
-                return EmptyEpisode;
-
-            return previousEpisode;
+            return previousEpisode ?? EmptyEpisode;
         }
 
         public bool HasNextEpisode()
@@ -506,55 +527,5 @@ namespace PMedia
             return currentEpisode;
         }
         #endregion
-    }
-
-    public class EpisodeInfo
-    {
-        public readonly bool IsTvShow;
-        public readonly string Name;
-        public readonly string Episode;
-        public readonly string SearchDir;
-        public readonly string FilePath;
-
-        public EpisodeInfo()
-        {
-            this.IsTvShow = false;
-            this.Name = string.Empty;
-            this.Episode = string.Empty;
-            this.SearchDir = string.Empty;
-            this.FilePath = string.Empty;
-        }
-
-        public EpisodeInfo(bool IsTvShow, string Name, string Episode, string SearchDir, string FilePath)
-        {
-            this.IsTvShow = IsTvShow;
-            this.Name = Name;
-            this.Episode = Episode;
-            this.SearchDir = SearchDir;
-            this.FilePath = FilePath;
-        }
-
-        public override string ToString()
-        {
-            return $"Is Tv Show: {IsTvShow}; Name: {Name}; Episode: {Episode}; Search Dir: {SearchDir}; File Path {FilePath};";
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            if (obj is EpisodeInfo cObj)
-            {
-                return (IsTvShow == cObj.IsTvShow && Name == cObj.Name && Episode == cObj.Episode && SearchDir == cObj.SearchDir && FilePath == cObj.FilePath);
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 }

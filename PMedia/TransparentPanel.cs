@@ -2,7 +2,7 @@
 
 namespace PMedia
 {
-    public class TransparentPanel : System.Windows.Forms.Panel
+    public class TransparentPanel : Panel
     {
         protected override CreateParams CreateParams
         {

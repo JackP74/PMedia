@@ -1,30 +1,33 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Soap;
+using System.Xml.Serialization;
+
+using MessageCustomHandler;
 
 namespace PMedia
 {
+    [Serializable]
+    public class MainSettings
+    {
+        public int Jump;
+        public int Volume;
+        public bool IsMute;
+        public bool AutoPlay;
+        public int AutoPlayTime;
+        public int Rate;
+        public bool AutoAudio;
+        public bool AutoSubtitle;
+        public bool HardwareAcceleration;
+        public bool SubtitleDisable;
+    }
+
     class Settings
     {
         private MainSettings mainSettings;
-        private readonly SoapFormatter SoapFormat;
+        private readonly XmlSerializer XmlFormatter = new XmlSerializer(typeof(MainSettings));
         private readonly string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.ini");
 
         public bool NeedsSaving = false;
-
-        [Serializable] internal struct MainSettings
-        {
-            public int Jump;
-            public int Volume;
-            public bool IsMute;
-            public bool AutoPlay;
-            public int AutoPlayTime;
-            public int Rate;
-            public bool AutoAudio;
-            public bool AutoSubtitle;
-            public bool HardwareAcceleration;
-            public bool SubtitleDisable;
-        }
 
         public int Jump
         {
@@ -181,46 +184,61 @@ namespace PMedia
                 HardwareAcceleration = true,
                 SubtitleDisable = false
             };
-
-            SoapFormat = new SoapFormatter();
         }
 
         public void Save()
         {
-            using(Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            try
             {
-                SoapFormat.Serialize(fStream, mainSettings);
-            }
+                using Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                XmlFormatter.Serialize(fStream, mainSettings);
 
-            NeedsSaving = false;
+                NeedsSaving = false;
+            }
+            catch (Exception ex)
+            {
+                CMBox.Show("Error", "Couldn't save settings, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
+            }
         }
 
         public void Load()
         {
-            if (File.Exists(filePath) == false)
+            if (!File.Exists(filePath))
                 return;
 
             try
             {
                 using Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                mainSettings = (MainSettings)SoapFormat.Deserialize(fStream);
+                mainSettings = (MainSettings)XmlFormatter.Deserialize(fStream);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + @"\log.txt", Environment.NewLine + Environment.NewLine + e.ToString() + Environment.NewLine + Environment.NewLine, System.Text.Encoding.UTF8);
+                try
+                {
+                    File.Delete(filePath);
 
-                Jump = 10;
-                Volume = 100;
-                IsMute = false;
-                AutoPlay = false;
-                AutoPlayTime = 15;
-                Rate = 1;
-                AutoAudio = true;
-                AutoSubtitle = true;
-                Acceleration = true;
-                SubtitleDisable = false;
+                    Jump = 10;
+                    Volume = 100;
+                    IsMute = false;
+                    AutoPlay = false;
+                    AutoPlayTime = 15;
+                    Rate = 1;
+                    AutoAudio = true;
+                    AutoSubtitle = true;
+                    Acceleration = true;
+                    SubtitleDisable = false;
 
-                Save();
+                    using Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                    XmlFormatter.Serialize(fStream, mainSettings);
+
+                    NeedsSaving = false;
+
+                    CMBox.Show("Error", "Couldn't load settings and file was reset, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
+                }
+                catch (Exception e)
+                {
+                    CMBox.Show("Error", "Couldn't settings or reset recents, Error: " + e.Message, Style.Error, Buttons.OK, ex.ToString());
+                }
             }
         }
     }

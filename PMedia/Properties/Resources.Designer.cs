@@ -123,6 +123,16 @@ namespace PMedia.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap btnExport {
+            get {
+                object obj = ResourceManager.GetObject("btnExport", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap btnFile {
             get {
                 object obj = ResourceManager.GetObject("btnFile", resourceCulture);
@@ -176,6 +186,16 @@ namespace PMedia.Properties {
         internal static System.Drawing.Bitmap btnGameModeOn {
             get {
                 object obj = ResourceManager.GetObject("btnGameModeOn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap BtnImport {
+            get {
+                object obj = ResourceManager.GetObject("BtnImport", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

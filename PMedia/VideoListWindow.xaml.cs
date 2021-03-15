@@ -77,7 +77,7 @@ namespace PMedia
                     
                     foreach (EpisodeInfo episodeInfo in selectedEpisodes)
                     {
-                        if (paths.Contains(episodeInfo.FilePath) == false)
+                        if (!paths.Contains(episodeInfo.FilePath))
                             paths.Add(episodeInfo.FilePath);
                     }
 
@@ -93,7 +93,7 @@ namespace PMedia
                     {
                         string dir = new System.IO.FileInfo(episodeInfo.FilePath).DirectoryName;
 
-                        if (paths.Contains(dir) == false)
+                        if (!paths.Contains(dir))
                             paths.Add(dir);
                     }
 
@@ -107,13 +107,13 @@ namespace PMedia
 
                     foreach (EpisodeInfo episodeInfo in selectedEpisodes)
                     {
-                        if (names.Contains(episodeInfo.FilePath) == false)
+                        if (!names.Contains(episodeInfo.FilePath))
                             names.Add(episodeInfo.FilePath);
                     }
 
                     string finalText = string.Join(Environment.NewLine, names).Trim();
 
-                    if (string.IsNullOrEmpty(finalText) == false)
+                    if (!string.IsNullOrEmpty(finalText))
                         Clipboard.SetText(finalText);
                 }
 
@@ -125,13 +125,13 @@ namespace PMedia
                     {
                         string dir = new System.IO.FileInfo(episodeInfo.FilePath).DirectoryName;
 
-                        if (paths.Contains(dir) == false)
+                        if (!paths.Contains(dir))
                             paths.Add(dir);
                     }
 
                     string finalText = string.Join(Environment.NewLine, paths).Trim();
 
-                    if (string.IsNullOrEmpty(finalText) == false)
+                    if (!string.IsNullOrEmpty(finalText))
                         Clipboard.SetText(finalText);
                 }
 

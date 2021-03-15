@@ -9,8 +9,8 @@
         ResizeMode="NoResize">
     <Grid>
         <Image HorizontalAlignment="Left" Height="30" Margin="20,20,0,0" VerticalAlignment="Top" Width="30" Source="/PMedia;component/App.ico"/>
-        <Label Content="PMedia v0.0.2.8 alpha" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Width="162" Foreground="WhiteSmoke"/>
+        <Label Content="PMedia v0.0.2.9 alpha" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Width="162" Foreground="WhiteSmoke"/>
         <Label x:Name="LabelVersion" Content="VLC Lib Version ?" Margin="20,0,20,58" Foreground="WhiteSmoke" Height="31" VerticalAlignment="Bottom"/>
-        <Label Content="date 12 mar 2021" Margin="20,0,20,20" Foreground="WhiteSmoke" Height="33" VerticalAlignment="Bottom"/>
+        <Label Content="date 15 mar 2021" Margin="20,0,20,20" Foreground="WhiteSmoke" Height="33" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>

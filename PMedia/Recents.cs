@@ -1,33 +1,29 @@
-﻿using MessageCustomHandler;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
+using MessageCustomHandler;
 
 namespace PMedia
 {
+    [Serializable]
+    public class RecentList
+    {
+        public List<string> fileList;
+    }
+
     class Recents
     {
         private readonly string path;
         private readonly int recentCount = 10;
 
         private RecentList recents;
-        private readonly BinaryFormatter BinaryFormat;
-
-        [Serializable] internal struct RecentList
-        {
-            public List<string> fileList;
-        }
-
+        private readonly XmlSerializer XmlFormatter = new XmlSerializer(typeof(RecentList));
+        
         public Recents(string Path)
         {
             this.path = Path;
-
-            this.recents = new RecentList();
-            recents.fileList = new List<string>();
-
-            BinaryFormat = new BinaryFormatter();
+            recents = new RecentList { fileList = new List<string>() };
         }
         
         public void Save()
@@ -35,7 +31,7 @@ namespace PMedia
             try
             {
                 using Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                BinaryFormat.Serialize(fStream, recents);
+                XmlFormatter.Serialize(fStream, recents);
             }
             catch (Exception ex)
             {
@@ -52,12 +48,25 @@ namespace PMedia
             try
             {
                 using Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                recents = (RecentList)BinaryFormat.Deserialize(fStream);
+                recents = (RecentList)XmlFormatter.Deserialize(fStream);
             }
             catch (Exception ex)
             {
-                CMBox.Show("Error", "Couldn't load recents, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
-                return;
+                try
+                {
+                    File.Delete(this.path);
+
+                    recents = new RecentList { fileList = new List<string>() };
+
+                    using Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                    XmlFormatter.Serialize(fStream, recents);
+
+                    CMBox.Show("Error", "Couldn't load recents and file was reset, Error: " + ex.Message, Style.Error, Buttons.OK, ex.ToString());
+                }
+                catch(Exception e)
+                {
+                    CMBox.Show("Error", "Couldn't load or reset recents, Error: " + e.Message, Style.Error, Buttons.OK, ex.ToString());
+                }
             }
         }
 
