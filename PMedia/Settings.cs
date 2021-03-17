@@ -190,6 +190,9 @@ namespace PMedia
         {
             try
             {
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
+
                 using Stream fStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
                 XmlFormatter.Serialize(fStream, mainSettings);
 

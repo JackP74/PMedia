@@ -196,7 +196,7 @@ namespace PMedia
                 // New video info
                 currentEpisode = ParseFile(FilePath);
 
-                if (currentEpisode.IsTvShow && currentEpisode.Search) // Is TvShow
+                if (currentEpisode.IsTvShow && currentEpisode.Search && !string.IsNullOrWhiteSpace(currentEpisode.SearchDir)) // Is TvShow
                 {
                     episodeList.Add(currentEpisode);
 
@@ -252,7 +252,6 @@ namespace PMedia
                 }
                 else
                 {
-                    currentEpisode = new EpisodeInfo(false, FilePath, string.Empty, string.Empty, FilePath);
                     episodeList.Add(currentEpisode); // Is not a tv show but add it empty for uniformity
                 }
             }
@@ -306,7 +305,7 @@ namespace PMedia
         {
             if (!File.Exists(FilePath)) return EmptyEpisode; // File doesn't exist
 
-            string NameToCheck = new FileInfo(FilePath).FullName.ToLower();
+            string NameToCheck = new FileInfo(FilePath).FullName;
             DirectoryInfo DirToCheck = new FileInfo(FilePath).Directory;
 
             if (NameToCheck.Contains("sample"))
@@ -449,8 +448,26 @@ namespace PMedia
                 }
             }
 
-            return EmptyEpisode;
+            return ParseMovie(FilePath);
+        }
 
+        public EpisodeInfo ParseMovie(string FilePath)
+        {
+            string pattern = @"^(?<Name>.+?)(?!\.[12]\d\d\d\.\d{,3}[ip]\.)\.(?<Year>\d\d\d\d)\.(?<Resolution>[^.]+)\.(?<Format>[^.]+)";
+            string NameToCheck = new FileInfo(FilePath).Name.Replace(" ", ".");
+
+            foreach (var item in Regex.Matches(NameToCheck, pattern, RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace)
+                .OfType<Match>().Select(mt => new {
+                    Movie = Regex.Replace(mt.Groups["Name"].Value, @"\.", " "),
+                    Year = mt.Groups["Year"].Value,
+                    Resolution = mt.Groups["Resolution"].Value,
+                    Format = mt.Groups["Format"].Value,
+                }))
+            {
+                return new EpisodeInfo(false, item.Movie, $"{item.Year} {item.Resolution} {item.Format}", string.Empty, FilePath);
+            }
+
+            return new EpisodeInfo(false, FilePath, string.Empty, string.Empty, FilePath);
         }
 
         public string GetDirName(string DirPath)

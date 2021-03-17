@@ -1247,8 +1247,18 @@ namespace PMedia
             {
                 if (openFileDialog.FileNames.Count() != 1)
                 {
-                    CMBox.Show("Error", "Multiselect is not supported yet", MessageCustomHandler.Style.Error, Buttons.OK);
-                    return;
+                    Playlist newPlaylist = new Playlist();
+                    List<EpisodeInfo> newFiles = new List<EpisodeInfo>();
+
+                    foreach (string file in openFileDialog.FileNames)
+                        newFiles.Add(tvShow.ParseFile(file));
+
+                    newPlaylist.AddList(newFiles);
+                    tvShow.episodeList.Clear();
+                    tvShow.LoadPlaylist(newPlaylist);
+
+                    if (newPlaylist.currentList.files.Count > 0)
+                        OpenFile(newPlaylist.currentList.files[0].FilePath);
                 }
                 else
                 {
@@ -1630,8 +1640,11 @@ namespace PMedia
                 {
                     mediaPlayer.Stop();
 
-                    mediaPlayer.Media.Dispose();
+                    if (mediaPlayer.Media != null)
+                        mediaPlayer.Media.Dispose();
                     mediaPlayer.Media = null;
+
+                    tvShow.episodeList.Clear();
                 });
                 
                 SetOverlay("Stopped");

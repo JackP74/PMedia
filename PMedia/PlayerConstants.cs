@@ -14,12 +14,14 @@ namespace PMedia
             public static readonly string btnAudio = "Resources/btnAudio.png";
             public static readonly string btnBackward = "Resources/btnBackward.png";
             public static readonly string btnEdit = "Resources/btnEdit.png";
+            public static readonly string btnExport = "Resources/btnExport.png";
             public static readonly string btnFile = "Resources/btnFile.png";
             public static readonly string btnForward = "Resources/btnForward.png";
             public static readonly string btnFullScreenOff = "Resources/btnFullScreenOff.png";
             public static readonly string btnFullScreenOn = "Resources/btnFullScreenOn.png";
             public static readonly string btnGameModeOff = "Resources/btnGameModeOff.png";
             public static readonly string btnGameModeOn = "Resources/btnGameModeOn.png";
+            public static readonly string btnImport = "Resources/btnImport.png";
             public static readonly string btnMediaInfo = "Resources/btnMediaInfo.png";
             public static readonly string btnMute = "Resources/btnMute.png";
             public static readonly string btnNext = "Resources/btnNext.png";

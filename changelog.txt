@@ -1,3 +1,9 @@
+v0.0.3.0 alpha
+-fixed saving settings and recents
+-added movie parser
+-added option to open multiple files
+-small fixes
+
 v0.0.2.9 alpha
 -fixed tracks left in context menu after stop
 -changed formatters from soap to xml

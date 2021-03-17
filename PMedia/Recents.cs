@@ -30,6 +30,9 @@ namespace PMedia
         {
             try
             {
+                if (File.Exists(path))
+                    File.Delete(path);
+
                 using Stream fStream = new FileStream(this.path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
                 XmlFormatter.Serialize(fStream, recents);
             }
