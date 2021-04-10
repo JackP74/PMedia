@@ -301,9 +301,9 @@ namespace PMedia
             }
         }
 
-        public EpisodeInfo ParseFile(string FilePath)
+        public EpisodeInfo ParseFile(string FilePath, bool ByPassExists = false)
         {
-            if (!File.Exists(FilePath)) return EmptyEpisode; // File doesn't exist
+            if (!ByPassExists && !File.Exists(FilePath)) return EmptyEpisode; // File doesn't exist
 
             string NameToCheck = new FileInfo(FilePath).FullName;
             DirectoryInfo DirToCheck = new FileInfo(FilePath).Directory;

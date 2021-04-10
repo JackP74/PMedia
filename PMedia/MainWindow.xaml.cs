@@ -1009,6 +1009,8 @@ namespace PMedia
             MainOverlay.btnFullscreen.Click += BtnFullscreen_Click;
 
             //Top menu controls
+
+            MainOverlay.MenuFileMediaSearch.Click += MenuFileMediaSearch_Click;
             MainOverlay.MenuFileMediaInfo.Click += MenuFileMediaInfo_Click;
             MainOverlay.MenuFileScreenShot.Click += MenuFileScreenShot_Click;
             MainOverlay.MenuFileOpenFile.Click += BtnOpenFile_Click;
@@ -2228,6 +2230,12 @@ namespace PMedia
         }
 
         // Top Menu
+        private void MenuFileMediaSearch_Click(object sender, RoutedEventArgs e)
+        {
+            MediaSearchWindow mediaSearch = new MediaSearchWindow();
+            mediaSearch.Show();
+        }
+
         private void MenuFileMediaInfo_Click(object sender, RoutedEventArgs e)
         {
             MediaInfoWindow frmInfo = new MediaInfoWindow(mediaPlayer.Media);

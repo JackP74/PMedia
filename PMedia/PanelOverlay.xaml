@@ -41,6 +41,15 @@
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Media</TextBlock>
                 </MenuItem.Header>
 
+                <MenuItem x:Name="MenuFileMediaSearch" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
+                    <MenuItem.Icon>
+                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnMediaSearch.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>
+                    </MenuItem.Icon>
+                    <MenuItem.Header>
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#4eadfe">Media Search</TextBlock>
+                    </MenuItem.Header>
+                </MenuItem>
+
                 <MenuItem x:Name="MenuFileMediaInfo" BorderThickness="1,1,1,0" Background="#333333" Margin="0,0,0,0" Height="22" Style="{DynamicResource SimpleMenuItem}">
                     <MenuItem.Icon>
                         <Image RenderOptions.BitmapScalingMode="HighQuality" Source="pack://application:,,,/PMedia;component/Resources/btnMediaInfo.png" HorizontalAlignment="Left" Width="16" Height="16" VerticalAlignment="Top"/>

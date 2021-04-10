@@ -21,7 +21,7 @@ namespace PMedia
             public static readonly string btnFullScreenOn = "Resources/btnFullScreenOn.png";
             public static readonly string btnGameModeOff = "Resources/btnGameModeOff.png";
             public static readonly string btnGameModeOn = "Resources/btnGameModeOn.png";
-            public static readonly string btnImport = "Resources/btnImport.png";
+            public static readonly string btnImport = "Resources/BtnImport.png";
             public static readonly string btnMediaInfo = "Resources/btnMediaInfo.png";
             public static readonly string btnMute = "Resources/btnMute.png";
             public static readonly string btnNext = "Resources/btnNext.png";
@@ -48,6 +48,7 @@ namespace PMedia
             public static readonly string btnVolume1 = "Resources/BtnVolume1.png";
             public static readonly string btnVolume2 = "Resources/BtnVolume2.png";
             public static readonly string btnVolume3 = "Resources/BtnVolume3.png";
+            public static readonly string btnMediaSearch = "Resources/btnMediaSearch.png";
         }
 
         public static class ExternalCommands
