@@ -1,21 +1,21 @@
 ﻿using System.Windows.Forms;
 
-namespace PMedia
+namespace PMedia;
+
+public class TransparentPanel : Panel
 {
-    public class TransparentPanel : Panel
+    protected override CreateParams CreateParams
     {
-        protected override CreateParams CreateParams
+        get
         {
-            get
-            {
-                CreateParams cp = base.CreateParams;
-                cp.ExStyle |= 0x00000020; // WS_EX_TRANSPARENT
-                return cp;
-            }
+            CreateParams cp = base.CreateParams;
+            cp.ExStyle |= 0x00000020; // WS_EX_TRANSPARENT
+            return cp;
         }
-        protected override void OnPaintBackground(PaintEventArgs e)
-        {
-            //base.OnPaintBackground(e);
-        }
+    }
+
+    protected override void OnPaintBackground(PaintEventArgs e)
+    {
+        //base.OnPaintBackground(e);
     }
 }

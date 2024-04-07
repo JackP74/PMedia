@@ -1,18 +1,16 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 
-namespace PMedia
+namespace PMedia;
+
+/// <summary>
+/// Interaction logic for AboutWindow.xaml
+/// </summary>
+public partial class AboutWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for AboutWindow.xaml
-    /// </summary>
-    public partial class AboutWindow : Window
+    public AboutWindow(string libVersion)
     {
-        public AboutWindow(string libVersion)
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-            LabelVersion.Content = $"VLC Lib Version {libVersion}";
-        }
+        LabelVersion.Content = $"VLC Lib Version {libVersion}";
     }
 }
