@@ -7,6 +7,8 @@ using MessageCustomHandler;
 using System.Text;
 using System.Windows.Data;
 using System.Linq;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace PMedia
 {
@@ -15,36 +17,30 @@ namespace PMedia
     /// </summary>
     public partial class MediaSearchWindow : Window
     {
+        public event PropertyChangedEventHandler PropertyChanged;
         private readonly string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
         private readonly TvShow tvShowHelper = new TvShow();
-        private readonly List<MediaQuery> mediaQueries = new List<MediaQuery>();
+        private List<MediaQuery> mediaQueries = new List<MediaQuery>();
+        private ObservableCollection<ListItem> items = new ObservableCollection<ListItem>();
+
+        public ObservableCollection<ListItem> Items
+        {
+            get
+            {
+                return items;
+            }
+            set
+            {
+                items = value;
+                OnPropertyChanged("Items");
+            }
+        }
+
+        //public ObservableCollection<ListItem> Items { get; set; }
 
         public MediaSearchWindow()
         {
             InitializeComponent();
-        }
-
-        internal class ListItem
-        {
-            public string Name { get; set; }
-
-            public string Info { get; set; }
-
-            public string Position { get; set; }
-        }
-
-        internal class MediaQuery
-        {
-            public string Name;
-            public string Info;
-            public string Position;
-
-            public MediaQuery(string Name, string Info, string Position)
-            {
-                this.Name = Name;
-                this.Info = Info;
-                this.Position = Position;
-            }
         }
 
         private void StartThread(ThreadStart newStart)
@@ -90,29 +86,39 @@ namespace PMedia
 
             if (Directory.Exists(dataPath))
             {
-                StartThread(() =>
+                if (mediaQueries == null || mediaQueries.Count == 0)
                 {
-                    var files = Directory.GetFiles(dataPath, "*.ini", SearchOption.TopDirectoryOnly);
-
-                    foreach (var file in files)
+                    StartThread(() =>
                     {
-                        string position = GetPosition(file);
+                        var files = Directory.GetFiles(dataPath, "*.ini", SearchOption.TopDirectoryOnly);
 
-                        int index = file.LastIndexOf(@"-");
-                        string fileName = file.Substring(0, index);
+                        foreach (var file in files)
+                        {
+                            string position = GetPosition(file);
 
-                        var fileInfo = tvShowHelper.ParseFile(fileName, true);
+                            int index = file.LastIndexOf(@"-");
+                            string filePath = file.Substring(0, index);
+                            string fileName = new FileInfo(filePath).Name;
 
-                        mediaQueries.Add(new MediaQuery(fileInfo.Name, fileInfo.Episode, position));
-                    }
+                            var fileInfo = tvShowHelper.ParseFile(fileName, true);
 
-                    this.Dispatcher.Invoke(new Action(() =>
-                    {
-                        RefreshItems();
-                    }));
+                            mediaQueries.Add(new MediaQuery(fileInfo.Name, fileInfo.Episode == "" ? "-none-" : fileInfo.Episode, position));
+                        }
 
-                });
-                
+                        PlayerConstants.mediaQueries = mediaQueries;
+
+                        this.Dispatcher.Invoke(new Action(() =>
+                        {
+                            RefreshItems();
+                        }));
+
+                    });
+                }
+                else
+                {
+                    mediaQueries = PlayerConstants.mediaQueries;
+                    RefreshItems();
+                }
             }
         }
 
@@ -143,5 +149,19 @@ namespace PMedia
                     InfoList.Items.Add(new ListItem { Name = item.Name, Info = item.Info, Position = item.Position });
             }
         }
+
+        private void OnPropertyChanged(string info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
+    }
+
+    public class ListItem
+    {
+        public string Name { get; set; }
+
+        public string Info { get; set; }
+
+        public string Position { get; set; }
     }
 }

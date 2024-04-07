@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows.Media.Imaging;
 
@@ -6,6 +7,8 @@ namespace PMedia
 {
     internal static class PlayerConstants
     {
+        public static List<MediaQuery> mediaQueries;
+
         public static class Images
         {
             public static readonly string btnAbout = "Resources/btnAbout.png";

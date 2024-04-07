@@ -2203,6 +2203,9 @@ namespace PMedia
 
         private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (GameMode)
+                return;
+
             if (e.Delta > 0)
                 Volume += 5;
             else if (e.Delta < 0)
@@ -2211,6 +2214,9 @@ namespace PMedia
 
         private void OverlayPanel_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            if (GameMode)
+                return;
+
             if (e.Delta > 0)
                 Volume += 5;
             else if (e.Delta < 0)

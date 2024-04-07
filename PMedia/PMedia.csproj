@@ -118,6 +118,7 @@
     <Compile Include="EpisodeInfo.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="JumpCommand.cs" />
+    <Compile Include="MediaQuery.cs" />
     <Compile Include="OutlinedTextBlock.cs" />
     <Compile Include="PanelOverlay.cs">
       <DependentUpon>PanelOverlay.xaml</DependentUpon>
