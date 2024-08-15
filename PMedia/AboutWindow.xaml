@@ -1,0 +1,16 @@
+﻿<Window x:Class="PMedia.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PMedia"
+        mc:Ignorable="d"
+        Title="About" Height="180" Width="230" Icon="App.ico" Background="#333333" WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid>
+        <Image HorizontalAlignment="Left" Height="30" Margin="20,20,0,0" VerticalAlignment="Top" Width="30" Source="/PMedia;component/App.ico"/>
+        <Label Content="PMedia v0.0.3.1 alpha" HorizontalAlignment="Left" Margin="55,24,0,0" VerticalAlignment="Top" Width="162" Foreground="WhiteSmoke"/>
+        <Label x:Name="LabelVersion" Content="VLC Lib Version ?" Margin="20,0,20,58" Foreground="WhiteSmoke" Height="31" VerticalAlignment="Bottom"/>
+        <Label Content="date 10 apr 2021" Margin="20,0,20,20" Foreground="WhiteSmoke" Height="33" VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>
