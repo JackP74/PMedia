@@ -79,6 +79,6 @@ internal static class PlayerConstants
         if (pathInApplication[0] == '/')
             pathInApplication = pathInApplication.Substring(1);
 
-        return new BitmapImage(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
+        return new(new Uri(@"pack://application:,,,/" + assembly.GetName().Name + ";component/" + pathInApplication, UriKind.Absolute));
     }
 }

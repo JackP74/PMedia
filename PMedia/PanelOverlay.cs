@@ -14,7 +14,7 @@ namespace LibVLCSharp.WPF
         Window _wndhost;
         readonly FrameworkElement _bckgnd;
         UIElement _content;
-        readonly Point _zeroPoint = new Point(0, 0);
+        readonly Point _zeroPoint = new(0, 0);
 
         public event MouseWheelEventHandler MouseScrollDone;
         public event KeyEventHandler KeyDownDone;
@@ -110,7 +110,7 @@ namespace LibVLCSharp.WPF
             try
             {
                 Thumb thumb = (SliderMedia.Template.FindName("PART_Track", SliderMedia) as Track)?.Thumb;
-                thumb.MouseEnter += new MouseEventHandler(SliderMedia_MouseEnter);
+                thumb.MouseEnter += new(SliderMedia_MouseEnter);
             }
             catch (Exception ex)
             {
